@@ -1,6 +1,6 @@
 # Mission Control
 
-A minimal, private, real-time mission control app for professionals.
+A minimal, private, real-time mission control app.
 
 ## Stack
 
