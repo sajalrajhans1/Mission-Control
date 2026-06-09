@@ -96,7 +96,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem("mc_session");
+    const saved = sessionStorage.getItem("mc_session");
     if (saved === "user1" || saved === "user2") {
       setActiveUser(saved);
     }
@@ -318,17 +318,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
         } else {
           await settings.create({ key, value: hash });
         }
-        localStorage.setItem("mc_session", user);
+        sessionStorage.setItem("mc_session", user);
         setActiveUser(user);
         return { success: true };
       }
-
+ 
       if (!password || !password.trim()) {
         return { success: false, error: "Password is required." };
       }
       const inputHash = await sha256(password.trim());
       if (inputHash === storedHash) {
-        localStorage.setItem("mc_session", user);
+        sessionStorage.setItem("mc_session", user);
         setActiveUser(user);
         return { success: true };
       }
@@ -336,9 +336,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
     },
     [settings]
   );
-
+ 
   const logout = useCallback(() => {
-    localStorage.removeItem("mc_session");
+    sessionStorage.removeItem("mc_session");
     setActiveUser(null);
   }, []);
 
