@@ -61,7 +61,7 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
   const u1Init = user1 ? user1[0].toUpperCase() : "1";
   const u2Init = user2 ? user2[0].toUpperCase() : "2";
 
-  const isBoth = task.assigned_to === "Both";
+  const isBoth = (task.assigned_to || "").trim().toLowerCase() === "both";
 
   return (
     <div className="flex items-center gap-3 rounded-xl border bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
