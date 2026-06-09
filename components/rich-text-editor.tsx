@@ -258,7 +258,7 @@ export function RichTextEditor({
         onBlur={handleBlur}
         onFocus={handleFocus}
         data-placeholder={placeholder}
-        className="flex-1 p-4 outline-none resize-y min-h-[300px] max-h-[700px] overflow-y-auto leading-7 text-sm font-sans rich-editor-content dark:bg-zinc-950/20 text-zinc-800 dark:text-zinc-200"
+        className="flex-1 p-4 outline-none h-[420px] overflow-y-auto leading-7 text-sm font-sans rich-editor-content dark:bg-zinc-950/20 text-zinc-800 dark:text-zinc-200"
       />
     </div>
   );
