@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Brain, CheckSquare, Folder, Home, LogOut, Settings, WalletCards
+  Brain, CheckSquare, Folder, Home, LogOut, Settings, WalletCards, Lock
 } from "lucide-react";
 import { useActiveUser, useUserNames, useUserColors } from "@/components/data-provider";
 import { GlobalSearch } from "@/components/global-search";
@@ -36,10 +36,53 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     document.documentElement.classList.remove("dark");
   }, []);
 
-  // Auth/Login State
+  // Auth/Login & Lock State
   const [selectedProfile, setSelectedProfile] = useState<"user1" | "user2" | null>(null);
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isLocked, setIsLocked] = useState(false);
+  const [unlockError, setUnlockError] = useState<string | null>(null);
+  const [shake, setShake] = useState(false);
+
+  // Initialize lock state from sessionStorage
+  useEffect(() => {
+    const locked = sessionStorage.getItem("mc_locked") === "true";
+    if (locked) {
+      setIsLocked(true);
+    }
+  }, []);
+
+  // Workspace Lock trigger
+  const lock = () => {
+    if (!activeUser) return;
+    sessionStorage.setItem("mc_locked", "true");
+    setIsLocked(true);
+    setPassword("");
+    setUnlockError(null);
+  };
+
+  // Keyboard shortcut listener: Alt+L, Ctrl+Alt+L, Ctrl+Shift+L, Alt+Space+L
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!activeUser) return;
+
+      const isLKey = e.key.toLowerCase() === "l";
+
+      const matchesShortcut = 
+        (e.altKey && isLKey) || 
+        (e.ctrlKey && e.altKey && isLKey) ||
+        (e.ctrlKey && e.shiftKey && isLKey) ||
+        (e.altKey && e.code === "Space" && isLKey);
+
+      if (matchesShortcut) {
+        e.preventDefault();
+        lock();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeUser]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +94,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       setSelectedProfile(null);
     } else {
       setAuthError(res.error || "Failed to log in.");
+    }
+  };
+
+  const handleUnlock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeUser) return;
+    setUnlockError(null);
+    const res = await login(activeUser, password);
+    if (res.success) {
+      setPassword("");
+      setIsLocked(false);
+      sessionStorage.removeItem("mc_locked");
+    } else {
+      setUnlockError("Incorrect password.");
+      setShake(true);
+      setTimeout(() => setShake(false), 400);
     }
   };
 
@@ -139,6 +198,73 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
+  if (isLocked) {
+    const color = activeUser === "user1" ? userColors.user1 : userColors.user2;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-zinc-950 px-4 transition-all duration-300 relative">
+        <div className="absolute inset-0 bg-cover bg-center opacity-10 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]" />
+        
+        <Card className={cn(
+          "w-full max-w-[420px] shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl border border-zinc-200 transition-all duration-300 relative z-10",
+          shake && "animate-shake"
+        )}>
+          <CardHeader className="text-center pb-4">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full text-white font-bold text-xl shadow-lg hover:scale-105 transition-transform" style={{ backgroundColor: color }}>
+              {activeUserName ? activeUserName[0].toUpperCase() : "M"}
+            </div>
+            <CardTitle className="text-2xl font-black tracking-widest text-zinc-900 tracking-wider">
+              MISSION CONTROL
+            </CardTitle>
+            <p className="mt-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Workspace Locked
+            </p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleUnlock} className="grid gap-4">
+              <div className="grid gap-1.5">
+                <p className="text-xs text-center text-zinc-500 mb-2">
+                  Enter password for <span className="font-bold text-zinc-700">{activeUserName}</span> to resume your session.
+                </p>
+                <Input
+                  type="password"
+                  placeholder="Enter password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoFocus
+                  className="h-11 rounded-xl text-center text-sm border-zinc-200 focus-visible:ring-1"
+                />
+                {unlockError && (
+                  <p className="text-xs text-red-500 text-center font-semibold mt-1">
+                    {unlockError}
+                  </p>
+                )}
+              </div>
+              
+              <div className="flex flex-col gap-2 mt-2">
+                <Button type="submit" className="h-11 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold text-sm transition-all shadow-md">
+                  Unlock Workspace
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout();
+                    setIsLocked(false);
+                    sessionStorage.removeItem("mc_locked");
+                    setPassword("");
+                    setUnlockError(null);
+                  }}
+                  className="text-xs text-zinc-400 hover:text-zinc-650 transition-colors py-1.5 font-medium underline underline-offset-4"
+                >
+                  Switch Profile / Logout
+                </button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#fafafa]">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r bg-white px-4 py-5 lg:block">
@@ -190,6 +316,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   {(activeUserName ? activeUserName[0] : "").toUpperCase()}
                 </div>
                 <span className="hidden text-sm font-medium sm:inline">{activeUserName}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={lock}
+                  className="h-9 w-9 rounded-xl text-zinc-600 hover:text-zinc-900 hover:bg-zinc-105 dark:text-zinc-400 dark:hover:text-zinc-200"
+                  title="Lock Workspace"
+                >
+                  <Lock className="h-4 w-4" />
+                </Button>
                 <Button
                   variant="ghost"
                   size="icon"
