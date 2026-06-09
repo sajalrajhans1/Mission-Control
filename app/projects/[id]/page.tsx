@@ -278,14 +278,14 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       </div>
 
       {/* Main Two Column layout */}
-      <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_420px] lg:h-[calc(100vh-220px)] lg:min-h-[600px]">
         {/* Left Hand Screen: Scope & Roadmap */}
-        <div className="grid gap-6 content-start">
+        <div className="grid gap-6 content-start lg:flex lg:flex-col lg:h-full lg:min-h-0">
           {project.project_type === "client" ? (
             <>
               {/* Project Scope Card */}
-              <Card className="overflow-hidden">
-                <CardHeader className="pb-3 border-b bg-zinc-50/50 dark:bg-zinc-900/50 dark:border-zinc-800">
+              <Card className="flex flex-col h-[500px] lg:h-auto lg:flex-[58] min-h-[350px] overflow-hidden dark:bg-zinc-900 dark:border-zinc-800">
+                <CardHeader className="pb-3 border-b bg-zinc-50/50 dark:bg-zinc-900/50 dark:border-zinc-800 shrink-0">
                   <div className="flex items-center justify-between gap-4">
                     <CardTitle className="text-zinc-900 dark:text-zinc-50 text-base flex items-center gap-1.5 font-bold">
                       <FileText className="h-4.5 w-4.5 text-blue-500" />
@@ -317,26 +317,28 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="pt-4">
+                <CardContent className="pt-4 flex-1 flex flex-col min-h-0">
                   {activeScopeTab === "briefing" ? (
                     <RichTextEditor
                       initialValue={briefingDraft}
                       onSave={saveBriefing}
                       placeholder="Paste the client's original brief, requirements, Fiverr instructions, or communication details here... (Saves on click-away)"
+                      className="flex-1 flex flex-col min-h-0"
                     />
                   ) : (
                     <RichTextEditor
                       initialValue={prdDraft}
                       onSave={savePrd}
                       placeholder="Write your technical specs, milestones detail, deliverables, and PRD requirements here... (Saves on click-away)"
+                      className="flex-1 flex flex-col min-h-0"
                     />
                   )}
                 </CardContent>
               </Card>
 
               {/* Milestones Card */}
-              <Card>
-                <CardHeader className="pb-2">
+              <Card className="flex flex-col h-[420px] lg:h-auto lg:flex-[42] min-h-[300px] overflow-hidden dark:bg-zinc-900 dark:border-zinc-800">
+                <CardHeader className="pb-2 shrink-0">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-zinc-900 dark:text-zinc-50 text-base flex items-center gap-1.5 font-bold">
                       <Calendar className="h-4.5 w-4.5 text-blue-500 animate-pulse" />
@@ -355,9 +357,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     />
                   )}
                 </CardHeader>
-                <CardContent className="grid gap-4 pt-4">
+                <CardContent className="pt-4 flex-1 flex flex-col min-h-0 gap-4">
                   {/* Quick Add Form */}
-                  <div className="grid gap-2 border p-3.5 rounded-xl bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/30">
+                  <div className="grid gap-2 border p-3.5 rounded-xl bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/30 shrink-0">
                     <h4 className="text-xs font-bold text-zinc-600 dark:text-zinc-400">Add Milestone Checkpoint</h4>
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
                       <div className="flex-1 grid gap-1">
@@ -386,7 +388,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                   </div>
 
                   {/* Timeline List */}
-                  <div className="relative pl-6 border-l border-zinc-200 dark:border-zinc-800 space-y-4 ml-3 pt-2">
+                  <div className="relative pl-6 border-l border-zinc-200 dark:border-zinc-800 space-y-4 ml-3 pt-2 flex-1 overflow-y-auto pr-1 min-h-0">
                     {milestones.map((m) => {
                       const isOverdue = m.due_date && new Date(m.due_date) < new Date() && !m.completed;
                       return (
@@ -463,18 +465,19 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             </>
           ) : (
             /* Normal Project PRD specs */
-            <Card className="h-full">
-              <CardHeader className="pb-3 border-b bg-zinc-50/50 dark:bg-zinc-900/50 dark:border-zinc-800">
+            <Card className="flex flex-col h-[600px] lg:h-full min-h-[500px] overflow-hidden dark:bg-zinc-900 dark:border-zinc-800">
+              <CardHeader className="pb-3 border-b bg-zinc-50/50 dark:bg-zinc-900/50 dark:border-zinc-800 shrink-0">
                 <CardTitle className="text-zinc-900 dark:text-zinc-50 text-base flex items-center gap-1.5 font-bold">
                   <FileText className="h-4.5 w-4.5 text-zinc-500" />
                   Product Requirements Document (PRD)
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-4">
+              <CardContent className="pt-4 flex-1 flex flex-col min-h-0">
                 <RichTextEditor
                   initialValue={prdDraft}
                   onSave={savePrd}
                   placeholder="Paste startup ideation details or describe the product requirements document (PRD) here... (Saves on click-away)"
+                  className="flex-1 flex flex-col min-h-0"
                 />
               </CardContent>
             </Card>
@@ -482,7 +485,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         </div>
 
         {/* Right Hand Screen: Navigator Panel (Tabs) */}
-        <div className="flex flex-col h-[600px] lg:h-auto min-h-[500px]">
+        <div className="flex flex-col h-[600px] lg:h-full min-h-[500px]">
           <Card className="flex flex-col h-full overflow-hidden dark:bg-zinc-900 dark:border-zinc-800">
             {/* Navigator Tab Selector */}
             <div className="flex border-b bg-zinc-50/50 dark:bg-zinc-900/50 dark:border-zinc-800">
@@ -519,7 +522,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Tab Contents Panel */}
-            <div className="flex-1 overflow-y-auto p-4 dark:bg-zinc-950/20">
+            <div className={cn("flex-1 p-4 dark:bg-zinc-950/20 min-h-0", activeTab === "chat" ? "flex flex-col" : "overflow-y-auto")}>
               {/* TASKS TAB */}
               {activeTab === "tasks" && (
                 <div className="grid gap-4">
@@ -641,7 +644,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
               {/* CHAT TAB */}
               {activeTab === "chat" && (
-                <div className="flex flex-col h-[480px] justify-between">
+                <div className="flex flex-col flex-1 min-h-0 justify-between">
                   {/* Message History list */}
                   <div className="flex-1 overflow-y-auto space-y-3 pr-1 pb-4">
                     {chatHistory.map((msg) => {
