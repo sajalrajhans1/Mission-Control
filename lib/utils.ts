@@ -9,9 +9,11 @@ export function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function formatMoney(value: number) {
-  const symbol = value >= 1000 ? "₹" : "$";
-  return `${symbol}${Math.abs(value).toLocaleString(undefined, {
+export function formatMoney(value: number, currencySymbol: string = "₹") {
+  const isNegative = value < 0;
+  const absVal = Math.abs(value);
+  return `${isNegative ? "-" : ""}${currencySymbol}${absVal.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2
   })}`;
 }

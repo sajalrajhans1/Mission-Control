@@ -27,6 +27,7 @@ export function QuickAdd({ inline = false }: { inline?: boolean }) {
   const names = useUserNames();
   const { activeUser } = useActiveUser();
   const [open, setOpen] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
   const [kind, setKind] = useState<Kind>("Task");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -44,6 +45,7 @@ export function QuickAdd({ inline = false }: { inline?: boolean }) {
     setVaultId("");
     setOpen(false);
     setKind("Task");
+    setIsPrivate(false);
   };
 
   const submit = async () => {
@@ -68,7 +70,8 @@ export function QuickAdd({ inline = false }: { inline?: boolean }) {
         title,
         body,
         color: "Yellow",
-        author: activeUser === "user2" ? names.user2 : names.user1
+        author: activeUser === "user2" ? names.user2 : names.user1,
+        is_private: isPrivate
       });
     }
     if (kind === "Money Entry") {
@@ -127,6 +130,8 @@ export function QuickAdd({ inline = false }: { inline?: boolean }) {
           onSubmit={submit}
           handleKeyDown={handleKeyDown}
           showTypePicker={false}
+          isPrivate={isPrivate}
+          setIsPrivate={setIsPrivate}
         />
       </div>
     );
@@ -161,6 +166,8 @@ export function QuickAdd({ inline = false }: { inline?: boolean }) {
         onSubmit={submit}
         handleKeyDown={handleKeyDown}
         showTypePicker
+        isPrivate={isPrivate}
+        setIsPrivate={setIsPrivate}
       />
     </>
   );
@@ -171,7 +178,8 @@ type VaultRow = { id: string; name: string; is_default: boolean };
 function QuickAddDialog({
   open, kind, setKind, title, setTitle, body, setBody,
   amount, setAmount, type, setType, vaultId, setVaultId,
-  customVaults, onClose, onSubmit, handleKeyDown, showTypePicker
+  customVaults, onClose, onSubmit, handleKeyDown, showTypePicker,
+  isPrivate, setIsPrivate
 }: {
   open: boolean;
   kind: Kind;
@@ -191,6 +199,8 @@ function QuickAddDialog({
   onSubmit: () => void;
   handleKeyDown: (e: React.KeyboardEvent) => void;
   showTypePicker: boolean;
+  isPrivate: boolean;
+  setIsPrivate: (v: boolean) => void;
 }) {
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -228,6 +238,21 @@ function QuickAddDialog({
             <Field label={kind === "Task" ? "Note" : "Content"}>
               <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} placeholder={kind === "Task" ? "Any important details..." : ""} />
             </Field>
+          )}
+
+          {kind === "Sticky Note" && (
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                type="checkbox"
+                id="quick-add-is-private"
+                checked={isPrivate}
+                onChange={(e) => setIsPrivate(e.target.checked)}
+                className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
+              />
+              <label htmlFor="quick-add-is-private" className="text-sm font-medium text-zinc-700">
+                Keep this sticky note private (only visible to you)
+              </label>
+            </div>
           )}
 
           {kind === "Money Entry" && (

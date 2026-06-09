@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import {
-  AlertCircle, Check, Sparkles, Trash2, X
+  AlertCircle, Check, Sparkles, Trash2, X, Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,12 +10,14 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Field } from "@/components/field";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import { useData, useUserNames, useActiveUser } from "@/components/data-provider";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { cn, todayISO } from "@/lib/utils";
 import type { Row } from "@/lib/database.types";
 
-const CATEGORIES = ["Food", "Tea", "Travel", "Utilities", "Subscriptions", "Business", "Misc"];
+const CATEGORIES = ["Food", "Tea", "Travel", "Utilities", "Subscriptions", "Business", "Savings", "Misc"];
 
 const CATEGORY_COLORS: Record<string, string> = {
   Food: "#f87171",          // red-400
@@ -24,11 +26,12 @@ const CATEGORY_COLORS: Record<string, string> = {
   Utilities: "#34d399",     // emerald-400
   Subscriptions: "#60a5fa",  // blue-400
   Business: "#a78bfa",      // purple-400
+  Savings: "#10b981",       // emerald-500
   Misc: "#9ca3af"           // gray-400
 };
 
 export default function MoneyPage() {
-  const { moneyEntries, settings } = useData();
+  const { moneyEntries, settings, savingsGoals } = useData();
   const { activeUser } = useActiveUser();
   const names = useUserNames();
 
@@ -41,6 +44,78 @@ export default function MoneyPage() {
 
   const [deletingEntry, setDeletingEntry] = useState<Row<"money_entries"> | null>(null);
   const [converting, setConverting] = useState(false);
+
+  // ── Savings Goals State & Logic ───────────────────────────────────────────
+  const [showCreateGoal, setShowCreateGoal] = useState(false);
+  const [newGoalTitle, setNewGoalTitle] = useState("");
+  const [newGoalTarget, setNewGoalTarget] = useState("");
+
+  const [adjustingGoal, setAdjustingGoal] = useState<Row<"savings_goals"> | null>(null);
+  const [adjustMode, setAdjustMode] = useState<"deposit" | "withdraw">("deposit");
+  const [adjustAmount, setAdjustAmount] = useState("");
+  const [deletingGoal, setDeletingGoal] = useState<Row<"savings_goals"> | null>(null);
+
+  const handleCreateGoal = async () => {
+    if (!newGoalTitle.trim() || Number(newGoalTarget) <= 0) return;
+    await savingsGoals.create({
+      title: newGoalTitle.trim(),
+      target_amount: Number(newGoalTarget),
+      current_amount: 0,
+      created_by: myKey
+    });
+    setNewGoalTitle("");
+    setNewGoalTarget("");
+    setShowCreateGoal(false);
+  };
+
+  const handleAdjustGoal = async () => {
+    if (!adjustingGoal || Number(adjustAmount) <= 0) return;
+    const amt = Number(adjustAmount);
+    if (adjustMode === "withdraw" && amt > adjustingGoal.current_amount) {
+      alert("Cannot withdraw more than the current savings balance.");
+      return;
+    }
+
+    const nextAmount = adjustMode === "deposit"
+      ? adjustingGoal.current_amount + amt
+      : adjustingGoal.current_amount - amt;
+
+    await savingsGoals.update(adjustingGoal.id, { current_amount: nextAmount });
+
+    await moneyEntries.create({
+      description: adjustMode === "deposit" ? `Deposit to: ${adjustingGoal.title}` : `Withdrawal from: ${adjustingGoal.title}`,
+      amount: amt,
+      type: adjustMode === "deposit" ? "Expense" : "Income",
+      added_by: myKey,
+      category: "Savings",
+      is_request: false,
+      savings_goal_id: adjustingGoal.id,
+      entry_date: todayISO()
+    });
+
+    setAdjustAmount("");
+    setAdjustingGoal(null);
+  };
+
+  const handleDeleteGoal = async () => {
+    if (!deletingGoal) return;
+    
+    if (deletingGoal.current_amount > 0) {
+      // Create refund entry
+      await moneyEntries.create({
+        description: `Refund from: ${deletingGoal.title} (Goal Deleted)`,
+        amount: deletingGoal.current_amount,
+        type: "Income",
+        added_by: myKey,
+        category: "Savings",
+        is_request: false,
+        entry_date: todayISO()
+      });
+    }
+
+    await savingsGoals.remove(deletingGoal.id);
+    setDeletingGoal(null);
+  };
 
   // ── Currency Preference ───────────────────────────────────────────────────
   const currencyRow = settings.rows.find((r) => r.key === "currency_preference");
@@ -412,6 +487,84 @@ export default function MoneyPage() {
         </Card>
       </div>
 
+      {/* ── Savings Goals ─────────────────────────────────────────────────── */}
+      <Card className="dark:border-zinc-800 dark:bg-zinc-900">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-zinc-900 dark:text-zinc-50">Savings Goals</CardTitle>
+            <p className="text-xs text-muted-foreground mt-0.5">Put money aside for long-term targets.</p>
+          </div>
+          <Button onClick={() => setShowCreateGoal(true)} className="rounded-xl">
+            <Plus className="h-4 w-4 mr-1.5" /> Create Goal
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {savingsGoals.rows.map((goal) => {
+              const percent = Math.min(100, Math.max(0, goal.target_amount ? (goal.current_amount / goal.target_amount) * 100 : 0));
+              return (
+                <Card key={goal.id} className="relative overflow-hidden bg-zinc-50/50 dark:bg-zinc-900/50 border dark:border-zinc-800">
+                  <CardContent className="pt-6 grid gap-4">
+                    <div>
+                      <div className="flex justify-between items-start gap-2 mb-1">
+                        <h4 className="font-bold text-sm text-zinc-800 dark:text-zinc-200 truncate">{goal.title}</h4>
+                        <span className="text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-1.5 py-0.5 rounded font-medium shrink-0">
+                          by {goal.created_by === "user1" ? names.user1 : names.user2}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-baseline mt-2 text-xs">
+                        <span className="text-zinc-500">Progress</span>
+                        <span className="font-bold text-zinc-900 dark:text-zinc-50">
+                          {formatVal(goal.current_amount)} / {formatVal(goal.target_amount)}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <Progress value={percent} className="h-2" />
+                      <div className="text-[10px] text-right text-muted-foreground font-medium">{percent.toFixed(0)}% Complete</div>
+                    </div>
+                    
+                    <div className="flex gap-2 justify-end mt-1 pt-3 border-t dark:border-zinc-800">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 rounded-lg"
+                        onClick={() => { setAdjustingGoal(goal); setAdjustMode("deposit"); }}
+                      >
+                        Deposit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 rounded-lg"
+                        onClick={() => { setAdjustingGoal(goal); setAdjustMode("withdraw"); }}
+                        disabled={goal.current_amount <= 0}
+                      >
+                        Withdraw
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-destructive hover:bg-red-50 dark:hover:bg-red-950/20"
+                        onClick={() => setDeletingGoal(goal)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+            {savingsGoals.rows.length === 0 && (
+              <div className="sm:col-span-2 lg:col-span-3 py-8 text-center text-xs text-muted-foreground italic">
+                No savings goals created yet. Set a goal to start saving!
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* ── Split Requests Dashboard ────────────────────────────────────────── */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Money Requests Panel */}
@@ -721,6 +874,81 @@ export default function MoneyPage() {
         onConfirm={() => {
           if (deletingEntry) moneyEntries.remove(deletingEntry.id);
         }}
+      />
+
+      {/* ── Create Goal Dialog ────────────────────────────────────────── */}
+      <Dialog open={showCreateGoal} onOpenChange={(open) => !open && setShowCreateGoal(false)}>
+        <DialogContent className="max-w-md bg-white dark:bg-zinc-900 border dark:border-zinc-800">
+          <DialogHeader>
+            <DialogTitle>New Savings Goal</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 pt-2">
+            <Field label="Goal Title">
+              <Input
+                placeholder="Trip to Tokyo, New Mac Studio, emergency fund..."
+                value={newGoalTitle}
+                onChange={(e) => setNewGoalTitle(e.target.value)}
+              />
+            </Field>
+            <Field label={`Target Amount (${currencySymbol})`}>
+              <Input
+                type="number"
+                placeholder="50000"
+                value={newGoalTarget}
+                onChange={(e) => setNewGoalTarget(e.target.value)}
+              />
+            </Field>
+            <div className="flex gap-2 justify-end mt-2">
+              <Button variant="outline" onClick={() => setShowCreateGoal(false)}>Cancel</Button>
+              <Button onClick={handleCreateGoal} disabled={!newGoalTitle.trim() || Number(newGoalTarget) <= 0}>
+                Create Goal
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Deposit/Withdraw Dialog ────────────────────────────────────── */}
+      <Dialog open={Boolean(adjustingGoal)} onOpenChange={(open) => !open && setAdjustingGoal(null)}>
+        <DialogContent className="max-w-md bg-white dark:bg-zinc-900 border dark:border-zinc-800">
+          <DialogHeader>
+            <DialogTitle>
+              {adjustMode === "deposit" ? "Deposit to" : "Withdraw from"} {adjustingGoal?.title}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 pt-2">
+            <div className="text-xs text-muted-foreground">
+              Current Balance: <span className="font-bold text-zinc-900 dark:text-zinc-50">{adjustingGoal ? formatVal(adjustingGoal.current_amount) : ""}</span>
+            </div>
+            <Field label={`Amount to ${adjustMode === "deposit" ? "deposit" : "withdraw"} (${currencySymbol})`}>
+              <Input
+                type="number"
+                placeholder="1000"
+                value={adjustAmount}
+                onChange={(e) => setAdjustAmount(e.target.value)}
+              />
+            </Field>
+            <div className="flex gap-2 justify-end mt-2">
+              <Button variant="outline" onClick={() => setAdjustingGoal(null)}>Cancel</Button>
+              <Button onClick={handleAdjustGoal} disabled={Number(adjustAmount) <= 0}>
+                Confirm {adjustMode === "deposit" ? "Deposit" : "Withdrawal"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Confirm Delete Goal Dialog ─────────────────────────────────── */}
+      <ConfirmDialog
+        open={Boolean(deletingGoal)}
+        onOpenChange={(open) => !open && setDeletingGoal(null)}
+        title="Delete Savings Goal?"
+        description={
+          deletingGoal?.current_amount && deletingGoal.current_amount > 0
+            ? `Are you sure you want to delete "${deletingGoal?.title}"? The remaining balance of ${formatVal(deletingGoal.current_amount)} will be refunded back to your wallet.`
+            : `Are you sure you want to delete "${deletingGoal?.title}"?`
+        }
+        onConfirm={handleDeleteGoal}
       />
     </div>
   );

@@ -23,7 +23,9 @@ export function GlobalSearch() {
       ...data.ideas.rows.map((item) => ({ type: "Idea", title: item.title, text: item.description, href: "/vault" })),
       ...data.projects.rows.map((item) => ({ type: "Project", title: item.name, text: "", href: "/projects" })),
       ...data.resources.rows.map((item) => ({ type: "Resource", title: item.title, text: item.url, href: "/vault" })),
-      ...data.stickyNotes.rows.map((item) => ({ type: "Sticky", title: item.title, text: item.body, href: "/vault" })),
+      ...data.stickyNotes.rows
+        .filter((item) => !item.is_private || item.author === data.activeUserName)
+        .map((item) => ({ type: "Sticky", title: item.title, text: item.body, href: "/vault" })),
       ...data.vaultItems.rows.map((item) => ({ type: "Vault", title: item.title, text: item.body, href: "/vault" }))
     ]
       .filter((item) => `${item.title} ${item.text}`.toLowerCase().includes(normalized))

@@ -14,6 +14,7 @@ type DataContextValue = {
   resources: ReturnType<typeof useRealtimeTable<"resources">>;
   stickyNotes: ReturnType<typeof useRealtimeTable<"sticky_notes">>;
   moneyEntries: ReturnType<typeof useRealtimeTable<"money_entries">>;
+  savingsGoals: ReturnType<typeof useRealtimeTable<"savings_goals">>;
   dailyLogs: ReturnType<typeof useRealtimeTable<"daily_logs">>;
   wins: ReturnType<typeof useRealtimeTable<"wins">>;
   settings: ReturnType<typeof useRealtimeTable<"settings">>;
@@ -83,6 +84,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const resources = useRealtimeTable("resources", { column: "title", ascending: true });
   const stickyNotes = useRealtimeTable("sticky_notes", { column: "updated_at", ascending: false });
   const moneyEntries = useRealtimeTable("money_entries", { column: "entry_date", ascending: false });
+  const savingsGoals = useRealtimeTable("savings_goals", { column: "created_at", ascending: false });
   const dailyLogs = useRealtimeTable("daily_logs", { column: "log_date", ascending: false });
   const wins = useRealtimeTable("wins", { column: "created_at", ascending: false });
   const settings = useRealtimeTable("settings", { column: "key", ascending: true });
@@ -151,6 +153,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         };
 
         const otherUserName = activeUser === "user1" ? names.user2 : names.user1;
+        
+        const currencyRow = settings.rows.find((r) => r.key === "currency_preference");
+        const currency = currencyRow && typeof currencyRow.value === "string" ? currencyRow.value : "INR";
+        const currencySymbol = currency === "USD" ? "$" : "₹";
 
         if (eventType === "INSERT") {
           if (table === "tasks") {
@@ -165,7 +171,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
               const action = newRow.is_request ? "requested" : "added expense";
               triggerBrowserNotification(
                 `Money Update from ${otherUserName}`,
-                `${otherUserName} ${action}: ${newRow.description} (${formatMoney(newRow.amount ?? 0)})`
+                `${otherUserName} ${action}: ${newRow.description} (${formatMoney(newRow.amount ?? 0, currencySymbol)})`
               );
             }
           } else if (table === "sticky_notes") {
@@ -211,7 +217,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
             }
           } else if (table === "money_entries" && oldRow) {
             if (newRow.request_status !== oldRow.request_status && newRow.request_status === "approved" && newRow.added_by === activeUser) {
-              triggerBrowserNotification(`Money Request Approved`, `${otherUserName} approved your request for ${formatMoney(newRow.amount ?? 0)}!`);
+              triggerBrowserNotification(`Money Request Approved`, `${otherUserName} approved your request for ${formatMoney(newRow.amount ?? 0, currencySymbol)}!`);
             }
           } else if (table === "daily_logs" && oldRow) {
             if (activeUser === "user1" && newRow.friend !== oldRow.friend && newRow.friend) {
@@ -241,7 +247,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [activeUser, activeUserName, names]);
+  }, [activeUser, activeUserName, names, settings.rows]);
 
   // Online Presence Status Listener
   useEffect(() => {
@@ -368,6 +374,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       resources,
       stickyNotes,
       moneyEntries,
+      savingsGoals,
       dailyLogs,
       wins,
       settings,
@@ -390,6 +397,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       resources,
       stickyNotes,
       moneyEntries,
+      savingsGoals,
       dailyLogs,
       wins,
       settings,

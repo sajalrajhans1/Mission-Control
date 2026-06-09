@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from "react";
 import {
   ExternalLink, Lightbulb, Link as LinkIcon,
-  Pencil, Pin, Plus, StickyNote, Trash2, WandSparkles, Check, Copy
+  Pencil, Pin, Plus, StickyNote, Trash2, WandSparkles, Check, Copy, Lock, Unlock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -655,7 +655,7 @@ function StickyNotesPanel({ search }: { search: string }) {
   
   const [showCreate, setShowCreate] = useState(false);
   const [newNote, setNewNote] = useState({
-    title: "", body: "", color: "Yellow" as keyof typeof NOTE_COLORS, author: activeUserName || user1 || "Sajal"
+    title: "", body: "", color: "Yellow" as keyof typeof NOTE_COLORS, author: activeUserName || user1 || "Sajal", is_private: false
   });
   const [deletingNote, setDeletingNote] = useState<Row<"sticky_notes"> | null>(null);
 
@@ -668,9 +668,13 @@ function StickyNotesPanel({ search }: { search: string }) {
 
   const notes = useMemo(
     () => data.stickyNotes.rows
-      .filter((i) => `${i.title} ${i.body} ${i.author}`.toLowerCase().includes(q))
+      .filter((i) => {
+        const matchesSearch = `${i.title} ${i.body} ${i.author}`.toLowerCase().includes(q);
+        const isVisible = !i.is_private || i.author === activeUserName;
+        return matchesSearch && isVisible;
+      })
       .sort((a, b) => Number(b.pinned) - Number(a.pinned)),
-    [data.stickyNotes.rows, q]
+    [data.stickyNotes.rows, q, activeUserName]
   );
 
   const handleCreate = async () => {
@@ -680,7 +684,7 @@ function StickyNotesPanel({ search }: { search: string }) {
       alert(`Failed to create sticky note: ${error.message}`);
       return;
     }
-    setNewNote({ title: "", body: "", color: "Yellow", author: activeUserName || user1 || "Sajal" });
+    setNewNote({ title: "", body: "", color: "Yellow", author: activeUserName || user1 || "Sajal", is_private: false });
     setShowCreate(false);
   };
 
@@ -712,6 +716,13 @@ function StickyNotesPanel({ search }: { search: string }) {
                 {isCreator && (
                   <div className="flex shrink-0 gap-1">
                     <Button
+                      variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 hover:text-zinc-800"
+                      title={item.is_private ? "Make Public" : "Make Private"}
+                      onClick={() => data.stickyNotes.update(item.id, { is_private: !item.is_private })}
+                    >
+                      {item.is_private ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
+                    </Button>
+                    <Button
                       variant="ghost" size="icon" className="h-7 w-7 hover:bg-black/5"
                       title={item.pinned ? "Unpin" : "Pin"}
                       onClick={() => data.stickyNotes.update(item.id, { pinned: !item.pinned })}
@@ -734,16 +745,22 @@ function StickyNotesPanel({ search }: { search: string }) {
                 readOnly={!isCreator}
               />
               <div className="mt-3 flex items-center justify-between text-xs text-black/60">
-                <span className="flex items-center gap-1.5 font-medium">
+                <span className="flex items-center gap-1.5 font-medium min-w-0 flex-1 truncate">
                   <span
                     className="h-2 w-2 rounded-full shrink-0"
                     style={{ backgroundColor: item.author === user1 ? userColors.user1 : userColors.user2 }}
                   />
-                  {item.author}
+                  <span className="truncate">{item.author}</span>
                 </span>
+                {item.is_private && (
+                  <span className="flex items-center gap-0.5 text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-semibold border border-amber-200/40 shrink-0 mx-1.5">
+                    <Lock className="h-2.5 w-2.5" />
+                    Private
+                  </span>
+                )}
                 <button
                   onClick={() => data.stickyNotes.update(item.id, { read: !item.read })}
-                  className={cn("rounded px-1.5 py-0.5 transition-colors hover:bg-black/10", item.read ? "opacity-50" : "font-medium")}
+                  className={cn("rounded px-1.5 py-0.5 transition-colors hover:bg-black/10 shrink-0", item.read ? "opacity-50" : "font-medium")}
                 >
                   {item.read ? "Read" : "Unread"}
                 </button>
@@ -790,6 +807,18 @@ function StickyNotesPanel({ search }: { search: string }) {
                 </SelectContent>
               </Select>
             </Field>
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                type="checkbox"
+                id="create-note-is-private"
+                checked={newNote.is_private}
+                onChange={(e) => setNewNote({ ...newNote, is_private: e.target.checked })}
+                className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
+              />
+              <label htmlFor="create-note-is-private" className="text-sm font-medium text-zinc-700">
+                Keep this sticky note private (only visible to you)
+              </label>
+            </div>
             <div className="flex gap-2 justify-end mt-2">
               <Button variant="outline" onClick={() => setShowCreate(false)} className="border-zinc-200">Cancel</Button>
               <Button onClick={handleCreate} disabled={!newNote.title.trim()}>Create Note</Button>

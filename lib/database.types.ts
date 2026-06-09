@@ -89,6 +89,7 @@ export type Database = {
           author: string;
           pinned: boolean;
           read: boolean;
+          is_private: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -100,6 +101,7 @@ export type Database = {
           author?: string;
           pinned?: boolean;
           read?: boolean;
+          is_private?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -116,6 +118,7 @@ export type Database = {
           is_request: boolean;
           request_to: string | null;
           request_status: "pending" | "approved" | "settled";
+          savings_goal_id: string | null;
           entry_date: string;
           created_at: string;
           updated_at: string;
@@ -130,11 +133,33 @@ export type Database = {
           is_request?: boolean;
           request_to?: string | null;
           request_status?: "pending" | "approved" | "settled";
+          savings_goal_id?: string | null;
           entry_date?: string;
           created_at?: string;
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["money_entries"]["Insert"]>;
+      };
+      savings_goals: {
+        Row: {
+          id: string;
+          title: string;
+          target_amount: number;
+          current_amount: number;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          target_amount: number;
+          current_amount?: number;
+          created_by: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["savings_goals"]["Insert"]>;
       };
       daily_logs: {
         Row: { id: string; log_date: string; phoenix: string; friend: string; created_at: string; updated_at: string };

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { TrendingUp, WalletCards, ListTodo, Pin, StickyNote, Trash2 } from "lucide-react";
+import { TrendingUp, WalletCards, ListTodo, Pin, StickyNote, Trash2, Lock, Unlock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
@@ -83,11 +83,16 @@ export default function HomePage() {
 
   const notes = useMemo(
     () => stickyNotes.rows
+      .filter((item) => !item.is_private || item.author === activeUserName)
       .sort((a, b) => Number(b.pinned) - Number(a.pinned)),
-    [stickyNotes.rows]
+    [stickyNotes.rows, activeUserName]
   );
 
   // --- Calculations ---
+  const currencyRow = settings.rows.find((r) => r.key === "currency_preference");
+  const currency = currencyRow && typeof currencyRow.value === "string" ? currencyRow.value : "INR";
+  const currencySymbol = currency === "USD" ? "$" : "₹";
+
   const monthEntries = moneyEntries.rows.filter(
     (entry) => entry.entry_date >= month.start && entry.entry_date <= month.end
   );
@@ -175,15 +180,15 @@ export default function HomePage() {
             <CardContent className="grid grid-cols-3 gap-3">
               <div>
                 <p className="text-xs text-muted-foreground">Income</p>
-                <p className="font-semibold text-zinc-900">{formatMoney(income)}</p>
+                <p className="font-semibold text-zinc-900">{formatMoney(income, currencySymbol)}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Expenses</p>
-                <p className="font-semibold text-zinc-900">{formatMoney(expenses)}</p>
+                <p className="font-semibold text-zinc-900">{formatMoney(expenses, currencySymbol)}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Net</p>
-                <p className="font-semibold text-zinc-900">{formatMoney(income - expenses)}</p>
+                <p className="font-semibold text-zinc-900">{formatMoney(income - expenses, currencySymbol)}</p>
               </div>
             </CardContent>
           </Card>
@@ -251,6 +256,13 @@ export default function HomePage() {
                   {isCreator && (
                     <div className="flex shrink-0 gap-1">
                       <Button
+                        variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 hover:text-zinc-800"
+                        title={item.is_private ? "Make Public" : "Make Private"}
+                        onClick={() => stickyNotes.update(item.id, { is_private: !item.is_private })}
+                      >
+                        {item.is_private ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
+                      </Button>
+                      <Button
                         variant="ghost" size="icon" className="h-7 w-7"
                         title={item.pinned ? "Unpin" : "Pin"}
                         onClick={() => stickyNotes.update(item.id, { pinned: !item.pinned })}
@@ -275,16 +287,22 @@ export default function HomePage() {
                   readOnly={!isCreator}
                 />
                 <div className="mt-3 flex items-center justify-between text-xs text-black/60">
-                  <span className="flex items-center gap-1.5 font-medium">
+                  <span className="flex items-center gap-1.5 font-medium min-w-0 flex-1 truncate">
                     <span
                       className="h-2 w-2 rounded-full shrink-0"
                       style={{ backgroundColor: item.author === user1 ? userColors.user1 : userColors.user2 }}
                     />
-                    {item.author}
+                    <span className="truncate">{item.author}</span>
                   </span>
+                  {item.is_private && (
+                    <span className="flex items-center gap-0.5 text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-semibold border border-amber-200/40 shrink-0 mx-1.5">
+                      <Lock className="h-2.5 w-2.5" />
+                      Private
+                    </span>
+                  )}
                   <button
                     onClick={() => stickyNotes.update(item.id, { read: !item.read })}
-                    className={cn("rounded px-1.5 py-0.5 transition-colors hover:bg-black/10", item.read ? "opacity-50" : "font-medium")}
+                    className={cn("rounded px-1.5 py-0.5 transition-colors hover:bg-black/10 shrink-0", item.read ? "opacity-50" : "font-medium")}
                   >
                     {item.read ? "Read" : "Unread"}
                   </button>
