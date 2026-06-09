@@ -1,12 +1,40 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Check, Trash2 } from "lucide-react";
+import { Check, Trash2, Calendar } from "lucide-react";
+import { format, parseISO, differenceInCalendarDays } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useData, useUserNames, useActiveUser, useUserColors } from "@/components/data-provider";
 import { cn } from "@/lib/utils";
 import type { Row } from "@/lib/database.types";
+
+function getDueDateLabel(dueDateStr: string) {
+  try {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    if (dueDateStr === todayStr) {
+      return { label: "Today", variant: "today" };
+    }
+    
+    const parsedDue = parseISO(dueDateStr);
+    const parsedToday = parseISO(todayStr);
+    const diffDays = differenceInCalendarDays(parsedDue, parsedToday);
+
+    if (diffDays === 1) {
+      return { label: "Tomorrow", variant: "tomorrow" };
+    } else if (diffDays === -1) {
+      return { label: "Yesterday", variant: "overdue" };
+    } else if (diffDays < 0) {
+      return { label: `Overdue (${Math.abs(diffDays)}d ago)`, variant: "overdue" };
+    } else if (diffDays <= 7) {
+      return { label: format(parsedDue, "eeee"), variant: "upcoming" };
+    } else {
+      return { label: format(parsedDue, "MMM d"), variant: "future" };
+    }
+  } catch {
+    return { label: dueDateStr, variant: "future" };
+  }
+}
 
 export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact?: boolean }) {
   const { tasks, projects } = useData();
@@ -100,18 +128,28 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
         (() => {
           const isUser1 = task.assigned_to === user1;
           const assignedColor = isUser1 ? userColors.user1 : userColors.user2;
+          const isAssignedToActiveUser = task.assigned_to === activeUserName;
           return (
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 rounded-full shrink-0 border-2"
+              className={cn(
+                "h-8 w-8 rounded-full shrink-0 border-2",
+                !isAssignedToActiveUser && "opacity-50 cursor-not-allowed hover:bg-transparent hover:text-inherit"
+              )}
               style={{
                 backgroundColor: task.completed ? assignedColor : "transparent",
                 borderColor: assignedColor,
                 color: task.completed ? "#ffffff" : assignedColor
               }}
-              onClick={() => tasks.update(task.id, { completed: !task.completed })}
+              onClick={() => {
+                if (isAssignedToActiveUser) {
+                  tasks.update(task.id, { completed: !task.completed });
+                }
+              }}
+              disabled={!isAssignedToActiveUser}
               aria-label={task.completed ? "Mark incomplete" : "Mark complete"}
+              title={!isAssignedToActiveUser ? `Only ${task.assigned_to} can complete this task` : undefined}
             >
               {task.completed ? <Check className="h-4 w-4 text-white" /> : null}
             </Button>
@@ -131,7 +169,6 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
         <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
           <span>Assigned: {task.assigned_to}</span>
           {project ? <span>Project: {project.name}</span> : null}
-          {task.due_date ? <span>Due: {task.due_date}</span> : null}
           {task.created_by && task.created_by !== "Unknown" ? (
             <span>By: {task.created_by}</span>
           ) : null}
@@ -168,19 +205,49 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
           </button>
         )}
       </div>
-      {!compact ? (
-        <Badge
-          className={cn(
-            task.priority === "High"
-              ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900"
-              : task.priority === "Medium"
-              ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900"
-              : "bg-zinc-50 text-zinc-700 border-zinc-200 dark:bg-zinc-900 dark:text-zinc-400 dark:border-zinc-800"
-          )}
-        >
-          {task.priority}
-        </Badge>
-      ) : null}
+      <div className="flex items-center gap-2 shrink-0">
+        {task.due_date && (
+          <Badge
+            className={cn(
+              "flex items-center gap-1 px-2 py-0.5 font-medium text-xs rounded-md border shadow-none",
+              task.completed
+                ? "bg-zinc-50 text-zinc-400 border-zinc-200 dark:bg-zinc-900 dark:text-zinc-600 dark:border-zinc-800"
+                : (() => {
+                    const info = getDueDateLabel(task.due_date!);
+                    if (info.variant === "overdue") {
+                      return "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900 font-semibold";
+                    }
+                    if (info.variant === "today") {
+                      return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900 font-semibold";
+                    }
+                    if (info.variant === "tomorrow") {
+                      return "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900 font-semibold";
+                    }
+                    if (info.variant === "upcoming") {
+                      return "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/20 dark:text-sky-400 dark:border-sky-900";
+                    }
+                    return "bg-zinc-50 text-zinc-700 border-zinc-200 dark:bg-zinc-900 dark:text-zinc-400 dark:border-zinc-800";
+                  })()
+            )}
+          >
+            <Calendar className="h-3 w-3 shrink-0" />
+            <span>{getDueDateLabel(task.due_date).label}</span>
+          </Badge>
+        )}
+        {!compact ? (
+          <Badge
+            className={cn(
+              task.priority === "High"
+                ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900"
+                : task.priority === "Medium"
+                ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900"
+                : "bg-zinc-50 text-zinc-700 border-zinc-200 dark:bg-zinc-900 dark:text-zinc-400 dark:border-zinc-800"
+            )}
+          >
+            {task.priority}
+          </Badge>
+        ) : null}
+      </div>
       {isCreator && (
         <Button
           variant="ghost"

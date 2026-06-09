@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useCallback, useRef, useState, type ReactNode } from "react";
 import { useRealtimeTable } from "@/lib/use-realtime-table";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
+import { formatMoney } from "@/lib/utils";
 import type { Row, Insert } from "@/lib/database.types";
 
 type DataContextValue = {
@@ -21,6 +22,7 @@ type DataContextValue = {
   projectFiles: ReturnType<typeof useRealtimeTable<"project_files">>;
   activeUser: "user1" | "user2" | null;
   activeUserName: string;
+  onlineUsers: string[];
   login: (user: "user1" | "user2", password?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   setPassword: (user: "user1" | "user2", newPassword?: string) => Promise<void>;
@@ -65,6 +67,14 @@ function getUserNamesFromRows(rows: Row<"settings">[]) {
   };
 }
 
+function triggerBrowserNotification(title: string, body?: string) {
+  if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+    new Notification(title, {
+      body,
+    });
+  }
+}
+
 export function DataProvider({ children }: { children: ReactNode }) {
   const projects = useRealtimeTable("projects", { column: "name", ascending: true });
   const tasks = useRealtimeTable("tasks", { column: "created_at", ascending: false });
@@ -81,6 +91,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const projectFiles = useRealtimeTable("project_files", { column: "created_at", ascending: false });
 
   const [activeUser, setActiveUser] = useState<"user1" | "user2" | null>(null);
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
   useEffect(() => {
     const saved = localStorage.getItem("mc_session");
@@ -88,6 +99,177 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setActiveUser(saved);
     }
   }, []);
+
+  // Web Notification permission request
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      if (Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+    }
+  }, []);
+
+  const names = useMemo(() => getUserNamesFromRows(settings.rows), [settings.rows]);
+  const activeUserName = activeUser === "user1" ? names.user1 : activeUser === "user2" ? names.user2 : "";
+
+  // Global realtime database change listener for browser notifications
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase || !activeUserName) return;
+
+    interface DbRow {
+      id?: string;
+      title?: string;
+      assigned_to?: string;
+      created_by?: string;
+      amount?: number;
+      is_request?: boolean;
+      description?: string;
+      added_by?: string;
+      author?: string;
+      uploaded_by?: string;
+      name?: string;
+      completed?: boolean;
+      completed_user1?: boolean;
+      completed_user2?: boolean;
+      approved?: boolean;
+      request_status?: string;
+      phoenix?: string;
+      friend?: string;
+      key?: string;
+      value?: unknown;
+      created_at?: string;
+    }
+
+    const channel = supabase
+      .channel("global-db-changes")
+      .on("postgres_changes", { event: "*", schema: "public" }, (payload) => {
+        const { table, eventType, new: newRow, old: oldRow } = payload as {
+          table: string;
+          eventType: "INSERT" | "UPDATE" | "DELETE";
+          new: DbRow;
+          old: DbRow;
+        };
+
+        const otherUserName = activeUser === "user1" ? names.user2 : names.user1;
+
+        if (eventType === "INSERT") {
+          if (table === "tasks") {
+            if (newRow.created_by !== activeUserName) {
+              triggerBrowserNotification(
+                `New Task Assigned to ${newRow.assigned_to}`,
+                `${newRow.created_by} created: ${newRow.title}`
+              );
+            }
+          } else if (table === "money_entries") {
+            if (newRow.added_by !== activeUser) {
+              const action = newRow.is_request ? "requested" : "added expense";
+              triggerBrowserNotification(
+                `Money Update from ${otherUserName}`,
+                `${otherUserName} ${action}: ${newRow.description} (${formatMoney(newRow.amount ?? 0)})`
+              );
+            }
+          } else if (table === "sticky_notes") {
+            if (newRow.author !== activeUserName) {
+              triggerBrowserNotification(
+                `New Sticky Note`,
+                `${newRow.author} posted: ${newRow.title || "Untitled"}`
+              );
+            }
+          } else if (table === "project_files") {
+            if (newRow.uploaded_by !== activeUserName) {
+              triggerBrowserNotification(
+                `New Project Document`,
+                `${newRow.uploaded_by} uploaded: ${newRow.name}`
+              );
+            }
+          } else if (table === "wins") {
+            if (newRow.created_at) {
+              const ageMs = Date.now() - new Date(newRow.created_at).getTime();
+              if (ageMs < 10000) {
+                triggerBrowserNotification("New Win Added! 🎉", newRow.title);
+              }
+            }
+          }
+        } else if (eventType === "UPDATE") {
+          if (table === "tasks" && oldRow) {
+            // Task completed
+            if (newRow.completed !== oldRow.completed && newRow.completed) {
+              if (newRow.assigned_to === "Both") {
+                if (newRow.completed_user1 !== oldRow.completed_user1 && activeUser !== "user1") {
+                  triggerBrowserNotification(`Task Component Done`, `${names.user1} completed their part of: ${newRow.title}`);
+                }
+                if (newRow.completed_user2 !== oldRow.completed_user2 && activeUser !== "user2") {
+                  triggerBrowserNotification(`Task Component Done`, `${names.user2} completed their part of: ${newRow.title}`);
+                }
+              } else if (newRow.assigned_to !== activeUserName) {
+                triggerBrowserNotification(`Task Completed`, `${newRow.assigned_to} completed: ${newRow.title}`);
+              }
+            }
+            // Task approved
+            if (newRow.approved !== oldRow.approved && newRow.approved && newRow.created_by === activeUserName) {
+              triggerBrowserNotification(`Task Request Approved`, `${newRow.assigned_to} approved your task: ${newRow.title}`);
+            }
+          } else if (table === "money_entries" && oldRow) {
+            if (newRow.request_status !== oldRow.request_status && newRow.request_status === "approved" && newRow.added_by === activeUser) {
+              triggerBrowserNotification(`Money Request Approved`, `${otherUserName} approved your request for ${formatMoney(newRow.amount ?? 0)}!`);
+            }
+          } else if (table === "daily_logs" && oldRow) {
+            if (activeUser === "user1" && newRow.friend !== oldRow.friend && newRow.friend) {
+              triggerBrowserNotification(`Daily Log Updated`, `${names.user2} updated their log.`);
+            } else if (activeUser === "user2" && newRow.phoenix !== oldRow.phoenix && newRow.phoenix) {
+              triggerBrowserNotification(`Daily Log Updated`, `${names.user1} updated their log.`);
+            }
+          } else if (table === "settings" && oldRow) {
+            if (newRow.key && newRow.key.startsWith("project_chat_")) {
+              const newMsgs = Array.isArray(newRow.value) ? newRow.value : [];
+              const oldMsgs = Array.isArray(oldRow.value) ? oldRow.value : [];
+              if (newMsgs.length > oldMsgs.length) {
+                const latestMsg = newMsgs[newMsgs.length - 1];
+                if (latestMsg && latestMsg.sender !== activeUserName) {
+                  triggerBrowserNotification(
+                    `New Chat Message from ${latestMsg.sender}`,
+                    latestMsg.message
+                  );
+                }
+              }
+            }
+          }
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeUser, activeUserName, names]);
+
+  // Online Presence Status Listener
+  useEffect(() => {
+    if (!activeUserName || !isSupabaseConfigured || !supabase) return;
+
+    const channel = supabase.channel("online-status", {
+      config: {
+        presence: {
+          key: activeUserName,
+        },
+      },
+    });
+
+    channel
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState();
+        setOnlineUsers(Object.keys(state));
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.track({ online_at: new Date().toISOString() });
+        }
+      });
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [activeUserName]);
 
   // Auto-seed vaults + settings into Supabase when they're empty
   const seeded = useRef(false);
@@ -113,9 +295,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [vaults.loading, vaults.rows.length, settings.loading, settings.rows]);
-
-  const names = useMemo(() => getUserNamesFromRows(settings.rows), [settings.rows]);
-  const activeUserName = activeUser === "user1" ? names.user1 : activeUser === "user2" ? names.user2 : "";
 
   const login = useCallback(
     async (user: "user1" | "user2", password?: string) => {
@@ -197,6 +376,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       projectFiles,
       activeUser,
       activeUserName,
+      onlineUsers,
       login,
       logout,
       setPassword,
@@ -218,6 +398,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       projectFiles,
       activeUser,
       activeUserName,
+      onlineUsers,
       login,
       logout,
       setPassword,

@@ -36,7 +36,7 @@ export default function MoneyPage() {
   const [amount, setAmount] = useState("0");
   const [type, setType] = useState<"Income" | "Expense">("Expense");
   const [category, setCategory] = useState("Misc");
-  const [split5050, setSplit5050] = useState(false);
+  const [splitMode, setSplitMode] = useState<"none" | "split" | "request">("none");
   const [entryDate, setEntryDate] = useState(todayISO());
 
   const [deletingEntry, setDeletingEntry] = useState<Row<"money_entries"> | null>(null);
@@ -150,8 +150,8 @@ export default function MoneyPage() {
     if (!description.trim() || Number(amount) <= 0) return;
     const numAmount = Number(amount);
 
-    if (split5050) {
-      const splitAmount = numAmount / 2;
+    if (type === "Expense" && splitMode === "split") {
+      const splitAmount = Number((numAmount / 2).toFixed(2));
 
       // 1. Create half-share expense entry for current user
       await moneyEntries.create({
@@ -176,6 +176,19 @@ export default function MoneyPage() {
         request_status: "pending",
         entry_date: entryDate
       });
+    } else if (type === "Expense" && splitMode === "request") {
+      // Create request entry for the whole specific amount from partner
+      await moneyEntries.create({
+        description: `${description} (Request)`,
+        amount: numAmount,
+        type: "Expense",
+        added_by: myKey,
+        category,
+        is_request: true,
+        request_to: otherKey,
+        request_status: "pending",
+        entry_date: entryDate
+      });
     } else {
       await moneyEntries.create({
         description,
@@ -190,7 +203,7 @@ export default function MoneyPage() {
 
     setDescription("");
     setAmount("0");
-    setSplit5050(false);
+    setSplitMode("none");
   };
 
   // ── Pie Chart Data ────────────────────────────────────────────────────────
@@ -533,7 +546,7 @@ export default function MoneyPage() {
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
               <Field label="Type">
-                <Select value={type} onValueChange={(t) => setType(t as "Income" | "Expense")}>
+                <Select value={type} onValueChange={(t) => { setType(t as "Income" | "Expense"); if (t === "Income") setSplitMode("none"); }}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Income">Income</SelectItem>
@@ -556,15 +569,50 @@ export default function MoneyPage() {
               </Field>
             </div>
             {type === "Expense" && (
-              <label className="flex items-center gap-2 text-sm font-semibold select-none cursor-pointer mt-1">
-                <input
-                  type="checkbox"
-                  checked={split5050}
-                  onChange={(e) => setSplit5050(e.target.checked)}
-                  className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 dark:border-zinc-800 dark:focus:ring-zinc-400"
-                />
-                Split 50/50 with {myKey === "user1" ? names.user2 : names.user1} (Request Half)
-              </label>
+              <div className="grid gap-2 pt-1">
+                <span className="text-xs font-semibold text-zinc-700">Split / Request Options</span>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <button
+                    type="button"
+                    onClick={() => setSplitMode("none")}
+                    className={cn(
+                      "flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-semibold transition-all h-14",
+                      splitMode === "none"
+                        ? "bg-zinc-900 border-zinc-900 text-white"
+                        : "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50"
+                    )}
+                  >
+                    <span>None</span>
+                    <span className="text-[10px] opacity-80 mt-0.5 font-normal">Personal expense</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSplitMode("split")}
+                    className={cn(
+                      "flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-semibold transition-all h-14",
+                      splitMode === "split"
+                        ? "bg-zinc-900 border-zinc-900 text-white"
+                        : "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50"
+                    )}
+                  >
+                    <span>Split 50/50</span>
+                    <span className="text-[10px] opacity-80 mt-0.5 font-normal">Request half</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSplitMode("request")}
+                    className={cn(
+                      "flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-semibold transition-all h-14",
+                      splitMode === "request"
+                        ? "bg-zinc-900 border-zinc-900 text-white"
+                        : "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50"
+                    )}
+                  >
+                    <span>Request Full</span>
+                    <span className="text-[10px] opacity-80 mt-0.5 font-normal">Request whole amt</span>
+                  </button>
+                </div>
+              </div>
             )}
             <Button className="mt-2" onClick={createEntry}>Create Entry</Button>
           </CardContent>

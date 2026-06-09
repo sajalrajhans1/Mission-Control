@@ -48,7 +48,7 @@ export default function ProjectsPage() {
     return projects.rows
       .filter((p) => showArchived || !p.archived)
       .map((project) => {
-        const projectTasks = tasks.rows.filter((task) => task.project_id === project.id);
+        const projectTasks = tasks.rows.filter((task) => task.project_id === project.id && task.approved !== false);
         const completed = projectTasks.filter((task) => task.completed).length;
         return { project, total: projectTasks.length, completed };
       });

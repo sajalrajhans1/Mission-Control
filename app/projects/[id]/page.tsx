@@ -54,7 +54,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
   // Find active project
   const project = projects.rows.find((p) => p.id === projectId);
-  const projectTasks = tasks.rows.filter((task) => task.project_id === projectId);
+  const projectTasks = tasks.rows.filter((task) => task.project_id === projectId && task.approved !== false);
   const filesList = projectFiles.rows.filter((f) => f.project_id === projectId);
 
   // Chat preference row

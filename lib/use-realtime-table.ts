@@ -146,9 +146,9 @@ function useLocalTable<T extends TableName>(
 // ─── Supabase hook (original) ─────────────────────────────────────────────────
 
 type SupabaseMutationBuilder = {
-  insert: (values: unknown) => { select: () => { single: () => Promise<unknown> } };
-  update: (values: unknown) => { eq: (column: string, value: string) => { select: () => { single: () => Promise<unknown> } } };
-  delete: () => { eq: (column: string, value: string) => Promise<unknown> };
+  insert: (values: unknown) => { select: () => { single: () => Promise<{ data: unknown; error: { message: string } | null }> } };
+  update: (values: unknown) => { eq: (column: string, value: string) => { select: () => { single: () => Promise<{ data: unknown; error: { message: string } | null }> } } };
+  delete: () => { eq: (column: string, value: string) => Promise<{ error: { message: string } | null }> };
 };
 
 function useSupabaseTable<T extends TableName>(

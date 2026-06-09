@@ -61,7 +61,11 @@ function PromptsPanel({ search }: { search: string }) {
 
   const handleCreate = async () => {
     if (!newPrompt.title.trim()) return;
-    await data.prompts.create(newPrompt);
+    const { error } = await data.prompts.create(newPrompt);
+    if (error) {
+      alert(`Failed to create preset: ${error.message}`);
+      return;
+    }
     setNewPrompt({ title: "", category: "Misc", content: "" });
     setShowCreate(false);
   };
@@ -271,9 +275,10 @@ function PromptsPanel({ search }: { search: string }) {
         onOpenChange={(open) => !open && setDeletingPrompt(null)}
         title="Delete Preset Prompt?"
         description={`Are you sure you want to delete preset "${deletingPrompt?.title}"?`}
-        onConfirm={() => {
+        onConfirm={async () => {
           if (deletingPrompt) {
-            data.prompts.remove(deletingPrompt.id);
+            const { error } = await data.prompts.remove(deletingPrompt.id);
+            if (error) alert(`Failed to delete preset: ${error.message}`);
           }
         }}
       />
@@ -289,6 +294,7 @@ function IdeasPanel({ search }: { search: string }) {
   const [editingIdea, setEditingIdea] = useState<Row<"ideas"> | null>(null);
   const [newIdea, setNewIdea] = useState({ title: "", description: "" });
   const [deletingIdea, setDeletingIdea] = useState<Row<"ideas"> | null>(null);
+  const [viewingIdea, setViewingIdea] = useState<Row<"ideas"> | null>(null);
 
   const ideas = useMemo(
     () => data.ideas.rows.filter((i) => `${i.title} ${i.description}`.toLowerCase().includes(q)),
@@ -297,7 +303,11 @@ function IdeasPanel({ search }: { search: string }) {
 
   const handleCreate = async () => {
     if (!newIdea.title.trim()) return;
-    await data.ideas.create(newIdea);
+    const { error } = await data.ideas.create(newIdea);
+    if (error) {
+      alert(`Failed to create startup idea: ${error.message}`);
+      return;
+    }
     setNewIdea({ title: "", description: "" });
     setShowCreate(false);
   };
@@ -314,19 +324,25 @@ function IdeasPanel({ search }: { search: string }) {
       {/* Ideas Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {ideas.map((item) => (
-          <Card key={item.id} className="bg-white flex flex-col justify-between group">
+          <Card
+            key={item.id}
+            className="bg-white flex flex-col justify-between group cursor-pointer hover:shadow-soft transition-shadow border-zinc-200"
+            onClick={() => setViewingIdea(item)}
+          >
             <CardHeader className="flex-row items-start justify-between gap-2 pb-2">
               <CardTitle className="text-base font-bold text-zinc-800">{item.title}</CardTitle>
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                 <Button
                   variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 hover:text-zinc-800"
-                  onClick={() => setEditingIdea(item)}
+                  onClick={(e) => { e.stopPropagation(); setEditingIdea(item); }}
+                  title="Edit Idea"
                 >
                   <Pencil className="h-3.5 w-3.5" />
                 </Button>
                 <Button
                   variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-red-50"
-                  onClick={() => setDeletingIdea(item)}
+                  onClick={(e) => { e.stopPropagation(); setDeletingIdea(item); }}
+                  title="Delete Idea"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
@@ -343,6 +359,24 @@ function IdeasPanel({ search }: { search: string }) {
       {ideas.length === 0 && (
         <EmptyState title="No ideas captured yet." />
       )}
+
+      {/* ── View Idea Dialog ─────────────────────────────────────────── */}
+      <Dialog open={Boolean(viewingIdea)} onOpenChange={(open) => !open && setViewingIdea(null)}>
+        <DialogContent className="max-w-lg rounded-2xl bg-white max-h-[85vh] flex flex-col p-6 border-zinc-200">
+          <DialogHeader className="border-b border-zinc-100 pb-3 flex flex-col gap-1 min-w-0 pr-6">
+            <DialogTitle className="text-lg font-bold text-zinc-900 truncate">{viewingIdea?.title}</DialogTitle>
+            <div className="text-[10px] text-zinc-400 font-medium">
+              Ideas • {viewingIdea && new Date(viewingIdea.created_at).toLocaleDateString()}
+            </div>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto mt-4 pr-1 leading-relaxed text-sm text-zinc-700 whitespace-pre-wrap bg-zinc-50/50 p-4 rounded-xl border border-zinc-200/50 select-text">
+            {viewingIdea?.description || <span className="italic text-zinc-400">No details.</span>}
+          </div>
+          <div className="flex justify-end mt-4 pt-3 border-t border-zinc-100">
+            <Button onClick={() => setViewingIdea(null)} className="rounded-xl">Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* ── Create Idea Dialog ────────────────────────────────────────── */}
       <Dialog open={showCreate} onOpenChange={(open) => !open && setShowCreate(false)}>
@@ -425,8 +459,11 @@ function IdeasPanel({ search }: { search: string }) {
         onOpenChange={(open) => !open && setDeletingIdea(null)}
         title="Delete Idea?"
         description={`Are you sure you want to delete idea "${deletingIdea?.title}"?`}
-        onConfirm={() => {
-          if (deletingIdea) data.ideas.remove(deletingIdea.id);
+        onConfirm={async () => {
+          if (deletingIdea) {
+            const { error } = await data.ideas.remove(deletingIdea.id);
+            if (error) alert(`Failed to delete idea: ${error.message}`);
+          }
         }}
       />
     </div>
@@ -449,7 +486,11 @@ function ResourcesPanel({ search }: { search: string }) {
 
   const handleCreate = async () => {
     if (!newResource.title.trim() || !newResource.url.trim()) return;
-    await data.resources.create(newResource);
+    const { error } = await data.resources.create(newResource);
+    if (error) {
+      alert(`Failed to create resource: ${error.message}`);
+      return;
+    }
     setNewResource({ title: "", url: "", category: "Misc" });
     setShowCreate(false);
   };
@@ -594,8 +635,11 @@ function ResourcesPanel({ search }: { search: string }) {
         onOpenChange={(open) => !open && setDeletingResource(null)}
         title="Delete Resource?"
         description={`Are you sure you want to delete resource "${deletingResource?.title}"?`}
-        onConfirm={() => {
-          if (deletingResource) data.resources.remove(deletingResource.id);
+        onConfirm={async () => {
+          if (deletingResource) {
+            const { error } = await data.resources.remove(deletingResource.id);
+            if (error) alert(`Failed to delete resource: ${error.message}`);
+          }
         }}
       />
     </div>
@@ -631,7 +675,11 @@ function StickyNotesPanel({ search }: { search: string }) {
 
   const handleCreate = async () => {
     if (!newNote.title.trim()) return;
-    await data.stickyNotes.create({ ...newNote, pinned: false, read: false });
+    const { error } = await data.stickyNotes.create({ ...newNote, pinned: false, read: false });
+    if (error) {
+      alert(`Failed to create sticky note: ${error.message}`);
+      return;
+    }
     setNewNote({ title: "", body: "", color: "Yellow", author: activeUserName || user1 || "Sajal" });
     setShowCreate(false);
   };
@@ -756,8 +804,11 @@ function StickyNotesPanel({ search }: { search: string }) {
         onOpenChange={(open) => !open && setDeletingNote(null)}
         title="Delete Sticky Note?"
         description="Are you sure you want to delete this sticky note?"
-        onConfirm={() => {
-          if (deletingNote) data.stickyNotes.remove(deletingNote.id);
+        onConfirm={async () => {
+          if (deletingNote) {
+            const { error } = await data.stickyNotes.remove(deletingNote.id);
+            if (error) alert(`Failed to delete sticky note: ${error.message}`);
+          }
         }}
       />
     </div>
@@ -790,7 +841,11 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
 
   const handleCreate = async () => {
     if (!newEntry.title.trim()) return;
-    await data.vaultItems.create({ vault_id: vault.id, title: newEntry.title, body: newEntry.body });
+    const { error } = await data.vaultItems.create({ vault_id: vault.id, title: newEntry.title, body: newEntry.body });
+    if (error) {
+      alert(`Failed to create vault entry: ${error.message}`);
+      return;
+    }
     setNewEntry({ title: "", body: "" });
     setShowCreate(false);
   };
@@ -973,8 +1028,11 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
         onOpenChange={(open) => !open && setDeletingItem(null)}
         title="Delete Entry?"
         description={`Are you sure you want to delete "${deletingItem?.title}"?`}
-        onConfirm={() => {
-          if (deletingItem) data.vaultItems.remove(deletingItem.id);
+        onConfirm={async () => {
+          if (deletingItem) {
+            const { error } = await data.vaultItems.remove(deletingItem.id);
+            if (error) alert(`Failed to delete vault entry: ${error.message}`);
+          }
         }}
       />
     </div>
@@ -1008,12 +1066,16 @@ export default function VaultPage() {
 
   const createVault = async () => {
     if (!newVaultName.trim()) return;
-    await data.vaults.create({
+    const { error } = await data.vaults.create({
       name: newVaultName.trim(),
       order_index: vaults.length,
       is_default: false,
       created_by: activeUserName || "Sajal"
     });
+    if (error) {
+      alert(`Failed to create vault: ${error.message}\n\nPlease make sure you have applied the migration "006_vaults_created_by.sql" in your Supabase SQL Editor.`);
+      return;
+    }
     setNewVaultName("");
     setShowCreate(false);
   };
@@ -1028,7 +1090,11 @@ export default function VaultPage() {
     if (!deletingVault) return;
     if (!deletingVault.is_default) {
       // vault_items cascade delete via FK
-      await data.vaults.remove(deletingVault.id);
+      const { error } = await data.vaults.remove(deletingVault.id);
+      if (error) {
+        alert(`Failed to delete vault: ${error.message}`);
+        return;
+      }
     }
     if (activeVaultId === deletingVault.id) setSelectedVaultId(null);
     setDeletingVault(null);

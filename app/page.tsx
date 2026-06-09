@@ -21,11 +21,14 @@ const NOTE_COLORS = {
 } as const;
 
 export default function HomePage() {
-  const { tasks, moneyEntries, stickyNotes, settings } = useData();
+  const { tasks, moneyEntries, stickyNotes, settings, onlineUsers } = useData();
   const { activeUserName } = useActiveUser();
   const { user1, user2 } = useUserNames();
   const userColors = useUserColors();
   const month = currentMonthRange();
+
+  const otherUserName = activeUserName === user1 ? user2 : user1;
+  const isOtherUserOnline = onlineUsers.includes(otherUserName);
 
   // --- Shared Priority List ---
   const priorityRow = settings.rows.find((r) => r.key === "shared_priority_list");
@@ -115,6 +118,17 @@ export default function HomePage() {
           <p className="mt-2 text-sm text-muted-foreground">
             {user1} &amp; {user2} — building momentum together.
           </p>
+        </div>
+        <div className="flex items-center gap-3 bg-zinc-50 border px-4 py-2.5 rounded-xl dark:bg-zinc-900 dark:border-zinc-800 shrink-0">
+          <div className="relative flex h-3 w-3">
+            {isOtherUserOnline && (
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            )}
+            <span className={cn("relative inline-flex rounded-full h-3 w-3", isOtherUserOnline ? "bg-emerald-500" : "bg-zinc-300 dark:bg-zinc-600")}></span>
+          </div>
+          <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            {otherUserName} is {isOtherUserOnline ? "online" : "offline"}
+          </span>
         </div>
       </section>
 
