@@ -60,8 +60,9 @@ export default function TasksPage() {
 
   // Filter tasks that are APPROVED and belong to the activeSpace
   const approvedTasks = useMemo(() => {
+    const target = (targetAssigneeName || "").trim().toLowerCase();
     return tasks.rows.filter(
-      (task) => task.assigned_to === targetAssigneeName && task.approved !== false
+      (task) => (task.assigned_to || "").trim().toLowerCase() === target && task.approved !== false
     );
   }, [tasks.rows, targetAssigneeName]);
 
@@ -79,21 +80,24 @@ export default function TasksPage() {
   // Scenario A: Logged-in user is the assignee -> they must approve or decline
   const incomingRequests = useMemo(() => {
     const spaceUser = activeSpace === "user1" ? user1 : activeSpace === "user2" ? user2 : null;
-    if (!spaceUser || activeUserName !== spaceUser) return [];
+    if (!spaceUser || (activeUserName || "").trim().toLowerCase() !== spaceUser.trim().toLowerCase()) return [];
+    const spaceUserLower = spaceUser.trim().toLowerCase();
     return tasks.rows.filter(
-      (task) => task.assigned_to === spaceUser && task.approved === false
+      (task) => (task.assigned_to || "").trim().toLowerCase() === spaceUserLower && task.approved === false
     );
   }, [tasks.rows, activeSpace, activeUserName, user1, user2]);
 
   // Scenario B: Logged-in user is the creator but assigned to other -> show as pending status
   const pendingRequests = useMemo(() => {
     const spaceUser = activeSpace === "user1" ? user1 : activeSpace === "user2" ? user2 : null;
-    if (!spaceUser || activeUserName === spaceUser) return [];
+    if (!spaceUser || (activeUserName || "").trim().toLowerCase() === spaceUser.trim().toLowerCase()) return [];
+    const spaceUserLower = spaceUser.trim().toLowerCase();
+    const activeUserNameLower = (activeUserName || "").trim().toLowerCase();
     return tasks.rows.filter(
       (task) =>
-        task.assigned_to === spaceUser &&
+        (task.assigned_to || "").trim().toLowerCase() === spaceUserLower &&
         task.approved === false &&
-        task.created_by === activeUserName
+        (task.created_by || "").trim().toLowerCase() === activeUserNameLower
     );
   }, [tasks.rows, activeSpace, activeUserName, user1, user2]);
 

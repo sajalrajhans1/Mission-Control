@@ -58,10 +58,11 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
     }
   };
 
-  const u1Init = user1 ? user1[0].toUpperCase() : "1";
-  const u2Init = user2 ? user2[0].toUpperCase() : "2";
+  const u1Init = user1 ? (user1.length > 3 ? user1.slice(0, 3) : user1) : "U1";
+  const u2Init = user2 ? (user2.length > 3 ? user2.slice(0, 3) : user2) : "U2";
 
   const isBoth = (task.assigned_to || "").trim().toLowerCase() === "both";
+  const canDelete = isCreator || isBoth;
 
   return (
     <div className="flex items-center gap-3 rounded-xl border bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
@@ -72,7 +73,7 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
             variant="outline"
             size="icon"
             className={cn(
-              "h-8 w-8 rounded-full text-xs font-bold transition-all border-2",
+              "h-8 w-8 rounded-full text-[10px] font-bold transition-all border-2",
               activeUser !== "user1" && "opacity-50 cursor-not-allowed hover:bg-transparent hover:text-inherit"
             )}
             style={{
@@ -85,7 +86,7 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
                 const nextVal = !task.completed_user1;
                 tasks.update(task.id, {
                   completed_user1: nextVal,
-                  completed: nextVal && task.completed_user2
+                  completed: nextVal && !!task.completed_user2
                 });
               }
             }}
@@ -100,7 +101,7 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
             variant="outline"
             size="icon"
             className={cn(
-              "h-8 w-8 rounded-full text-xs font-bold transition-all border-2",
+              "h-8 w-8 rounded-full text-[10px] font-bold transition-all border-2",
               activeUser !== "user2" && "opacity-50 cursor-not-allowed hover:bg-transparent hover:text-inherit"
             )}
             style={{
@@ -113,7 +114,7 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
                 const nextVal = !task.completed_user2;
                 tasks.update(task.id, {
                   completed_user2: nextVal,
-                  completed: task.completed_user1 && nextVal
+                  completed: !!task.completed_user1 && nextVal
                 });
               }
             }}
@@ -252,7 +253,7 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
           </Badge>
         ) : null}
       </div>
-      {isCreator && (
+      {canDelete && (
         <Button
           variant="ghost"
           size="icon"
