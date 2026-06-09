@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 import type { Row, Json } from "@/lib/database.types";
 import { RichTextEditor } from "@/components/rich-text-editor";
 
-type Tab = "tasks" | "docs" | "chat";
+type Tab = "tasks" | "docs" | "chat" | "milestones";
 
 type ChatMessage = {
   id: string;
@@ -77,6 +77,60 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     if (!chatRow || !chatRow.value) return [];
     return Array.isArray(chatRow.value) ? (chatRow.value as unknown as ChatMessage[]) : [];
   }, [chatRow]);
+
+  // Dynamic tab switcher: default to milestones for client, tasks for normal
+  useEffect(() => {
+    if (project) {
+      if (project.project_type === "client") {
+        setActiveTab("milestones");
+      } else {
+        setActiveTab("tasks");
+      }
+    }
+  }, [project?.project_type]);
+
+  const getMilestoneStyle = (m: Row<"project_milestones">) => {
+    if (m.completed) {
+      return {
+        colorClass: "bg-emerald-50/70 border-emerald-200 text-emerald-900 dark:bg-emerald-950/20 dark:border-emerald-800 dark:text-emerald-105",
+        statusLabel: "Completed"
+      };
+    }
+    if (!m.due_date) {
+      return {
+        colorClass: "bg-zinc-50/50 border-zinc-200 text-zinc-900 dark:bg-zinc-900/30 dark:border-zinc-800 dark:text-zinc-105",
+        statusLabel: ""
+      };
+    }
+
+    const dueDate = new Date(m.due_date);
+    const now = new Date();
+    const timeDiff = dueDate.getTime() - now.getTime();
+    const hoursDiff = timeDiff / (1000 * 3600);
+
+    if (hoursDiff < 0) {
+      return {
+        colorClass: "bg-red-50/70 border-red-200 text-red-900 dark:bg-red-950/20 dark:border-red-800 dark:text-red-105",
+        statusLabel: "Overdue"
+      };
+    }
+    if (hoursDiff <= 24) {
+      return {
+        colorClass: "bg-red-50/70 border-red-200 text-red-900 dark:bg-red-950/20 dark:border-red-800 dark:text-red-105",
+        statusLabel: "Close"
+      };
+    }
+    if (hoursDiff <= 72) {
+      return {
+        colorClass: "bg-orange-50/70 border-orange-200 text-orange-900 dark:bg-orange-950/20 dark:border-orange-800 dark:text-orange-105",
+        statusLabel: "Medium"
+      };
+    }
+    return {
+      colorClass: "bg-amber-50/70 border-amber-200 text-amber-900 dark:bg-amber-950/20 dark:border-amber-800 dark:text-amber-105",
+      statusLabel: "Far"
+    };
+  };
 
   // Description / PRD Autosave
   const [prdDraft, setPrdDraft] = useState("");
@@ -282,187 +336,58 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         {/* Left Hand Screen: Scope & Roadmap */}
         <div className="grid gap-6 content-start lg:flex lg:flex-col lg:h-full lg:min-h-0">
           {project.project_type === "client" ? (
-            <>
-              {/* Project Scope Card */}
-              <Card className="flex flex-col h-[500px] lg:h-auto lg:flex-[58] min-h-[350px] overflow-hidden dark:bg-zinc-900 dark:border-zinc-800">
-                <CardHeader className="pb-3 border-b bg-zinc-50/50 dark:bg-zinc-900/50 dark:border-zinc-800 shrink-0">
-                  <div className="flex items-center justify-between gap-4">
-                    <CardTitle className="text-zinc-900 dark:text-zinc-50 text-base flex items-center gap-1.5 font-bold">
-                      <FileText className="h-4.5 w-4.5 text-blue-500" />
-                      Project Scope
-                    </CardTitle>
-                    <div className="flex border rounded-lg p-0.5 bg-white dark:bg-zinc-950 dark:border-zinc-800 text-xs shrink-0 shadow-sm">
-                      <button
-                        onClick={() => setActiveScopeTab("briefing")}
-                        className={cn(
-                          "px-2.5 py-1 font-semibold rounded-md transition-all",
-                          activeScopeTab === "briefing"
-                            ? "bg-zinc-150 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50"
-                            : "text-muted-foreground hover:text-zinc-700"
-                        )}
-                      >
-                        Client Briefing
-                      </button>
-                      <button
-                        onClick={() => setActiveScopeTab("prd")}
-                        className={cn(
-                          "px-2.5 py-1 font-semibold rounded-md transition-all",
-                          activeScopeTab === "prd"
-                            ? "bg-zinc-150 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50"
-                            : "text-muted-foreground hover:text-zinc-700"
-                        )}
-                      >
-                        PRD Specs
-                      </button>
-                    </div>
+            /* Project Scope Card */
+            <Card className="flex flex-col h-[600px] lg:h-full min-h-[500px] overflow-hidden dark:bg-zinc-900 dark:border-zinc-800">
+              <CardHeader className="pb-3 border-b bg-zinc-50/50 dark:bg-zinc-900/50 dark:border-zinc-800 shrink-0">
+                <div className="flex items-center justify-between gap-4">
+                  <CardTitle className="text-zinc-900 dark:text-zinc-50 text-base flex items-center gap-1.5 font-bold">
+                    <FileText className="h-4.5 w-4.5 text-blue-500" />
+                    Project Scope
+                  </CardTitle>
+                  <div className="flex border rounded-lg p-0.5 bg-white dark:bg-zinc-950 dark:border-zinc-800 text-xs shrink-0 shadow-sm">
+                    <button
+                      onClick={() => setActiveScopeTab("briefing")}
+                      className={cn(
+                        "px-2.5 py-1 font-semibold rounded-md transition-all",
+                        activeScopeTab === "briefing"
+                          ? "bg-zinc-150 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50"
+                          : "text-muted-foreground hover:text-zinc-700"
+                      )}
+                    >
+                      Client Briefing
+                    </button>
+                    <button
+                      onClick={() => setActiveScopeTab("prd")}
+                      className={cn(
+                        "px-2.5 py-1 font-semibold rounded-md transition-all",
+                        activeScopeTab === "prd"
+                          ? "bg-zinc-150 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50"
+                          : "text-muted-foreground hover:text-zinc-700"
+                      )}
+                    >
+                      PRD Specs
+                    </button>
                   </div>
-                </CardHeader>
-                <CardContent className="pt-4 flex-1 flex flex-col min-h-0">
-                  {activeScopeTab === "briefing" ? (
-                    <RichTextEditor
-                      initialValue={briefingDraft}
-                      onSave={saveBriefing}
-                      placeholder="Paste the client's original brief, requirements, Fiverr instructions, or communication details here... (Saves on click-away)"
-                      className="flex-1 flex flex-col min-h-0"
-                    />
-                  ) : (
-                    <RichTextEditor
-                      initialValue={prdDraft}
-                      onSave={savePrd}
-                      placeholder="Write your technical specs, milestones detail, deliverables, and PRD requirements here... (Saves on click-away)"
-                      className="flex-1 flex flex-col min-h-0"
-                    />
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Milestones Card */}
-              <Card className="flex flex-col h-[420px] lg:h-auto lg:flex-[42] min-h-[300px] overflow-hidden dark:bg-zinc-900 dark:border-zinc-800">
-                <CardHeader className="pb-2 shrink-0">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-zinc-900 dark:text-zinc-50 text-base flex items-center gap-1.5 font-bold">
-                      <Calendar className="h-4.5 w-4.5 text-blue-500 animate-pulse" />
-                      Timeline &amp; Milestones
-                    </CardTitle>
-                    {milestones.length > 0 && (
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
-                        {milestones.filter(m => m.completed).length} / {milestones.length} done
-                      </span>
-                    )}
-                  </div>
-                  {milestones.length > 0 && (
-                    <Progress
-                      value={(milestones.filter(m => m.completed).length / milestones.length) * 100} 
-                      className="h-1.5 mt-2 bg-blue-100/30"
-                    />
-                  )}
-                </CardHeader>
-                <CardContent className="pt-4 flex-1 flex flex-col min-h-0 gap-4">
-                  {/* Quick Add Form */}
-                  <div className="grid gap-2 border p-3.5 rounded-xl bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/30 shrink-0">
-                    <h4 className="text-xs font-bold text-zinc-600 dark:text-zinc-400">Add Milestone Checkpoint</h4>
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-                      <div className="flex-1 grid gap-1">
-                        <label className="text-[10px] font-semibold text-zinc-400">Title</label>
-                        <Input
-                          value={milestoneTitle}
-                          onChange={(e) => setMilestoneTitle(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && handleAddMilestone()}
-                          placeholder="e.g. Deliver first UI prototypes..."
-                          className="h-8.5 text-xs bg-white dark:bg-zinc-950 border-zinc-200"
-                        />
-                      </div>
-                      <div className="grid gap-1">
-                        <label className="text-[10px] font-semibold text-zinc-400">Due Date &amp; Time</label>
-                        <Input
-                          type="datetime-local"
-                          value={milestoneDueDate}
-                          onChange={(e) => setMilestoneDueDate(e.target.value)}
-                          className="h-8.5 text-xs bg-white dark:bg-zinc-950 border-zinc-200 w-full sm:w-[180px]"
-                        />
-                      </div>
-                      <Button onClick={handleAddMilestone} size="sm" className="h-8.5 shrink-0 px-3">
-                        <Plus className="h-3.5 w-3.5 mr-1" /> Add
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Timeline List */}
-                  <div className="relative pl-6 border-l border-zinc-200 dark:border-zinc-800 space-y-4 ml-3 pt-2 flex-1 overflow-y-auto pr-1 min-h-0">
-                    {milestones.map((m) => {
-                      const isOverdue = m.due_date && new Date(m.due_date) < new Date() && !m.completed;
-                      return (
-                        <div key={m.id} className="relative group/item">
-                          {/* Visual Node */}
-                          <span className="absolute -left-[31px] top-1 z-10 p-0.5 rounded-full transition-transform group-hover/item:scale-110">
-                            {m.completed ? (
-                              <CheckCircle2
-                                className="h-5 w-5 text-emerald-500 fill-emerald-50 cursor-pointer dark:bg-zinc-950"
-                                onClick={() => handleToggleMilestone(m.id, false)}
-                              />
-                            ) : (
-                              <Circle
-                                className={cn(
-                                  "h-5 w-5 bg-white cursor-pointer dark:bg-zinc-950",
-                                  isOverdue ? "text-red-500 fill-red-50" : "text-zinc-400"
-                                )}
-                                onClick={() => handleToggleMilestone(m.id, true)}
-                              />
-                            )}
-                          </span>
-                          
-                          {/* Milestone Card */}
-                          <div className="flex items-start justify-between gap-3 p-3 rounded-xl border bg-white dark:bg-zinc-900/50 dark:border-zinc-800 hover:shadow-soft transition-all">
-                            <div className="min-w-0 flex-1">
-                              <p className={cn(
-                                "text-sm font-semibold text-zinc-900 dark:text-zinc-100 break-words leading-tight",
-                                m.completed ? "line-through text-zinc-400 dark:text-zinc-500 font-medium" : ""
-                              )}>
-                                {m.title}
-                              </p>
-                              {m.due_date && (
-                                <div className="flex items-center gap-1 mt-1 text-[10px] font-medium text-zinc-500">
-                                  <Clock className="h-3 w-3 shrink-0" />
-                                  <span>
-                                    {new Date(m.due_date).toLocaleString("en-US", {
-                                      month: "short",
-                                      day: "numeric",
-                                      hour: "numeric",
-                                      minute: "2-digit",
-                                      hour12: true
-                                    })}
-                                  </span>
-                                  {isOverdue && (
-                                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-red-100 text-red-700 font-bold ml-1.5">
-                                      Overdue
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-zinc-400 hover:text-red-500 opacity-0 group-hover/item:opacity-100 transition-opacity shrink-0"
-                              onClick={() => handleDeleteMilestone(m.id)}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                    {milestones.length === 0 && (
-                      <div className="flex flex-col items-center justify-center py-6 text-center text-muted-foreground pr-6">
-                        <Calendar className="h-8 w-8 opacity-45 mb-1.5" />
-                        <p className="text-xs font-semibold">No milestones added yet.</p>
-                        <p className="text-[10px] mt-0.5">Map out dates/times to create your client roadmap.</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-4 flex-1 flex flex-col min-h-0">
+                {activeScopeTab === "briefing" ? (
+                  <RichTextEditor
+                    initialValue={briefingDraft}
+                    onSave={saveBriefing}
+                    placeholder="Paste the client's original brief, requirements, Fiverr instructions, or communication details here... (Saves on click-away)"
+                    className="flex-1 flex flex-col min-h-0"
+                  />
+                ) : (
+                  <RichTextEditor
+                    initialValue={prdDraft}
+                    onSave={savePrd}
+                    placeholder="Write your technical specs, milestones detail, deliverables, and PRD requirements here... (Saves on click-away)"
+                    className="flex-1 flex flex-col min-h-0"
+                  />
+                )}
+              </CardContent>
+            </Card>
           ) : (
             /* Normal Project PRD specs */
             <Card className="flex flex-col h-[600px] lg:h-full min-h-[500px] overflow-hidden dark:bg-zinc-900 dark:border-zinc-800">
@@ -488,41 +413,184 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         <div className="flex flex-col h-[600px] lg:h-full min-h-[500px]">
           <Card className="flex flex-col h-full overflow-hidden dark:bg-zinc-900 dark:border-zinc-800">
             {/* Navigator Tab Selector */}
-            <div className="flex border-b bg-zinc-50/50 dark:bg-zinc-900/50 dark:border-zinc-800">
+            <div className="flex border-b bg-zinc-50/50 dark:bg-zinc-900/50 dark:border-zinc-800 overflow-x-auto scrollbar-none">
+              {project.project_type === "client" && (
+                <button
+                  onClick={() => setActiveTab("milestones")}
+                  className={cn(
+                    "flex-1 py-3 px-2.5 text-xs font-bold border-b-2 flex items-center justify-center gap-1.5 transition-colors shrink-0",
+                    activeTab === "milestones" ? "border-zinc-900 text-zinc-900 dark:border-zinc-50 dark:text-zinc-50" : "border-transparent text-muted-foreground hover:text-zinc-700"
+                  )}
+                >
+                  <Calendar className="h-3.5 w-3.5 text-blue-500" />
+                  Roadmap ({milestones.length})
+                </button>
+              )}
               <button
                 onClick={() => setActiveTab("tasks")}
                 className={cn(
-                  "flex-1 py-3 text-sm font-semibold border-b-2 flex items-center justify-center gap-1.5 transition-colors",
+                  "flex-1 py-3 px-2.5 text-xs font-bold border-b-2 flex items-center justify-center gap-1.5 transition-colors shrink-0",
                   activeTab === "tasks" ? "border-zinc-900 text-zinc-900 dark:border-zinc-50 dark:text-zinc-50" : "border-transparent text-muted-foreground hover:text-zinc-700"
                 )}
               >
-                <ListTodo className="h-4 w-4" />
+                <ListTodo className="h-3.5 w-3.5" />
                 Tasks ({projectTasks.length})
               </button>
               <button
                 onClick={() => setActiveTab("docs")}
                 className={cn(
-                  "flex-1 py-3 text-sm font-semibold border-b-2 flex items-center justify-center gap-1.5 transition-colors",
+                  "flex-1 py-3 px-2.5 text-xs font-bold border-b-2 flex items-center justify-center gap-1.5 transition-colors shrink-0",
                   activeTab === "docs" ? "border-zinc-900 text-zinc-900 dark:border-zinc-50 dark:text-zinc-50" : "border-transparent text-muted-foreground hover:text-zinc-700"
                 )}
               >
-                <PaperclipIcon className="h-4 w-4" />
+                <PaperclipIcon className="h-3.5 w-3.5" />
                 Docs ({filesList.length})
               </button>
               <button
                 onClick={() => setActiveTab("chat")}
                 className={cn(
-                  "flex-1 py-3 text-sm font-semibold border-b-2 flex items-center justify-center gap-1.5 transition-colors",
+                  "flex-1 py-3 px-2.5 text-xs font-bold border-b-2 flex items-center justify-center gap-1.5 transition-colors shrink-0",
                   activeTab === "chat" ? "border-zinc-900 text-zinc-900 dark:border-zinc-50 dark:text-zinc-50" : "border-transparent text-muted-foreground hover:text-zinc-700"
                 )}
               >
-                <MessageSquare className="h-4 w-4" />
+                <MessageSquare className="h-3.5 w-3.5" />
                 Chat ({chatHistory.length})
               </button>
             </div>
 
             {/* Tab Contents Panel */}
-            <div className={cn("flex-1 p-4 dark:bg-zinc-950/20 min-h-0", activeTab === "chat" ? "flex flex-col" : "overflow-y-auto")}>
+            <div className={cn("flex-1 p-4 dark:bg-zinc-950/20 min-h-0", (activeTab === "chat" || activeTab === "milestones") ? "flex flex-col" : "overflow-y-auto")}>
+              {/* MILESTONES TAB */}
+              {activeTab === "milestones" && (
+                <div className="flex flex-col flex-1 min-h-0 justify-between">
+                  {/* Milestones Content */}
+                  <div className="flex-1 overflow-y-auto space-y-4 pr-1 min-h-0 pb-4">
+                    {/* Progress Bar */}
+                    {milestones.length > 0 && (
+                      <div className="border p-3 rounded-xl bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/30">
+                        <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
+                          <span className="text-zinc-600 dark:text-zinc-400">Milestone Progress</span>
+                          <span className="bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full dark:bg-zinc-800 dark:text-zinc-400">
+                            {milestones.filter(m => m.completed).length} / {milestones.length} done
+                          </span>
+                        </div>
+                        <Progress
+                          value={(milestones.filter(m => m.completed).length / milestones.length) * 100} 
+                          className="h-1.5 bg-blue-100/30"
+                        />
+                      </div>
+                    )}
+
+                    {/* Quick Add Form */}
+                    <div className="grid gap-2 border p-3.5 rounded-xl bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/30 shrink-0">
+                      <h4 className="text-xs font-bold text-zinc-650 dark:text-zinc-350">Add Milestone Checkpoint</h4>
+                      <div className="grid gap-2">
+                        <div className="grid gap-1">
+                          <label className="text-[10px] font-semibold text-zinc-450">Title</label>
+                          <Input
+                            value={milestoneTitle}
+                            onChange={(e) => setMilestoneTitle(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && handleAddMilestone()}
+                            placeholder="e.g. Deliver first UI prototypes..."
+                            className="h-8.5 text-xs bg-white dark:bg-zinc-950 border-zinc-200"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <div className="flex-1 grid gap-1">
+                            <label className="text-[10px] font-semibold text-zinc-450">Due Date &amp; Time</label>
+                            <Input
+                              type="datetime-local"
+                              value={milestoneDueDate}
+                              onChange={(e) => setMilestoneDueDate(e.target.value)}
+                              className="h-8.5 text-xs bg-white dark:bg-zinc-950 border-zinc-200 w-full"
+                            />
+                          </div>
+                          <Button onClick={handleAddMilestone} size="sm" className="h-8.5 shrink-0 px-3 self-end">
+                            <Plus className="h-3.5 w-3.5 mr-1" /> Add
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Timeline List */}
+                    <div className="relative pl-5 border-l border-zinc-200 dark:border-zinc-800 space-y-3.5 ml-2.5 pt-2">
+                      {milestones.map((m) => {
+                        const { colorClass, statusLabel } = getMilestoneStyle(m);
+                        return (
+                          <div key={m.id} className="relative group/item">
+                            {/* Visual Node */}
+                            <span className="absolute -left-[28px] top-1 z-10 p-0.5 rounded-full transition-transform group-hover/item:scale-110">
+                              {m.completed ? (
+                                <CheckCircle2
+                                  className="h-4.5 w-4.5 text-emerald-500 fill-emerald-50 cursor-pointer dark:bg-zinc-950"
+                                  onClick={() => handleToggleMilestone(m.id, false)}
+                                />
+                              ) : (
+                                <Circle
+                                  className="h-4.5 w-4.5 bg-white cursor-pointer dark:bg-zinc-950 text-zinc-400"
+                                  onClick={() => handleToggleMilestone(m.id, true)}
+                                />
+                              )}
+                            </span>
+                            
+                            {/* Milestone Card with Dynamic Color Coding */}
+                            <div className={cn(
+                              "flex items-start justify-between gap-3 p-3 rounded-xl border hover:shadow-soft transition-all",
+                              colorClass
+                            )}>
+                              <div className="min-w-0 flex-1">
+                                <p className={cn(
+                                  "text-xs font-semibold break-words leading-tight",
+                                  m.completed ? "line-through opacity-75 font-medium" : ""
+                                )}>
+                                  {m.title}
+                                </p>
+                                <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                                  {m.due_date && (
+                                    <div className="flex items-center gap-1 text-[9px] font-medium opacity-80">
+                                      <Clock className="h-3 w-3 shrink-0" />
+                                      <span>
+                                        {new Date(m.due_date).toLocaleString("en-US", {
+                                          month: "short",
+                                          day: "numeric",
+                                          hour: "numeric",
+                                          minute: "2-digit",
+                                          hour12: true
+                                        })}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {statusLabel && (
+                                    <span className="text-[8px] font-bold px-1.5 py-0.2 rounded uppercase tracking-wider bg-black/5 dark:bg-white/10">
+                                      {statusLabel}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 opacity-0 group-hover/item:opacity-100 hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/5 transition-all shrink-0"
+                                onClick={() => handleDeleteMilestone(m.id)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {milestones.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-6 text-center text-muted-foreground pr-6">
+                          <Calendar className="h-7 w-7 opacity-40 mb-1.5" />
+                          <p className="text-xs font-semibold">No milestones added yet.</p>
+                          <p className="text-[10px] mt-0.5">Map out checkpoints to create your client roadmap.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* TASKS TAB */}
               {activeTab === "tasks" && (
                 <div className="grid gap-4">
