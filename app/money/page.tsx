@@ -500,7 +500,7 @@ export default function MoneyPage() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {savingsGoals.rows.map((goal) => {
+            {savingsGoals.rows.filter((g) => g.created_by === myKey).map((goal) => {
               const percent = Math.min(100, Math.max(0, goal.target_amount ? (goal.current_amount / goal.target_amount) * 100 : 0));
               return (
                 <Card key={goal.id} className="relative overflow-hidden bg-zinc-50/50 dark:bg-zinc-900/50 border dark:border-zinc-800">
@@ -556,7 +556,7 @@ export default function MoneyPage() {
                 </Card>
               );
             })}
-            {savingsGoals.rows.length === 0 && (
+            {savingsGoals.rows.filter((g) => g.created_by === myKey).length === 0 && (
               <div className="sm:col-span-2 lg:col-span-3 py-8 text-center text-xs text-muted-foreground italic">
                 No savings goals created yet. Set a goal to start saving!
               </div>
