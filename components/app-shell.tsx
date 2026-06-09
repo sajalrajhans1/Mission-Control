@@ -201,65 +201,74 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   if (isLocked) {
     const color = activeUser === "user1" ? userColors.user1 : userColors.user2;
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-950 px-4 transition-all duration-300 relative">
-        <div className="absolute inset-0 bg-cover bg-center opacity-10 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]" />
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/75 backdrop-blur-2xl px-4 transition-all duration-500">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.035)_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" />
         
         <Card className={cn(
-          "w-full max-w-[420px] shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl border border-zinc-200 transition-all duration-300 relative z-10",
+          "w-full max-w-[380px] shadow-2xl bg-zinc-900/90 border-zinc-800 text-zinc-50 rounded-2xl backdrop-blur-md transition-all duration-300 relative z-10 p-6 flex flex-col items-center gap-6",
           shake && "animate-shake"
         )}>
-          <CardHeader className="text-center pb-4">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full text-white font-bold text-xl shadow-lg hover:scale-105 transition-transform" style={{ backgroundColor: color }}>
+          {/* Avatar & Header */}
+          <div className="flex flex-col items-center text-center gap-3 w-full">
+            <div 
+              className="flex h-16 w-16 items-center justify-center rounded-full text-white font-extrabold text-xl shadow-lg border border-white/10 hover:scale-105 transition-transform" 
+              style={{ backgroundColor: color }}
+            >
               {activeUserName ? activeUserName[0].toUpperCase() : "M"}
             </div>
-            <CardTitle className="text-2xl font-black tracking-widest text-zinc-900 tracking-wider">
-              MISSION CONTROL
-            </CardTitle>
-            <p className="mt-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Workspace Locked
-            </p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleUnlock} className="grid gap-4">
-              <div className="grid gap-1.5">
-                <p className="text-xs text-center text-zinc-500 mb-2">
-                  Enter password for <span className="font-bold text-zinc-700">{activeUserName}</span> to resume your session.
+            <div className="space-y-1">
+              <h2 className="text-xl font-black tracking-widest text-white uppercase">
+                MISSION CONTROL
+              </h2>
+              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                Workspace Locked
+              </p>
+            </div>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleUnlock} className="w-full flex flex-col gap-4">
+            <div className="space-y-3">
+              <p className="text-xs text-center text-zinc-400">
+                Enter password for <span className="font-semibold text-white">{activeUserName}</span> to resume.
+              </p>
+              <Input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoFocus
+                className="h-11 rounded-xl text-center text-sm bg-zinc-950/50 border-zinc-800 text-white placeholder-zinc-600 focus-visible:ring-1 focus-visible:ring-zinc-700 focus-visible:border-zinc-700"
+              />
+              {unlockError && (
+                <p className="text-xs text-red-400 text-center font-semibold animate-pulse">
+                  {unlockError}
                 </p>
-                <Input
-                  type="password"
-                  placeholder="Enter password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoFocus
-                  className="h-11 rounded-xl text-center text-sm border-zinc-200 focus-visible:ring-1"
-                />
-                {unlockError && (
-                  <p className="text-xs text-red-500 text-center font-semibold mt-1">
-                    {unlockError}
-                  </p>
-                )}
-              </div>
-              
-              <div className="flex flex-col gap-2 mt-2">
-                <Button type="submit" className="h-11 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold text-sm transition-all shadow-md">
-                  Unlock Workspace
-                </Button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    logout();
-                    setIsLocked(false);
-                    sessionStorage.removeItem("mc_locked");
-                    setPassword("");
-                    setUnlockError(null);
-                  }}
-                  className="text-xs text-zinc-400 hover:text-zinc-650 transition-colors py-1.5 font-medium underline underline-offset-4"
-                >
-                  Switch Profile / Logout
-                </button>
-              </div>
-            </form>
-          </CardContent>
+              )}
+            </div>
+            
+            <div className="flex flex-col gap-3 mt-1">
+              <Button 
+                type="submit" 
+                className="h-11 rounded-xl bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-sm transition-all shadow-md active:scale-[0.98]"
+              >
+                Unlock Workspace
+              </Button>
+              <button
+                type="button"
+                onClick={() => {
+                  logout();
+                  setIsLocked(false);
+                  sessionStorage.removeItem("mc_locked");
+                  setPassword("");
+                  setUnlockError(null);
+                }}
+                className="text-[10px] text-zinc-500 hover:text-zinc-350 transition-colors py-1 font-bold uppercase tracking-wider"
+              >
+                Switch Profile / Logout
+              </button>
+            </div>
+          </form>
         </Card>
       </div>
     );
