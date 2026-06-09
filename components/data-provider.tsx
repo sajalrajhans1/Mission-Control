@@ -21,6 +21,7 @@ type DataContextValue = {
   vaults: ReturnType<typeof useRealtimeTable<"vaults">>;
   vaultItems: ReturnType<typeof useRealtimeTable<"vault_items">>;
   projectFiles: ReturnType<typeof useRealtimeTable<"project_files">>;
+  projectMilestones: ReturnType<typeof useRealtimeTable<"project_milestones">>;
   activeUser: "user1" | "user2" | null;
   activeUserName: string;
   onlineUsers: string[];
@@ -91,9 +92,52 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const vaults = useRealtimeTable("vaults", { column: "order_index", ascending: true });
   const vaultItems = useRealtimeTable("vault_items", { column: "created_at", ascending: false });
   const projectFiles = useRealtimeTable("project_files", { column: "created_at", ascending: false });
+  const projectMilestones = useRealtimeTable("project_milestones", { column: "due_date", ascending: true });
 
   const [activeUser, setActiveUser] = useState<"user1" | "user2" | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+
+  // Filter projects/tasks/files/milestones based on privacy setting in real time
+  const filteredProjects = useMemo(() => {
+    return {
+      ...projects,
+      rows: projects.rows.filter((p) => !p.is_private || p.created_by === activeUser)
+    };
+  }, [projects, activeUser]);
+
+  const filteredTasks = useMemo(() => {
+    return {
+      ...tasks,
+      rows: tasks.rows.filter((t) => {
+        if (!t.project_id) return true;
+        const p = projects.rows.find((proj) => proj.id === t.project_id);
+        if (!p) return false;
+        return !p.is_private || p.created_by === activeUser;
+      })
+    };
+  }, [tasks, projects.rows, activeUser]);
+
+  const filteredProjectFiles = useMemo(() => {
+    return {
+      ...projectFiles,
+      rows: projectFiles.rows.filter((f) => {
+        const p = projects.rows.find((proj) => proj.id === f.project_id);
+        if (!p) return false;
+        return !p.is_private || p.created_by === activeUser;
+      })
+    };
+  }, [projectFiles, projects.rows, activeUser]);
+
+  const filteredMilestones = useMemo(() => {
+    return {
+      ...projectMilestones,
+      rows: projectMilestones.rows.filter((m) => {
+        const p = projects.rows.find((proj) => proj.id === m.project_id);
+        if (!p) return false;
+        return !p.is_private || p.created_by === activeUser;
+      })
+    };
+  }, [projectMilestones, projects.rows, activeUser]);
 
   useEffect(() => {
     const saved = sessionStorage.getItem("mc_session");
@@ -365,8 +409,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(
     () => ({
-      projects,
-      tasks,
+      projects: filteredProjects,
+      tasks: filteredTasks,
       prompts,
       ideas,
       resources,
@@ -378,7 +422,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       settings,
       vaults,
       vaultItems,
-      projectFiles,
+      projectFiles: filteredProjectFiles,
+      projectMilestones: filteredMilestones,
       activeUser,
       activeUserName,
       onlineUsers,
@@ -388,8 +433,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       isPasswordSet
     }),
     [
-      projects,
-      tasks,
+      filteredProjects,
+      filteredTasks,
       prompts,
       ideas,
       resources,
@@ -401,7 +446,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       settings,
       vaults,
       vaultItems,
-      projectFiles,
+      filteredProjectFiles,
+      filteredMilestones,
       activeUser,
       activeUserName,
       onlineUsers,

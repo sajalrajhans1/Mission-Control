@@ -18,6 +18,11 @@ export type Database = {
           description: string;
           created_at: string;
           updated_at: string;
+          project_type: "normal" | "client";
+          is_private: boolean;
+          created_by: string | null;
+          client_briefing: string;
+          client_deadline: string | null;
         };
         Insert: {
           id?: string;
@@ -27,8 +32,34 @@ export type Database = {
           description?: string;
           created_at?: string;
           updated_at?: string;
+          project_type?: "normal" | "client";
+          is_private?: boolean;
+          created_by?: string | null;
+          client_briefing?: string;
+          client_deadline?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["projects"]["Insert"]>;
+      };
+      project_milestones: {
+        Row: {
+          id: string;
+          project_id: string;
+          title: string;
+          due_date: string | null;
+          completed: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          title: string;
+          due_date?: string | null;
+          completed?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["project_milestones"]["Insert"]>;
       };
       tasks: {
         Row: {
