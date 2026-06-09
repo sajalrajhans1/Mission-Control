@@ -92,13 +92,15 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const getMilestoneStyle = (m: Row<"project_milestones">) => {
     if (m.completed) {
       return {
-        colorClass: "bg-emerald-50/70 border-emerald-200 text-emerald-900 dark:bg-emerald-950/20 dark:border-emerald-800 dark:text-emerald-105",
+        colorClass: "bg-emerald-50/10 border-zinc-200/80 border-l-emerald-500 text-zinc-900 dark:bg-emerald-950/5 dark:border-zinc-800 dark:border-l-emerald-600 dark:text-zinc-100",
+        badgeClass: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400",
         statusLabel: "Completed"
       };
     }
     if (!m.due_date) {
       return {
-        colorClass: "bg-zinc-50/50 border-zinc-200 text-zinc-900 dark:bg-zinc-900/30 dark:border-zinc-800 dark:text-zinc-105",
+        colorClass: "bg-zinc-50/20 border-zinc-200/80 border-l-zinc-400 text-zinc-850 dark:bg-zinc-900/5 dark:border-zinc-800 dark:border-l-zinc-500 dark:text-zinc-200",
+        badgeClass: "bg-zinc-100 text-zinc-650 dark:bg-zinc-800 dark:text-zinc-400",
         statusLabel: ""
       };
     }
@@ -110,24 +112,28 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
     if (hoursDiff < 0) {
       return {
-        colorClass: "bg-red-50/70 border-red-200 text-red-900 dark:bg-red-950/20 dark:border-red-800 dark:text-red-105",
+        colorClass: "bg-red-50/10 border-zinc-200/80 border-l-red-500 text-zinc-900 dark:bg-red-950/5 dark:border-zinc-800 dark:border-l-red-600 dark:text-zinc-100",
+        badgeClass: "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-400",
         statusLabel: "Overdue"
       };
     }
     if (hoursDiff <= 24) {
       return {
-        colorClass: "bg-red-50/70 border-red-200 text-red-900 dark:bg-red-950/20 dark:border-red-800 dark:text-red-105",
+        colorClass: "bg-red-50/10 border-zinc-200/80 border-l-red-500 text-zinc-900 dark:bg-red-950/5 dark:border-zinc-800 dark:border-l-red-600 dark:text-zinc-100",
+        badgeClass: "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-400",
         statusLabel: "Close"
       };
     }
     if (hoursDiff <= 72) {
       return {
-        colorClass: "bg-orange-50/70 border-orange-200 text-orange-900 dark:bg-orange-950/20 dark:border-orange-800 dark:text-orange-105",
+        colorClass: "bg-orange-50/10 border-zinc-200/80 border-l-orange-500 text-zinc-900 dark:bg-orange-950/5 dark:border-zinc-850 dark:border-l-orange-650 dark:text-zinc-105",
+        badgeClass: "bg-orange-100 text-orange-800 dark:bg-orange-950/40 dark:text-orange-400",
         statusLabel: "Medium"
       };
     }
     return {
-      colorClass: "bg-amber-50/70 border-amber-200 text-amber-900 dark:bg-amber-950/20 dark:border-amber-800 dark:text-amber-105",
+      colorClass: "bg-amber-50/10 border-zinc-200/80 border-l-amber-500 text-zinc-900 dark:bg-amber-950/5 dark:border-zinc-800 dark:border-l-amber-600 dark:text-zinc-100",
+      badgeClass: "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400",
       statusLabel: "Far"
     };
   };
@@ -459,95 +465,113 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Tab Contents Panel */}
-            <div className={cn("flex-1 p-4 dark:bg-zinc-950/20 min-h-0", (activeTab === "chat" || activeTab === "milestones") ? "flex flex-col" : "overflow-y-auto")}>
+            <div className={cn("flex-1 p-4 dark:bg-zinc-950/20 min-h-0", (activeTab === "chat" || activeTab === "milestones") ? "flex flex-col gap-4" : "overflow-y-auto")}>
               {/* MILESTONES TAB */}
               {activeTab === "milestones" && (
                 <div className="flex flex-col flex-1 min-h-0 justify-between">
                   {/* Milestones Content */}
-                  <div className="flex-1 overflow-y-auto space-y-4 pr-1 min-h-0 pb-4">
+                  <div className="flex-1 overflow-y-auto space-y-4 pr-2.5 min-h-0 pb-4 scrollbar-sleek">
                     {/* Progress Bar */}
                     {milestones.length > 0 && (
-                      <div className="border p-3 rounded-xl bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/30">
-                        <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
-                          <span className="text-zinc-600 dark:text-zinc-400">Milestone Progress</span>
-                          <span className="bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full dark:bg-zinc-800 dark:text-zinc-400">
+                      <div className="flex flex-col gap-1.5 shrink-0 px-1 pt-1">
+                        <div className="flex items-center justify-between text-xs font-semibold">
+                          <span className="text-zinc-500">Roadmap Progress</span>
+                          <span className="bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full text-[10px] font-bold">
                             {milestones.filter(m => m.completed).length} / {milestones.length} done
                           </span>
                         </div>
                         <Progress
                           value={(milestones.filter(m => m.completed).length / milestones.length) * 100} 
-                          className="h-1.5 bg-blue-100/30"
+                          className="h-1.5 bg-zinc-100/80"
                         />
                       </div>
                     )}
 
                     {/* Quick Add Form */}
-                    <div className="grid gap-2 border p-3.5 rounded-xl bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/30 shrink-0">
-                      <h4 className="text-xs font-bold text-zinc-650 dark:text-zinc-350">Add Milestone Checkpoint</h4>
-                      <div className="grid gap-2">
+                    <div className="border p-4 rounded-xl bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/30 shrink-0 space-y-3 shadow-sm">
+                      <h4 className="text-xs font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+                        <Plus className="h-3.5 w-3.5 text-zinc-500" />
+                        Add Milestone Checkpoint
+                      </h4>
+                      <div className="space-y-2.5">
                         <div className="grid gap-1">
-                          <label className="text-[10px] font-semibold text-zinc-450">Title</label>
+                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Title</span>
                           <Input
                             value={milestoneTitle}
                             onChange={(e) => setMilestoneTitle(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && handleAddMilestone()}
                             placeholder="e.g. Deliver first UI prototypes..."
-                            className="h-8.5 text-xs bg-white dark:bg-zinc-950 border-zinc-200"
+                            className="h-9 text-xs bg-white dark:bg-zinc-950 border-zinc-200 rounded-lg shadow-sm"
                           />
                         </div>
-                        <div className="flex gap-2">
-                          <div className="flex-1 grid gap-1">
-                            <label className="text-[10px] font-semibold text-zinc-450">Due Date &amp; Time</label>
+                        <div className="grid gap-1">
+                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Due Date &amp; Time</span>
+                          <div className="flex gap-2">
                             <Input
                               type="datetime-local"
                               value={milestoneDueDate}
                               onChange={(e) => setMilestoneDueDate(e.target.value)}
-                              className="h-8.5 text-xs bg-white dark:bg-zinc-950 border-zinc-200 w-full"
+                              className="h-9 text-xs bg-white dark:bg-zinc-950 border-zinc-200 rounded-lg shadow-sm flex-1"
                             />
+                            <Button 
+                              onClick={handleAddMilestone} 
+                              size="sm" 
+                              className="h-9 px-4 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white font-semibold text-xs shrink-0 transition-colors shadow"
+                            >
+                              Add Checkpoint
+                            </Button>
                           </div>
-                          <Button onClick={handleAddMilestone} size="sm" className="h-8.5 shrink-0 px-3 self-end">
-                            <Plus className="h-3.5 w-3.5 mr-1" /> Add
-                          </Button>
                         </div>
                       </div>
                     </div>
 
                     {/* Timeline List */}
-                    <div className="relative pl-5 border-l border-zinc-200 dark:border-zinc-800 space-y-3.5 ml-2.5 pt-2">
+                    <div className="relative pl-5 border-l border-zinc-200/60 dark:border-zinc-800 space-y-3.5 ml-2 pt-2 pr-2 scrollbar-sleek">
                       {milestones.map((m) => {
-                        const { colorClass, statusLabel } = getMilestoneStyle(m);
+                        const { colorClass, badgeClass, statusLabel } = getMilestoneStyle(m);
+                        
+                        // Icon selection based on state
+                        const isOverdue = m.due_date && new Date(m.due_date) < new Date() && !m.completed;
+                        const isClose = m.due_date && (new Date(m.due_date).getTime() - new Date().getTime()) / 3600000 <= 24 && !m.completed;
+                        const isMedium = m.due_date && (new Date(m.due_date).getTime() - new Date().getTime()) / 3600000 <= 72 && !m.completed;
+                        
+                        let nodeIcon = <Circle className="h-4 w-4 text-zinc-400 fill-white dark:fill-zinc-950 bg-white" />;
+                        if (m.completed) {
+                          nodeIcon = <CheckCircle2 className="h-4 w-4 text-emerald-500 fill-emerald-50 bg-white dark:bg-zinc-950" />;
+                        } else if (isOverdue || isClose) {
+                          nodeIcon = <Circle className="h-4 w-4 text-red-500 fill-red-50 bg-white dark:bg-zinc-950 animate-pulse" />;
+                        } else if (isMedium) {
+                          nodeIcon = <Circle className="h-4 w-4 text-orange-500 fill-orange-50 bg-white dark:bg-zinc-950" />;
+                        } else if (m.due_date) {
+                          nodeIcon = <Circle className="h-4 w-4 text-amber-500 fill-amber-50 bg-white dark:bg-zinc-950" />;
+                        }
+
                         return (
-                          <div key={m.id} className="relative group/item">
-                            {/* Visual Node */}
-                            <span className="absolute -left-[28px] top-1 z-10 p-0.5 rounded-full transition-transform group-hover/item:scale-110">
-                              {m.completed ? (
-                                <CheckCircle2
-                                  className="h-4.5 w-4.5 text-emerald-500 fill-emerald-50 cursor-pointer dark:bg-zinc-950"
-                                  onClick={() => handleToggleMilestone(m.id, false)}
-                                />
-                              ) : (
-                                <Circle
-                                  className="h-4.5 w-4.5 bg-white cursor-pointer dark:bg-zinc-950 text-zinc-400"
-                                  onClick={() => handleToggleMilestone(m.id, true)}
-                                />
-                              )}
+                          <div key={m.id} className="relative group/item hover:translate-x-0.5 transition-transform duration-200">
+                            {/* Visual Node (Interactive) */}
+                            <span 
+                              className="absolute -left-[28px] top-[14px] z-10 p-0.5 rounded-full transition-transform group-hover/item:scale-110 bg-white dark:bg-zinc-950 cursor-pointer"
+                              onClick={() => handleToggleMilestone(m.id, !m.completed)}
+                              title={m.completed ? "Mark incomplete" : "Mark completed"}
+                            >
+                              {nodeIcon}
                             </span>
                             
-                            {/* Milestone Card with Dynamic Color Coding */}
+                            {/* Milestone Card with Dynamic Left-Border Accent */}
                             <div className={cn(
-                              "flex items-start justify-between gap-3 p-3 rounded-xl border hover:shadow-soft transition-all",
+                              "flex items-start justify-between gap-3 p-3 rounded-xl border border-l-4 bg-white dark:bg-zinc-900/50 hover:shadow-soft transition-all shadow-sm",
                               colorClass
                             )}>
                               <div className="min-w-0 flex-1">
                                 <p className={cn(
-                                  "text-xs font-semibold break-words leading-tight",
-                                  m.completed ? "line-through opacity-75 font-medium" : ""
+                                  "text-xs font-bold break-words leading-tight text-zinc-800 dark:text-zinc-200",
+                                  m.completed ? "line-through opacity-70 font-semibold" : ""
                                 )}>
                                   {m.title}
                                 </p>
-                                <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                                <div className="flex flex-wrap items-center gap-2 mt-2">
                                   {m.due_date && (
-                                    <div className="flex items-center gap-1 text-[9px] font-medium opacity-80">
+                                    <div className="flex items-center gap-1 text-[9px] font-semibold text-zinc-500 dark:text-zinc-400">
                                       <Clock className="h-3 w-3 shrink-0" />
                                       <span>
                                         {new Date(m.due_date).toLocaleString("en-US", {
@@ -561,20 +585,26 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                     </div>
                                   )}
                                   {statusLabel && (
-                                    <span className="text-[8px] font-bold px-1.5 py-0.2 rounded uppercase tracking-wider bg-black/5 dark:bg-white/10">
+                                    <span className={cn(
+                                      "text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider",
+                                      badgeClass
+                                    )}>
                                       {statusLabel}
                                     </span>
                                   )}
                                 </div>
                               </div>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 opacity-0 group-hover/item:opacity-100 hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/5 transition-all shrink-0"
-                                onClick={() => handleDeleteMilestone(m.id)}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
+                              
+                              <div className="flex items-center gap-1 shrink-0 self-center">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                                  onClick={() => handleDeleteMilestone(m.id)}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         );

@@ -86,3 +86,31 @@ select {
   color: #a1a1aa;
   cursor: text;
 }
+
+/* Premium custom scrollbar styling */
+.scrollbar-sleek {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+}
+
+.scrollbar-sleek::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.scrollbar-sleek::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-sleek::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 9999px;
+}
+
+.scrollbar-sleek::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.scrollbar-sleek::-webkit-scrollbar-corner {
+  background: transparent;
+}
