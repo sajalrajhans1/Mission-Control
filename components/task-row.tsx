@@ -126,9 +126,13 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
       ) : (
         /* Single User Circle */
         (() => {
-          const isUser1 = task.assigned_to === user1;
+          const u1 = (user1 || "").trim().toLowerCase();
+          const activeName = (activeUserName || "").trim().toLowerCase();
+          const taskAssignee = (task.assigned_to || "").trim().toLowerCase();
+          
+          const isUser1 = taskAssignee === u1;
           const assignedColor = isUser1 ? userColors.user1 : userColors.user2;
-          const isAssignedToActiveUser = task.assigned_to === activeUserName;
+          const isAssignedToActiveUser = activeName !== "" && taskAssignee === activeName;
           return (
             <Button
               variant="outline"

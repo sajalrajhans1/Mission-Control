@@ -22,7 +22,7 @@ const NOTE_COLORS = {
 
 export default function HomePage() {
   const { tasks, moneyEntries, stickyNotes, settings, onlineUsers } = useData();
-  const { activeUserName } = useActiveUser();
+  const { activeUser, activeUserName } = useActiveUser();
   const { user1, user2 } = useUserNames();
   const userColors = useUserColors();
   const month = currentMonthRange();
@@ -93,15 +93,38 @@ export default function HomePage() {
   const currency = currencyRow && typeof currencyRow.value === "string" ? currencyRow.value : "INR";
   const currencySymbol = currency === "USD" ? "$" : "₹";
 
-  const monthEntries = moneyEntries.rows.filter(
-    (entry) => entry.entry_date >= month.start && entry.entry_date <= month.end
-  );
-  const income = monthEntries
-    .filter((entry) => entry.type === "Income")
-    .reduce((sum, entry) => sum + Number(entry.amount), 0);
-  const expenses = monthEntries
-    .filter((entry) => entry.type === "Expense")
-    .reduce((sum, entry) => sum + Number(entry.amount), 0);
+  const myKey = activeUser || "user1";
+  const otherKey = myKey === "user1" ? "user2" : "user1";
+
+  const monthEntries = useMemo(() => {
+    return moneyEntries.rows.filter(
+      (entry) => entry.entry_date >= month.start && entry.entry_date <= month.end
+    );
+  }, [moneyEntries.rows, month.start, month.end]);
+
+  const income = useMemo(() => {
+    const userIncome = monthEntries
+      .filter((e) => e.added_by === myKey && e.type === "Income" && !e.is_request)
+      .reduce((sum, e) => sum + Number(e.amount), 0);
+    
+    const settledRequests = monthEntries
+      .filter((e) => e.added_by === myKey && e.request_to === otherKey && e.is_request && e.request_status === "settled")
+      .reduce((sum, e) => sum + Number(e.amount), 0);
+    
+    return userIncome + settledRequests;
+  }, [monthEntries, myKey, otherKey]);
+
+  const expenses = useMemo(() => {
+    const userExpenses = monthEntries
+      .filter((e) => e.added_by === myKey && e.type === "Expense" && !e.is_request)
+      .reduce((sum, e) => sum + Number(e.amount), 0);
+    
+    const approvedRequests = monthEntries
+      .filter((e) => e.added_by === otherKey && e.request_to === myKey && e.is_request && (e.request_status === "approved" || e.request_status === "settled"))
+      .reduce((sum, e) => sum + Number(e.amount), 0);
+    
+    return userExpenses + approvedRequests;
+  }, [monthEntries, myKey, otherKey]);
 
   const progress = useMemo(() => {
     return [user1, user2].map((person) => {
