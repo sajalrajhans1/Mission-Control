@@ -13,7 +13,6 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { useData, useUserNames, useActiveUser } from "@/components/data-provider";
-import { isSupabaseConfigured } from "@/lib/supabase";
 import { cn, todayISO } from "@/lib/utils";
 import type { Row } from "@/lib/database.types";
 
@@ -31,7 +30,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export default function MoneyPage() {
-  const { moneyEntries, settings, savingsGoals } = useData();
+  const { moneyEntries, savingsGoals } = useData();
   const { activeUser } = useActiveUser();
   const names = useUserNames();
 
@@ -43,7 +42,6 @@ export default function MoneyPage() {
   const [entryDate, setEntryDate] = useState(todayISO());
 
   const [deletingEntry, setDeletingEntry] = useState<Row<"money_entries"> | null>(null);
-  const [converting, setConverting] = useState(false);
 
   // ── Savings Goals State & Logic ───────────────────────────────────────────
   const [showCreateGoal, setShowCreateGoal] = useState(false);
@@ -117,46 +115,7 @@ export default function MoneyPage() {
     setDeletingGoal(null);
   };
 
-  // ── Currency Preference ───────────────────────────────────────────────────
-  const currencyRow = settings.rows.find((r) => r.key === "currency_preference");
-  const currency = currencyRow && typeof currencyRow.value === "string" ? currencyRow.value : "INR";
-  const currencySymbol = currency === "USD" ? "$" : "₹";
-
-  const toggleCurrency = async () => {
-    if (converting) return;
-    setConverting(true);
-    try {
-      const nextVal = currency === "INR" ? "USD" : "INR";
-      const EXCHANGE_RATE = 83.0;
-      const multiplier = nextVal === "INR" ? EXCHANGE_RATE : 1 / EXCHANGE_RATE;
-
-      // Update all money entries
-      if (isSupabaseConfigured) {
-        await Promise.all(
-          moneyEntries.rows.map((entry) => {
-            const newAmount = Number((Number(entry.amount) * multiplier).toFixed(2));
-            return moneyEntries.update(entry.id, { amount: newAmount });
-          })
-        );
-      } else {
-        for (const entry of moneyEntries.rows) {
-          const newAmount = Number((Number(entry.amount) * multiplier).toFixed(2));
-          await moneyEntries.update(entry.id, { amount: newAmount });
-        }
-      }
-
-      // Update setting row
-      if (currencyRow) {
-        await settings.update(currencyRow.id, { value: nextVal });
-      } else {
-        await settings.create({ key: "currency_preference", value: nextVal });
-      }
-    } catch (err) {
-      console.error("Currency conversion failed:", err);
-    } finally {
-      setConverting(false);
-    }
-  };
+  const currencySymbol = "₹";
 
   // Helper to format money with selected symbol
   const formatVal = (val: number) => {
@@ -374,14 +333,6 @@ export default function MoneyPage() {
           <h1 className="text-3xl font-bold tracking-tight">Money</h1>
           <p className="mt-1 text-sm text-muted-foreground">Private wallets &amp; split expense tracking.</p>
         </div>
-        <Button
-          variant="outline"
-          className="rounded-xl border dark:border-zinc-800"
-          onClick={toggleCurrency}
-          disabled={converting}
-        >
-          {converting ? "Converting..." : `Currency: ${currency} (${currencySymbol})`}
-        </Button>
       </div>
 
       {/* ── Two Columns: Wallets ────────────────────────────────────────────── */}

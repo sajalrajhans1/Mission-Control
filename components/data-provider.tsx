@@ -154,9 +154,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
         const otherUserName = activeUser === "user1" ? names.user2 : names.user1;
         
-        const currencyRow = settings.rows.find((r) => r.key === "currency_preference");
-        const currency = currencyRow && typeof currencyRow.value === "string" ? currencyRow.value : "INR";
-        const currencySymbol = currency === "USD" ? "$" : "₹";
+        const currencySymbol = "₹";
 
         if (eventType === "INSERT") {
           if (table === "tasks") {

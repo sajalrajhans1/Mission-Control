@@ -89,9 +89,7 @@ export default function HomePage() {
   );
 
   // --- Calculations ---
-  const currencyRow = settings.rows.find((r) => r.key === "currency_preference");
-  const currency = currencyRow && typeof currencyRow.value === "string" ? currencyRow.value : "INR";
-  const currencySymbol = currency === "USD" ? "$" : "₹";
+  const currencySymbol = "₹";
 
   const myKey = activeUser || "user1";
   const otherKey = myKey === "user1" ? "user2" : "user1";
