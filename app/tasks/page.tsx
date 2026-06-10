@@ -72,7 +72,7 @@ export default function TasksPage() {
       if (subFilter === "Today") return !task.completed && task.due_date === today;
       if (subFilter === "Upcoming") return !task.completed && Boolean(task.due_date && task.due_date > today);
       if (subFilter === "Completed") return task.completed;
-      return true;
+      return !task.completed; // "All" = all active (non-completed) tasks
     });
   }, [subFilter, approvedTasks, today]);
 
