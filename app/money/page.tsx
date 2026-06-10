@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import {
-  AlertCircle, Check, Sparkles, Trash2, X, Plus, Clock, ArrowRight, CircleDollarSign, CheckCheck
+  AlertCircle, Check, Sparkles, Trash2, X, Plus, Clock, ArrowRight, CircleDollarSign, CheckCheck, Send
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,6 +46,11 @@ export default function MoneyPage() {
   // Settlement workflow state
   const [payingEntry, setPayingEntry] = useState<Row<"money_entries"> | null>(null);
   const [payAmount, setPayAmount] = useState("");
+
+  // Send money state
+  const [sendDesc, setSendDesc] = useState("");
+  const [sendAmount, setSendAmount] = useState("");
+  const [sendCategory, setSendCategory] = useState("Misc");
 
   // ── Savings Goals State & Logic ───────────────────────────────────────────
   const [showCreateGoal, setShowCreateGoal] = useState(false);
@@ -888,6 +893,78 @@ export default function MoneyPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* ── Send Money ────────────────────────────────────────────────────── */}
+      <Card className="dark:border-zinc-800 dark:bg-zinc-900">
+        <CardHeader>
+          <CardTitle className="text-base text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+            <Send className="h-4 w-4 text-violet-500" />
+            Send Money to {otherKey === "user1" ? names.user1 : names.user2}
+          </CardTitle>
+          <p className="text-xs text-muted-foreground mt-0.5">Proactively pay your partner — for split bills, dues, or anything they forgot to request.</p>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1">
+              <Input
+                value={sendDesc}
+                onChange={(ev) => setSendDesc(ev.target.value)}
+                placeholder="What's this for? e.g. Your half of dinner"
+                className="h-10"
+              />
+            </div>
+            <div className="w-full sm:w-[140px]">
+              <Input
+                type="number"
+                value={sendAmount}
+                onChange={(ev) => setSendAmount(ev.target.value)}
+                placeholder="Amount"
+                className="h-10"
+              />
+            </div>
+            <div className="w-full sm:w-[130px]">
+              <Select value={sendCategory} onValueChange={setSendCategory}>
+                <SelectTrigger className="h-10">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              className="h-10 rounded-xl bg-violet-600 hover:bg-violet-700 text-white shrink-0"
+              disabled={!sendDesc.trim() || Number(sendAmount) <= 0}
+              onClick={async () => {
+                const amt = Number(sendAmount);
+                if (!sendDesc.trim() || amt <= 0) return;
+                // Create as if the partner requested it, but skip to confirming
+                await moneyEntries.create({
+                  description: `${sendDesc.trim()} (Sent)`,
+                  amount: amt,
+                  type: "Expense",
+                  added_by: otherKey,
+                  category: sendCategory,
+                  is_request: true,
+                  request_to: myKey,
+                  request_status: "confirming",
+                  paid_amount: amt,
+                  paid_by: myKey,
+                  entry_date: todayISO(),
+                });
+                setSendDesc("");
+                setSendAmount("");
+                setSendCategory("Misc");
+              }}
+            >
+              <Send className="h-4 w-4 mr-1.5" />
+              Send {Number(sendAmount) > 0 ? formatVal(Number(sendAmount)) : ""}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* ── Add Entry & Spending Charts ──────────────────────────────────────── */}
       <div className="grid gap-6 lg:grid-cols-2">
