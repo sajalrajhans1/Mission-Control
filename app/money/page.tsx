@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import {
-  AlertCircle, Check, Sparkles, Trash2, X, Plus
+  AlertCircle, Check, Sparkles, Trash2, X, Plus, Clock, ArrowRight, CircleDollarSign, CheckCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,6 +42,10 @@ export default function MoneyPage() {
   const [entryDate, setEntryDate] = useState(todayISO());
 
   const [deletingEntry, setDeletingEntry] = useState<Row<"money_entries"> | null>(null);
+
+  // Settlement workflow state
+  const [payingEntry, setPayingEntry] = useState<Row<"money_entries"> | null>(null);
+  const [payAmount, setPayAmount] = useState("");
 
   // ── Savings Goals State & Logic ───────────────────────────────────────────
   const [showCreateGoal, setShowCreateGoal] = useState(false);
@@ -141,17 +145,16 @@ export default function MoneyPage() {
       .filter((e) => e.added_by === userKey && e.type === "Expense" && !e.is_request)
       .reduce((sum, e) => sum + Number(e.amount), 0);
 
-    // Deduct split requests sent by the other user that this user has approved/settled
-    const approvedRequestsFromOther = allEntries
-      .filter((e) => e.added_by === otherUserKey && e.request_to === userKey && e.is_request && (e.request_status === "approved" || e.request_status === "settled"))
+    // Only count fully settled & confirmed payments against wallet
+    const settledRequestsFromOther = allEntries
+      .filter((e) => e.added_by === otherUserKey && e.request_to === userKey && e.is_request && e.request_status === "settled" && e.payment_confirmed)
       .reduce((sum, e) => sum + Number(e.amount), 0);
 
-    // Add split requests sent by this user that the other user has settled (cash paid IRL)
     const settledRequestsToOther = allEntries
-      .filter((e) => e.added_by === userKey && e.request_to === otherUserKey && e.is_request && e.request_status === "settled")
+      .filter((e) => e.added_by === userKey && e.request_to === otherUserKey && e.is_request && e.request_status === "settled" && e.payment_confirmed)
       .reduce((sum, e) => sum + Number(e.amount), 0);
 
-    return userIncome - userExpenses - approvedRequestsFromOther + settledRequestsToOther;
+    return userIncome - userExpenses - settledRequestsFromOther + settledRequestsToOther;
   };
 
   const myWalletTotal = getWalletTotal(myKey);
@@ -161,24 +164,90 @@ export default function MoneyPage() {
     return allEntries.filter((e) => e.added_by === myKey && !e.is_request);
   }, [allEntries, myKey]);
 
-  // Request Split lists
+  // ── Split Approval Lists ──────────────────────────────────────────────────
+  // Pending requests that need my approval
   const pendingRequestsToMe = useMemo(() => {
     return allEntries.filter((e) => e.added_by === otherKey && e.request_to === myKey && e.is_request && e.request_status === "pending");
   }, [allEntries, otherKey, myKey]);
 
+  // My sent requests waiting for partner to approve
   const sentPendingRequests = useMemo(() => {
     return allEntries.filter((e) => e.added_by === myKey && e.request_to === otherKey && e.is_request && e.request_status === "pending");
   }, [allEntries, myKey, otherKey]);
 
-  const approvedUnpaidDebts = useMemo(() => {
-    // Splits approved by otherKey (meaning they owe me money, waiting for them to pay me cash IRL)
+  // ── Cash Settlement Lists ─────────────────────────────────────────────────
+  // Approved debts I owe (I need to pay them)
+  const debtsIOwe = useMemo(() => {
+    return allEntries.filter((e) => e.added_by === otherKey && e.request_to === myKey && e.is_request && e.request_status === "approved");
+  }, [allEntries, otherKey, myKey]);
+
+  // I paid, waiting for partner to confirm receipt
+  const waitingConfirmation = useMemo(() => {
+    return allEntries.filter((e) => e.is_request && e.request_status === "confirming" && e.paid_by === myKey);
+  }, [allEntries, myKey]);
+
+
+
+
+  // Correctly: partner paid me, I confirm
+  const confirmReceipts = useMemo(() => {
+    return allEntries.filter((e) => e.is_request && e.request_status === "confirming" && e.paid_by === otherKey &&
+      // I am the one who originally requested the money (added_by === myKey means I requested from otherKey)
+      // OR otherKey requested from me, otherKey approved, now otherKey paid → but that doesn't make sense
+      // Simplify: the person who should confirm is the one who originally requested the money (added_by)
+      e.added_by === myKey
+    );
+  }, [allEntries, myKey, otherKey]);
+
+  // They owe me money (approved, waiting for them to pay)
+  const debtsTheyOwe = useMemo(() => {
     return allEntries.filter((e) => e.added_by === myKey && e.request_to === otherKey && e.is_request && e.request_status === "approved");
   }, [allEntries, myKey, otherKey]);
 
-  const approvedMyDebts = useMemo(() => {
-    // Splits approved by me (meaning I owe otherKey money, showing checkbox for me to mark as settled once I pay them IRL)
-    return allEntries.filter((e) => e.added_by === otherKey && e.request_to === myKey && e.is_request && e.request_status === "approved");
-  }, [allEntries, otherKey, myKey]);
+  // Handle payment submission
+  const handlePay = async (entry: Row<"money_entries">, amount: number) => {
+    if (amount <= 0) return;
+    const newPaidAmount = (entry.paid_amount || 0) + amount;
+    await moneyEntries.update(entry.id, {
+      request_status: "confirming",
+      paid_amount: newPaidAmount,
+      paid_by: myKey,
+    });
+    setPayingEntry(null);
+    setPayAmount("");
+  };
+
+  // Handle receipt confirmation
+  const handleConfirmReceipt = async (entry: Row<"money_entries">) => {
+    const paidSoFar = entry.paid_amount || 0;
+    if (paidSoFar >= Number(entry.amount)) {
+      // Fully paid — mark as settled
+      await moneyEntries.update(entry.id, {
+        request_status: "settled",
+        payment_confirmed: true,
+      });
+    } else {
+      // Partial payment confirmed — go back to approved for remaining
+      await moneyEntries.update(entry.id, {
+        request_status: "approved",
+        payment_confirmed: false,
+        paid_by: null,
+      });
+    }
+  };
+
+  // Handle dispute (reject the payment claim)
+  const handleDispute = async (entry: Row<"money_entries">) => {
+    // Reset paid amount for this round and go back to approved
+    await moneyEntries.update(entry.id, {
+      request_status: "approved",
+      paid_by: null,
+      // Don't reset paid_amount — keep the accumulated amount but reset the unconfirmed portion
+      // Actually, on dispute we should revert the last payment
+      paid_amount: Math.max(0, (entry.paid_amount || 0) - (entry.paid_amount || 0)), // Reset to 0 for dispute
+      payment_confirmed: false,
+    });
+  };
 
   const createEntry = async () => {
     if (!description.trim() || Number(amount) <= 0) return;
@@ -246,7 +315,7 @@ export default function MoneyPage() {
       (e) => e.added_by === myKey && e.type === "Expense" && !e.is_request
     );
     const approvedSplits = allEntries.filter(
-      (e) => e.added_by === otherKey && e.request_to === myKey && e.is_request && (e.request_status === "approved" || e.request_status === "settled")
+      (e) => e.added_by === otherKey && e.request_to === myKey && e.is_request && e.request_status === "settled" && e.payment_confirmed
     );
 
     const totals: Record<string, number> = {};
@@ -301,7 +370,7 @@ export default function MoneyPage() {
         (e) => e.added_by === myKey && e.type === "Expense" && !e.is_request && e.entry_date >= startISO && e.entry_date <= endISO
       );
       const splits = allEntries.filter(
-        (e) => e.added_by === otherKey && e.request_to === myKey && e.is_request && (e.request_status === "approved" || e.request_status === "settled") && e.entry_date >= startISO && e.entry_date <= endISO
+        (e) => e.added_by === otherKey && e.request_to === myKey && e.is_request && e.request_status === "settled" && e.payment_confirmed && e.entry_date >= startISO && e.entry_date <= endISO
       );
 
       const combined = [...expenses, ...splits];
@@ -518,34 +587,44 @@ export default function MoneyPage() {
 
       {/* ── Split Requests Dashboard ────────────────────────────────────────── */}
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Money Requests Panel */}
+        {/* Split Approvals Panel */}
         <Card className="dark:border-zinc-800 dark:bg-zinc-900">
           <CardHeader>
-            <CardTitle className="text-base text-zinc-900 dark:text-zinc-50">Split Approvals</CardTitle>
+            <CardTitle className="text-base text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-amber-500" />
+              Split Approvals
+            </CardTitle>
+            <p className="text-xs text-muted-foreground mt-0.5">Approve or reject incoming money requests.</p>
           </CardHeader>
-          <CardContent className="grid gap-4">
+          <CardContent className="grid gap-5">
             {/* Needs My Approval */}
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Needs Your Approval</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                Needs Your Approval
+              </h3>
               <div className="grid gap-2">
                 {pendingRequestsToMe.map((e) => (
-                  <div key={e.id} className="flex justify-between items-center p-3 rounded-xl border bg-amber-50/20 border-amber-200 dark:bg-amber-950/10 dark:border-amber-900/40 text-sm">
-                    <div>
-                      <p className="font-semibold text-zinc-800 dark:text-zinc-200">{e.description}</p>
-                      <p className="text-xs text-muted-foreground">Requested by {myKey === "user1" ? names.user2 : names.user1}</p>
+                  <div key={e.id} className="flex justify-between items-center p-3 rounded-xl border bg-amber-50/30 border-amber-200/60 text-sm transition-all hover:shadow-sm">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-zinc-800 truncate">{e.description}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Requested by {e.added_by === "user1" ? names.user1 : names.user2} • {e.entry_date}
+                      </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 shrink-0 ml-3">
                       <Button
                         size="sm"
-                        className="rounded-lg h-8 px-3"
+                        className="rounded-lg h-8 px-3 bg-emerald-600 hover:bg-emerald-700 text-white"
                         onClick={() => moneyEntries.update(e.id, { request_status: "approved" })}
                       >
-                        Approve ({formatVal(Number(e.amount))})
+                        <Check className="h-3.5 w-3.5 mr-1" />
+                        Approve {formatVal(Number(e.amount))}
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="rounded-lg h-8 w-8 p-0 text-destructive"
+                        className="rounded-lg h-8 w-8 p-0 text-destructive hover:bg-red-50"
                         onClick={() => moneyEntries.remove(e.id)}
                       >
                         <X className="h-4 w-4" />
@@ -554,80 +633,258 @@ export default function MoneyPage() {
                   </div>
                 ))}
                 {pendingRequestsToMe.length === 0 && (
-                  <p className="text-xs text-muted-foreground py-2 italic">No requests waiting for your approval.</p>
+                  <p className="text-xs text-muted-foreground py-3 italic text-center">No requests waiting for your approval.</p>
                 )}
               </div>
             </div>
 
             {/* Waiting for Partner */}
-            <div className="mt-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Pending Partner Approval</h3>
-              <div className="grid gap-1">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                <Clock className="h-3 w-3 text-zinc-400" />
+                Pending Partner Approval
+              </h3>
+              <div className="grid gap-1.5">
                 {sentPendingRequests.map((e) => (
-                  <div key={e.id} className="flex justify-between items-center p-2 rounded-lg border bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/50 text-sm">
-                    <span className="truncate text-zinc-700 dark:text-zinc-300">{e.description}</span>
-                    <span className="font-semibold text-muted-foreground shrink-0">{formatVal(Number(e.amount))}</span>
+                  <div key={e.id} className="flex justify-between items-center p-2.5 rounded-lg border bg-zinc-50/50 text-sm">
+                    <span className="truncate text-zinc-700 min-w-0 flex-1">{e.description}</span>
+                    <span className="font-semibold text-muted-foreground shrink-0 ml-3">{formatVal(Number(e.amount))}</span>
                   </div>
                 ))}
                 {sentPendingRequests.length === 0 && (
-                  <p className="text-xs text-muted-foreground py-2 italic">No pending requests sent.</p>
+                  <p className="text-xs text-muted-foreground py-2 italic text-center">No pending requests sent.</p>
                 )}
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Debts & Settling Panel */}
+        {/* Cash Settlements Panel */}
         <Card className="dark:border-zinc-800 dark:bg-zinc-900">
           <CardHeader>
-            <CardTitle className="text-base text-zinc-900 dark:text-zinc-50">Cash Settlements</CardTitle>
+            <CardTitle className="text-base text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+              <CircleDollarSign className="h-4 w-4 text-emerald-500" />
+              Cash Settlements
+            </CardTitle>
+            <p className="text-xs text-muted-foreground mt-0.5">Track payments and confirm receipts.</p>
           </CardHeader>
-          <CardContent className="grid gap-4">
-            {/* Approved Debts I owe them (Mark as Settled when I pay) */}
+          <CardContent className="grid gap-5">
+
+            {/* ── 1. Confirm Receipt (partner paid, I need to confirm) ─────── */}
+            {confirmReceipts.length > 0 && (
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
+                  Confirm Receipt
+                </h3>
+                <div className="grid gap-2">
+                  {confirmReceipts.map((e) => {
+                    const paidAmt = e.paid_amount || 0;
+                    const totalAmt = Number(e.amount);
+                    return (
+                      <div key={e.id} className="p-3 rounded-xl border-2 border-blue-200 bg-blue-50/30 text-sm transition-all">
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-zinc-800 truncate">{e.description}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {e.paid_by === "user1" ? names.user1 : names.user2} claims to have paid
+                            </p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="text-base font-bold text-blue-700">{formatVal(paidAmt)}</p>
+                            <p className="text-[10px] text-muted-foreground">of {formatVal(totalAmt)}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 mt-3 justify-end">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-lg h-8 border-red-200 text-red-600 hover:bg-red-50 text-xs"
+                            onClick={() => handleDispute(e)}
+                          >
+                            <X className="h-3 w-3 mr-1" />
+                            Dispute
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="rounded-lg h-8 bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                            onClick={() => handleConfirmReceipt(e)}
+                          >
+                            <CheckCheck className="h-3.5 w-3.5 mr-1" />
+                            {paidAmt >= totalAmt ? "Confirm & Settle" : "Confirm Partial"}
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* ── 2. You Owe (approved debts I need to pay) ──────────────── */}
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">You Owe (Check when paid cash)</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
+                You Owe
+              </h3>
               <div className="grid gap-2">
-                {approvedMyDebts.map((e) => (
-                  <div key={e.id} className="flex justify-between items-center p-3 rounded-xl border bg-red-50/20 border-red-200 dark:bg-red-950/10 dark:border-red-900/40 text-sm">
-                    <div>
-                      <p className="font-semibold text-zinc-800 dark:text-zinc-200">{e.description}</p>
-                      <p className="text-xs text-muted-foreground">Owed to {myKey === "user1" ? names.user2 : names.user1}</p>
+                {debtsIOwe.map((e) => {
+                  const totalAmt = Number(e.amount);
+                  const paidSoFar = e.paid_amount || 0;
+                  const remaining = totalAmt - paidSoFar;
+                  const isPayingThis = payingEntry?.id === e.id;
+
+                  return (
+                    <div key={e.id} className="rounded-xl border bg-red-50/20 border-red-200/60 text-sm transition-all">
+                      <div className="flex justify-between items-start p-3 gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-zinc-800 truncate">{e.description}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Owed to {e.added_by === "user1" ? names.user1 : names.user2} • {e.entry_date}
+                          </p>
+                          {paidSoFar > 0 && (
+                            <p className="text-[10px] text-emerald-600 font-semibold mt-1">
+                              Previously paid: {formatVal(paidSoFar)} • Remaining: {formatVal(remaining)}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-lg font-bold text-red-600">{formatVal(remaining)}</p>
+                        </div>
+                      </div>
+                      
+                      {!isPayingThis ? (
+                        <div className="px-3 pb-3 flex gap-2 justify-end">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-lg h-8 border-red-200 text-red-700 hover:bg-red-50 text-xs"
+                            onClick={() => { setPayingEntry(e); setPayAmount(remaining.toString()); }}
+                          >
+                            <ArrowRight className="h-3 w-3 mr-1" />
+                            Pay Now
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="px-3 pb-3 border-t border-red-100 pt-3 mt-1">
+                          <div className="flex gap-2 items-end">
+                            <div className="flex-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1 block">Payment Amount</label>
+                              <Input
+                                type="number"
+                                value={payAmount}
+                                onChange={(ev) => setPayAmount(ev.target.value)}
+                                placeholder="Enter amount..."
+                                className="h-9 text-sm"
+                                autoFocus
+                              />
+                            </div>
+                            <Button
+                              size="sm"
+                              className="rounded-lg h-9 bg-red-600 hover:bg-red-700 text-white text-xs shrink-0"
+                              disabled={Number(payAmount) <= 0 || Number(payAmount) > remaining}
+                              onClick={() => handlePay(e, Number(payAmount))}
+                            >
+                              <Check className="h-3 w-3 mr-1" />
+                              Mark Paid
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-9 w-9 p-0 shrink-0 text-zinc-400 hover:text-zinc-700"
+                              onClick={() => { setPayingEntry(null); setPayAmount(""); }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="flex gap-1.5 mt-2">
+                            <button
+                              type="button"
+                              className="text-[10px] font-semibold text-red-600 hover:text-red-800 px-2 py-1 rounded-md bg-red-50 hover:bg-red-100 transition-colors"
+                              onClick={() => setPayAmount(remaining.toString())}
+                            >
+                              Pay Full ({formatVal(remaining)})
+                            </button>
+                            {remaining > 100 && (
+                              <button
+                                type="button"
+                                className="text-[10px] font-semibold text-zinc-600 hover:text-zinc-800 px-2 py-1 rounded-md bg-zinc-100 hover:bg-zinc-200 transition-colors"
+                                onClick={() => setPayAmount(Math.round(remaining / 2).toString())}
+                              >
+                                Pay Half ({formatVal(Math.round(remaining / 2))})
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="rounded-lg h-8 border-red-200 text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/20 flex gap-1.5"
-                      onClick={() => moneyEntries.update(e.id, { request_status: "settled" })}
-                    >
-                      <Check className="h-3.5 w-3.5" />
-                      Paid {formatVal(Number(e.amount))}
-                    </Button>
-                  </div>
-                ))}
-                {approvedMyDebts.length === 0 && (
-                  <p className="text-xs text-muted-foreground py-2 italic">No debts to settle. All clear! 🎉</p>
+                  );
+                })}
+                {debtsIOwe.length === 0 && (
+                  <p className="text-xs text-muted-foreground py-2 italic text-center">No debts to settle. All clear! 🎉</p>
                 )}
               </div>
             </div>
 
-            {/* Approved Debts they owe me */}
-            <div className="mt-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">They Owe You (Waiting for payment)</h3>
-              <div className="grid gap-2">
-                {approvedUnpaidDebts.map((e) => (
-                  <div key={e.id} className="flex justify-between items-center p-2 rounded-lg border bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/50 text-sm">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold truncate text-zinc-700 dark:text-zinc-300">{e.description}</p>
-                      <p className="text-xs text-muted-foreground">Waiting for {myKey === "user1" ? names.user2 : names.user1}</p>
+            {/* ── 3. Waiting Confirmation (I paid, waiting for partner) ──── */}
+            {waitingConfirmation.length > 0 && (
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                  <Clock className="h-3 w-3 text-amber-400 animate-pulse" />
+                  Waiting Confirmation
+                </h3>
+                <div className="grid gap-2">
+                  {waitingConfirmation.map((e) => (
+                    <div key={e.id} className="flex justify-between items-center p-3 rounded-xl border border-amber-200/60 bg-amber-50/20 text-sm">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-zinc-800 truncate">{e.description}</p>
+                        <p className="text-xs text-amber-600 font-medium mt-0.5">
+                          Paid {formatVal(e.paid_amount || 0)} — waiting for {e.added_by === "user1" ? names.user1 : names.user2} to confirm
+                        </p>
+                      </div>
+                      <div className="shrink-0 ml-3 flex items-center gap-1.5 text-amber-600">
+                        <Clock className="h-4 w-4" />
+                        <span className="text-xs font-bold">Pending</span>
+                      </div>
                     </div>
-                    <span className="font-bold text-green-600 shrink-0">{formatVal(Number(e.amount))}</span>
-                  </div>
-                ))}
-                {approvedUnpaidDebts.length === 0 && (
-                  <p className="text-xs text-muted-foreground py-2 italic">Nobody owes you currently.</p>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── 4. They Owe You (waiting for them to pay) ────────────── */}
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                They Owe You
+              </h3>
+              <div className="grid gap-2">
+                {debtsTheyOwe.map((e) => {
+                  const totalAmt = Number(e.amount);
+                  const paidSoFar = e.paid_amount || 0;
+                  return (
+                    <div key={e.id} className="flex justify-between items-center p-3 rounded-xl border bg-emerald-50/20 border-emerald-200/60 text-sm">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold truncate text-zinc-700">{e.description}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Waiting for {e.request_to === "user1" ? names.user1 : names.user2} to pay
+                        </p>
+                        {paidSoFar > 0 && (
+                          <p className="text-[10px] text-emerald-600 font-semibold mt-0.5">
+                            Partially paid: {formatVal(paidSoFar)} / {formatVal(totalAmt)}
+                          </p>
+                        )}
+                      </div>
+                      <span className="font-bold text-emerald-600 shrink-0 ml-3 text-base">{formatVal(totalAmt - paidSoFar)}</span>
+                    </div>
+                  );
+                })}
+                {debtsTheyOwe.length === 0 && (
+                  <p className="text-xs text-muted-foreground py-2 italic text-center">Nobody owes you currently.</p>
                 )}
               </div>
             </div>
+
           </CardContent>
         </Card>
       </div>

@@ -148,7 +148,10 @@ export type Database = {
           category: string;
           is_request: boolean;
           request_to: string | null;
-          request_status: "pending" | "approved" | "settled";
+          request_status: "pending" | "approved" | "confirming" | "settled";
+          paid_amount: number;
+          paid_by: string | null;
+          payment_confirmed: boolean;
           savings_goal_id: string | null;
           entry_date: string;
           created_at: string;
@@ -163,7 +166,10 @@ export type Database = {
           category?: string;
           is_request?: boolean;
           request_to?: string | null;
-          request_status?: "pending" | "approved" | "settled";
+          request_status?: "pending" | "approved" | "confirming" | "settled";
+          paid_amount?: number;
+          paid_by?: string | null;
+          payment_confirmed?: boolean;
           savings_goal_id?: string | null;
           entry_date?: string;
           created_at?: string;
