@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { Bell, Check, CheckCheck, Trash2, Inbox, X } from "lucide-react";
+import { Bell, CheckCheck, Trash2, Inbox } from "lucide-react";
 import { useData, useActiveUser } from "@/components/data-provider";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -71,6 +71,7 @@ export function NotificationsMenu() {
   const markAllAsRead = async () => {
     if (!supabase || !activeUser) return;
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (supabase as any)
         .from("notifications")
         .update({ read: true })
@@ -89,6 +90,7 @@ export function NotificationsMenu() {
   const clearAll = async () => {
     if (!supabase || !activeUser) return;
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (supabase as any)
         .from("notifications")
         .delete()

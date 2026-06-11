@@ -361,6 +361,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     async (forUser: "user1" | "user2", title: string, body: string) => {
       if (!isSupabaseConfigured || !supabase) return;
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (supabase as any).from("notifications").insert({
           for_user: forUser,
           title,
