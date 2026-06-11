@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 const subFilters = ["All", "Today", "Upcoming", "Completed"] as const;
 
 export default function TasksPage() {
-  const { tasks, projects, activeUserName, activeUser } = useData();
+  const { tasks, projects, activeUserName, activeUser, sendNotification } = useData();
   const { user1, user2 } = useUserNames();
 
   const [activeSpace, setActiveSpace] = useState<"user1" | "user2" | "collab">("user1");
@@ -119,6 +119,24 @@ export default function TasksPage() {
       created_by: activeUserName || "Unknown",
       approved
     });
+
+    const otherUserKey = activeUser === "user1" ? "user2" : "user1";
+    if (assignedTo === "Both") {
+      sendNotification(
+        otherUserKey,
+        "New Task Assigned to Both",
+        `${activeUserName} created: ${title.trim()}`
+      );
+    } else {
+      const targetUser = assignedTo === user1 ? "user1" : "user2";
+      if (targetUser === otherUserKey) {
+        sendNotification(
+          otherUserKey,
+          "New Task Assigned to you",
+          `${activeUserName} created: ${title.trim()}`
+        );
+      }
+    }
 
     setTitle("");
     setNote("");
@@ -278,7 +296,15 @@ export default function TasksPage() {
                   <Button
                     size="sm"
                     className="h-8 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white"
-                    onClick={() => tasks.update(task.id, { approved: true })}
+                    onClick={async () => {
+                      await tasks.update(task.id, { approved: true });
+                      const otherUserKey = activeUser === "user1" ? "user2" : "user1";
+                      sendNotification(
+                        otherUserKey,
+                        "Task Request Approved",
+                        `${activeUserName} approved your task: ${task.title}`
+                      );
+                    }}
                   >
                     <Check className="h-3.5 w-3.5 mr-1" /> Approve
                   </Button>

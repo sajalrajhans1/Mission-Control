@@ -278,6 +278,27 @@ export type Database = {
         };
         Update: Partial<Database["public"]["Tables"]["project_files"]["Insert"]>;
       };
+      notifications: {
+        Row: {
+          id: string;
+          for_user: string;
+          title: string;
+          body: string;
+          read: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          for_user: string;
+          title: string;
+          body?: string;
+          read?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["notifications"]["Insert"]>;
+      };
     };
   };
 };

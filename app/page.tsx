@@ -21,7 +21,7 @@ const NOTE_COLORS = {
 } as const;
 
 export default function HomePage() {
-  const { tasks, moneyEntries, stickyNotes, settings, onlineUsers } = useData();
+  const { tasks, moneyEntries, stickyNotes, settings, onlineUsers, sendNotification } = useData();
   const { activeUser, activeUserName } = useActiveUser();
   const { user1, user2 } = useUserNames();
   const userColors = useUserColors();
@@ -53,6 +53,7 @@ export default function HomePage() {
   }, [parsedPriority.text, isEditing]);
 
   const savePriorityList = async (textToSave: string) => {
+    if (textToSave === parsedPriority.text) return;
     setIsSaving(true);
     const updatedValue = {
       text: textToSave,
@@ -65,6 +66,12 @@ export default function HomePage() {
     } else {
       await settings.create({ key: "shared_priority_list", value: updatedValue as unknown as Json });
     }
+    const otherUserKey = activeUser === "user1" ? "user2" : "user1";
+    sendNotification(
+      otherUserKey,
+      "Priority List Updated",
+      `${activeUserName} updated the shared priority list`
+    );
     setIsSaving(false);
   };
 

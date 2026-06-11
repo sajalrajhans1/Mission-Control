@@ -30,8 +30,8 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export default function MoneyPage() {
-  const { moneyEntries, savingsGoals } = useData();
-  const { activeUser } = useActiveUser();
+  const { moneyEntries, savingsGoals, sendNotification } = useData();
+  const { activeUser, activeUserName } = useActiveUser();
   const names = useUserNames();
 
   const [description, setDescription] = useState("");
@@ -218,6 +218,11 @@ export default function MoneyPage() {
       paid_amount: newPaidAmount,
       paid_by: myKey,
     });
+    sendNotification(
+      otherKey,
+      "Payment Received",
+      `${activeUserName} paid ${formatVal(amount)} for: ${entry.description} (waiting confirmation)`
+    );
     setPayingEntry(null);
     setPayAmount("");
   };
@@ -231,6 +236,11 @@ export default function MoneyPage() {
         request_status: "settled",
         payment_confirmed: true,
       });
+      sendNotification(
+        otherKey,
+        "Payment Confirmed",
+        `${activeUserName} confirmed receipt of ${formatVal(paidSoFar)} for: ${entry.description}`
+      );
     } else {
       // Partial payment confirmed — go back to approved for remaining
       await moneyEntries.update(entry.id, {
@@ -238,20 +248,29 @@ export default function MoneyPage() {
         payment_confirmed: false,
         paid_by: null,
       });
+      sendNotification(
+        otherKey,
+        "Partial Payment Confirmed",
+        `${activeUserName} confirmed receipt of partial payment ${formatVal(paidSoFar)} for: ${entry.description}`
+      );
     }
   };
 
   // Handle dispute (reject the payment claim)
   const handleDispute = async (entry: Row<"money_entries">) => {
+    const oldPaidAmount = entry.paid_amount || 0;
     // Reset paid amount for this round and go back to approved
     await moneyEntries.update(entry.id, {
       request_status: "approved",
       paid_by: null,
-      // Don't reset paid_amount — keep the accumulated amount but reset the unconfirmed portion
-      // Actually, on dispute we should revert the last payment
-      paid_amount: Math.max(0, (entry.paid_amount || 0) - (entry.paid_amount || 0)), // Reset to 0 for dispute
+      paid_amount: 0, // Reset to 0 for dispute
       payment_confirmed: false,
     });
+    sendNotification(
+      otherKey,
+      "Payment Claim Disputed",
+      `${activeUserName} disputed your payment of ${formatVal(oldPaidAmount)} for: ${entry.description}`
+    );
   };
 
   const createEntry = async () => {
@@ -284,6 +303,12 @@ export default function MoneyPage() {
         request_status: "pending",
         entry_date: entryDate
       });
+
+      sendNotification(
+        otherKey,
+        "Money Request",
+        `${activeUserName} requested ${formatVal(splitAmount)} for: ${description}`
+      );
     } else if (type === "Expense" && splitMode === "request") {
       // Create request entry for the whole specific amount from partner
       await moneyEntries.create({
@@ -297,6 +322,12 @@ export default function MoneyPage() {
         request_status: "pending",
         entry_date: entryDate
       });
+
+      sendNotification(
+        otherKey,
+        "Money Request",
+        `${activeUserName} requested ${formatVal(numAmount)} for: ${description}`
+      );
     } else {
       await moneyEntries.create({
         description,
@@ -621,7 +652,14 @@ export default function MoneyPage() {
                       <Button
                         size="sm"
                         className="rounded-lg h-8 px-3 bg-emerald-600 hover:bg-emerald-700 text-white"
-                        onClick={() => moneyEntries.update(e.id, { request_status: "approved" })}
+                        onClick={async () => {
+                          await moneyEntries.update(e.id, { request_status: "approved" });
+                          sendNotification(
+                            otherKey,
+                            "Money Request Approved",
+                            `${activeUserName} approved your request for ${formatVal(Number(e.amount))}: ${e.description}`
+                          );
+                        }}
                       >
                         <Check className="h-3.5 w-3.5 mr-1" />
                         Approve {formatVal(Number(e.amount))}
@@ -954,6 +992,11 @@ export default function MoneyPage() {
                   paid_by: myKey,
                   entry_date: todayISO(),
                 });
+                sendNotification(
+                  otherKey,
+                  "Money Received",
+                  `${activeUserName} sent you ${formatVal(amt)} for: ${sendDesc.trim()} (waiting confirmation)`
+                );
                 setSendDesc("");
                 setSendAmount("");
                 setSendCategory("Misc");

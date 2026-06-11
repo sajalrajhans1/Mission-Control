@@ -34,7 +34,7 @@ type ChatMessage = {
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: projectId } = React.use(params);
   const router = useRouter();
-  const { projects, tasks, projectFiles, projectMilestones, settings } = useData();
+  const { projects, tasks, projectFiles, projectMilestones, settings, sendNotification, activeUser } = useData();
   const { activeUserName } = useActiveUser();
   const names = useUserNames();
   const userColors = useUserColors();
@@ -207,6 +207,12 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       file_data: null,
       uploaded_by: activeUserName || "User"
     });
+    const otherUserKey = activeUser === "user1" ? "user2" : "user1";
+    sendNotification(
+      otherUserKey,
+      "New Project Document",
+      `${activeUserName} uploaded: ${docName.trim()}`
+    );
     setDocName("");
     setDocUrl("");
   };
@@ -226,6 +232,12 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         url: null,
         uploaded_by: activeUserName || "User"
       });
+      const otherUserKey = activeUser === "user1" ? "user2" : "user1";
+      sendNotification(
+        otherUserKey,
+        "New Project Document",
+        `${activeUserName} uploaded: ${file.name}`
+      );
     };
     reader.readAsDataURL(file);
     e.target.value = "";
@@ -246,6 +258,23 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       note: newTaskNote.trim(),
       approved: newTaskAssigned === "Both" || newTaskAssigned === activeUserName
     });
+    const otherUserKey = activeUser === "user1" ? "user2" : "user1";
+    if (newTaskAssigned === "Both") {
+      sendNotification(
+        otherUserKey,
+        "New Task Assigned to Both",
+        `${activeUserName} created: ${newTaskTitle.trim()}`
+      );
+    } else {
+      const targetUser = newTaskAssigned === names.user1 ? "user1" : "user2";
+      if (targetUser === otherUserKey) {
+        sendNotification(
+          otherUserKey,
+          "New Task Assigned to you",
+          `${activeUserName} created: ${newTaskTitle.trim()}`
+        );
+      }
+    }
     setNewTaskTitle("");
     setNewTaskNote("");
   };

@@ -22,6 +22,7 @@ type DataContextValue = {
   vaultItems: ReturnType<typeof useRealtimeTable<"vault_items">>;
   projectFiles: ReturnType<typeof useRealtimeTable<"project_files">>;
   projectMilestones: ReturnType<typeof useRealtimeTable<"project_milestones">>;
+  notifications: ReturnType<typeof useRealtimeTable<"notifications">>;
   activeUser: "user1" | "user2" | null;
   activeUserName: string;
   onlineUsers: string[];
@@ -29,6 +30,7 @@ type DataContextValue = {
   logout: () => void;
   setPassword: (user: "user1" | "user2", newPassword?: string) => Promise<void>;
   isPasswordSet: (user: "user1" | "user2") => boolean;
+  sendNotification: (forUser: "user1" | "user2", title: string, body: string) => Promise<void>;
 };
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -93,6 +95,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const vaultItems = useRealtimeTable("vault_items", { column: "created_at", ascending: false });
   const projectFiles = useRealtimeTable("project_files", { column: "created_at", ascending: false });
   const projectMilestones = useRealtimeTable("project_milestones", { column: "due_date", ascending: true });
+  const notifications = useRealtimeTable("notifications", { column: "created_at", ascending: false });
 
   const [activeUser, setActiveUser] = useState<"user1" | "user2" | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
@@ -184,6 +187,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       key?: string;
       value?: unknown;
       created_at?: string;
+      for_user?: string;
+      body?: string;
     }
 
     const channel = supabase
@@ -196,84 +201,29 @@ export function DataProvider({ children }: { children: ReactNode }) {
           old: DbRow;
         };
 
-        const otherUserName = activeUser === "user1" ? names.user2 : names.user1;
-        
-        const currencySymbol = "₹";
-
         if (eventType === "INSERT") {
-          if (table === "tasks") {
-            if (newRow.created_by !== activeUserName) {
-              triggerBrowserNotification(
-                `New Task Assigned to ${newRow.assigned_to}`,
-                `${newRow.created_by} created: ${newRow.title}`
-              );
-            }
-          } else if (table === "money_entries") {
-            if (newRow.added_by !== activeUser) {
-              const action = newRow.is_request ? "requested" : "added expense";
-              triggerBrowserNotification(
-                `Money Update from ${otherUserName}`,
-                `${otherUserName} ${action}: ${newRow.description} (${formatMoney(newRow.amount ?? 0, currencySymbol)})`
-              );
-            }
-          } else if (table === "sticky_notes") {
-            if (newRow.author !== activeUserName) {
-              triggerBrowserNotification(
-                `New Sticky Note`,
-                `${newRow.author} posted: ${newRow.title || "Untitled"}`
-              );
-            }
-          } else if (table === "project_files") {
-            if (newRow.uploaded_by !== activeUserName) {
-              triggerBrowserNotification(
-                `New Project Document`,
-                `${newRow.uploaded_by} uploaded: ${newRow.name}`
-              );
-            }
-          } else if (table === "wins") {
-            if (newRow.created_at) {
-              const ageMs = Date.now() - new Date(newRow.created_at).getTime();
-              if (ageMs < 10000) {
-                triggerBrowserNotification("New Win Added! 🎉", newRow.title);
-              }
+          if (table === "notifications") {
+            if (newRow.for_user === activeUser) {
+              triggerBrowserNotification(newRow.title || "New Notification", newRow.body);
             }
           }
         } else if (eventType === "UPDATE") {
-          if (table === "tasks" && oldRow) {
-            // Task completed
-            if (newRow.completed !== oldRow.completed && newRow.completed) {
-              if (newRow.assigned_to === "Both") {
-                if (newRow.completed_user1 !== oldRow.completed_user1 && activeUser !== "user1") {
-                  triggerBrowserNotification(`Task Component Done`, `${names.user1} completed their part of: ${newRow.title}`);
-                }
-                if (newRow.completed_user2 !== oldRow.completed_user2 && activeUser !== "user2") {
-                  triggerBrowserNotification(`Task Component Done`, `${names.user2} completed their part of: ${newRow.title}`);
-                }
-              } else if (newRow.assigned_to !== activeUserName) {
-                triggerBrowserNotification(`Task Completed`, `${newRow.assigned_to} completed: ${newRow.title}`);
-              }
-            }
-            // Task approved
-            if (newRow.approved !== oldRow.approved && newRow.approved && newRow.created_by === activeUserName) {
-              triggerBrowserNotification(`Task Request Approved`, `${newRow.assigned_to} approved your task: ${newRow.title}`);
-            }
-          } else if (table === "money_entries" && oldRow) {
-            if (newRow.request_status !== oldRow.request_status && newRow.request_status === "approved" && newRow.added_by === activeUser) {
-              triggerBrowserNotification(`Money Request Approved`, `${otherUserName} approved your request for ${formatMoney(newRow.amount ?? 0, currencySymbol)}!`);
-            }
-          } else if (table === "daily_logs" && oldRow) {
-            if (activeUser === "user1" && newRow.friend !== oldRow.friend && newRow.friend) {
-              triggerBrowserNotification(`Daily Log Updated`, `${names.user2} updated their log.`);
-            } else if (activeUser === "user2" && newRow.phoenix !== oldRow.phoenix && newRow.phoenix) {
-              triggerBrowserNotification(`Daily Log Updated`, `${names.user1} updated their log.`);
-            }
-          } else if (table === "settings" && oldRow) {
+          if (table === "settings" && oldRow) {
             if (newRow.key && newRow.key.startsWith("project_chat_")) {
               const newMsgs = Array.isArray(newRow.value) ? newRow.value : [];
               const oldMsgs = Array.isArray(oldRow.value) ? oldRow.value : [];
               if (newMsgs.length > oldMsgs.length) {
                 const latestMsg = newMsgs[newMsgs.length - 1];
-                if (latestMsg && latestMsg.sender !== activeUserName) {
+                const senderClean = (latestMsg?.sender || "").trim().toLowerCase();
+                const activeClean = (activeUserName || "").trim().toLowerCase();
+                const cleanU1 = (names.user1 || "").trim().toLowerCase();
+                const cleanU2 = (names.user2 || "").trim().toLowerCase();
+                
+                const isSentByMe = senderClean === activeClean || 
+                  (activeUser === "user1" && senderClean === cleanU1) ||
+                  (activeUser === "user2" && senderClean === cleanU2);
+
+                if (latestMsg && !isSentByMe) {
                   triggerBrowserNotification(
                     `New Chat Message from ${latestMsg.sender}`,
                     latestMsg.message
@@ -407,6 +357,23 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [settings]
   );
 
+  const sendNotification = useCallback(
+    async (forUser: "user1" | "user2", title: string, body: string) => {
+      if (!isSupabaseConfigured || !supabase) return;
+      try {
+        await (supabase as any).from("notifications").insert({
+          for_user: forUser,
+          title,
+          body,
+          read: false
+        });
+      } catch (err) {
+        console.error("Failed to send notification:", err);
+      }
+    },
+    []
+  );
+
   const value = useMemo(
     () => ({
       projects: filteredProjects,
@@ -424,13 +391,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
       vaultItems,
       projectFiles: filteredProjectFiles,
       projectMilestones: filteredMilestones,
+      notifications,
       activeUser,
       activeUserName,
       onlineUsers,
       login,
       logout,
       setPassword,
-      isPasswordSet
+      isPasswordSet,
+      sendNotification
     }),
     [
       filteredProjects,
@@ -448,13 +417,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
       vaultItems,
       filteredProjectFiles,
       filteredMilestones,
+      notifications,
       activeUser,
       activeUserName,
       onlineUsers,
       login,
       logout,
       setPassword,
-      isPasswordSet
+      isPasswordSet,
+      sendNotification
     ]
   );
 

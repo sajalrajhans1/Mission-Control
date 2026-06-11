@@ -37,7 +37,7 @@ function getDueDateLabel(dueDateStr: string) {
 }
 
 export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact?: boolean }) {
-  const { tasks, projects } = useData();
+  const { tasks, projects, sendNotification } = useData();
   const { activeUser, activeUserName } = useActiveUser();
   const { user1, user2 } = useUserNames();
   const userColors = useUserColors();
@@ -81,13 +81,20 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
               borderColor: userColors.user1,
               color: task.completed_user1 ? "#ffffff" : userColors.user1
             }}
-            onClick={() => {
+            onClick={async () => {
               if (activeUser === "user1") {
                 const nextVal = !task.completed_user1;
-                tasks.update(task.id, {
+                await tasks.update(task.id, {
                   completed_user1: nextVal,
                   completed: nextVal && !!task.completed_user2
                 });
+                if (nextVal) {
+                  sendNotification(
+                    "user2",
+                    "Task Component Done",
+                    `${user1} completed their part of: ${task.title}`
+                  );
+                }
               }
             }}
             disabled={activeUser !== "user1"}
@@ -109,13 +116,20 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
               borderColor: userColors.user2,
               color: task.completed_user2 ? "#ffffff" : userColors.user2
             }}
-            onClick={() => {
+            onClick={async () => {
               if (activeUser === "user2") {
                 const nextVal = !task.completed_user2;
-                tasks.update(task.id, {
+                await tasks.update(task.id, {
                   completed_user2: nextVal,
                   completed: !!task.completed_user1 && nextVal
                 });
+                if (nextVal) {
+                  sendNotification(
+                    "user1",
+                    "Task Component Done",
+                    `${user2} completed their part of: ${task.title}`
+                  );
+                }
               }
             }}
             disabled={activeUser !== "user2"}
@@ -147,9 +161,18 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
                 borderColor: assignedColor,
                 color: task.completed ? "#ffffff" : assignedColor
               }}
-              onClick={() => {
+              onClick={async () => {
                 if (isAssignedToActiveUser) {
-                  tasks.update(task.id, { completed: !task.completed });
+                  const nextVal = !task.completed;
+                  await tasks.update(task.id, { completed: nextVal });
+                  if (nextVal) {
+                    const otherUserKey = activeUser === "user1" ? "user2" : "user1";
+                    sendNotification(
+                      otherUserKey,
+                      "Task Completed",
+                      `${activeUserName} completed: ${task.title}`
+                    );
+                  }
                 }
               }}
               disabled={!isAssignedToActiveUser}

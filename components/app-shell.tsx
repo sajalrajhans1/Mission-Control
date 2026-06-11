@@ -10,6 +10,7 @@ import { useActiveUser, useUserNames, useUserColors } from "@/components/data-pr
 import { GlobalSearch } from "@/components/global-search";
 import { QuickAdd } from "@/components/quick-add";
 import { Button } from "@/components/ui/button";
+import { NotificationsMenu } from "@/components/notifications-menu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { isSupabaseConfigured } from "@/lib/supabase";
@@ -316,6 +317,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
             <div className="ml-auto flex items-center gap-3">
               <GlobalSearch />
+              <div className="h-4 w-px bg-zinc-200" />
+              <NotificationsMenu />
               <div className="h-4 w-px bg-zinc-200" />
               <div className="flex items-center gap-2">
                 <div

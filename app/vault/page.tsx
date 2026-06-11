@@ -649,7 +649,7 @@ function ResourcesPanel({ search }: { search: string }) {
 function StickyNotesPanel({ search }: { search: string }) {
   const data = useData();
   const { user1 } = useUserNames();
-  const { activeUserName } = useActiveUser();
+  const { activeUserName, activeUser } = useActiveUser();
   const userColors = useUserColors();
   const q = search.toLowerCase();
   
@@ -683,6 +683,14 @@ function StickyNotesPanel({ search }: { search: string }) {
     if (error) {
       alert(`Failed to create sticky note: ${error.message}`);
       return;
+    }
+    if (!newNote.is_private) {
+      const otherUserKey = activeUser === "user1" ? "user2" : "user1";
+      data.sendNotification(
+        otherUserKey,
+        "New Sticky Note",
+        `${activeUserName} posted: ${newNote.title.trim()}`
+      );
     }
     setNewNote({ title: "", body: "", color: "Yellow", author: activeUserName || user1 || "Sajal", is_private: false });
     setShowCreate(false);
