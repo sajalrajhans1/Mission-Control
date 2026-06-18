@@ -53,13 +53,13 @@ const END_TIME_SLOTS = Array.from({ length: 48 }, (_, i) => {
 });
 
 const COLORS = [
-  { value: "indigo", label: "Indigo", bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200", hover: "hover:bg-indigo-100/80" },
-  { value: "emerald", label: "Emerald", bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", hover: "hover:bg-emerald-100/80" },
-  { value: "rose", label: "Rose", bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200", hover: "hover:bg-rose-100/80" },
-  { value: "amber", label: "Amber", bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", hover: "hover:bg-amber-100/80" },
-  { value: "purple", label: "Purple", bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200", hover: "hover:bg-purple-100/80" },
-  { value: "sky", label: "Sky", bg: "bg-sky-50", text: "text-sky-700", border: "border-sky-200", hover: "hover:bg-sky-100/80" },
-  { value: "pink", label: "Pink", bg: "bg-pink-50", text: "text-pink-700", border: "border-pink-200", hover: "hover:bg-pink-100/80" }
+  { value: "indigo", label: "Indigo", bg: "bg-indigo-600", text: "text-white", border: "border-indigo-700", hover: "hover:bg-indigo-700" },
+  { value: "emerald", label: "Emerald", bg: "bg-emerald-600", text: "text-white", border: "border-emerald-700", hover: "hover:bg-emerald-700" },
+  { value: "rose", label: "Rose", bg: "bg-rose-500", text: "text-white", border: "border-rose-600", hover: "hover:bg-rose-600" },
+  { value: "amber", label: "Amber", bg: "bg-amber-500", text: "text-white", border: "border-amber-600", hover: "hover:bg-amber-600" },
+  { value: "purple", label: "Purple", bg: "bg-purple-600", text: "text-white", border: "border-purple-700", hover: "hover:bg-purple-700" },
+  { value: "sky", label: "Sky", bg: "bg-sky-500", text: "text-white", border: "border-sky-600", hover: "hover:bg-sky-650" },
+  { value: "pink", label: "Pink", bg: "bg-pink-500", text: "text-white", border: "border-pink-600", hover: "hover:bg-pink-605" }
 ];
 
 // Helper to convert minutes to HH:MM string
@@ -87,7 +87,7 @@ export default function TimetablePage() {
     return () => clearInterval(timer);
   }, []);
 
-  // Mouse Dragging States
+  // Pointer Dragging States
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [dragColumnIndex, setDragColumnIndex] = useState<number | null>(null);
   const [dragStartMinutes, setDragStartMinutes] = useState<number | null>(null);
@@ -169,13 +169,15 @@ export default function TimetablePage() {
   const nextWeek = () => setCurrentDate((prev) => addWeeks(prev, 1));
   const goToday = () => setCurrentDate(new Date());
 
-  // Mouse selection gesture event handlers
-  const handleMouseDown = (colIdx: number, day: Date, e: React.MouseEvent<HTMLDivElement>) => {
+  // Pointer selection gesture event handlers
+  const handlePointerDown = (colIdx: number, day: Date, e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return; // Only process left clicks
     const rect = e.currentTarget.getBoundingClientRect();
     const y = e.clientY - rect.top;
     const minutes = Math.floor(y / 64 * 60);
     const rounded = Math.round(minutes / 30) * 30;
+
+    e.currentTarget.setPointerCapture(e.pointerId);
 
     setIsDragging(true);
     setDragColumnIndex(colIdx);
@@ -183,8 +185,8 @@ export default function TimetablePage() {
     setDragCurrentMinutes(rounded);
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || dragColumnIndex === null) return;
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging || dragColumnIndex === null || dragStartMinutes === null) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const y = e.clientY - rect.top;
     const minutes = Math.floor(y / 64 * 60);
@@ -192,8 +194,14 @@ export default function TimetablePage() {
     setDragCurrentMinutes(Math.max(0, Math.min(1440, rounded)));
   };
 
-  const handleMouseUp = (day: Date) => {
+  const handlePointerUp = (day: Date, e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging || dragColumnIndex === null || dragStartMinutes === null || dragCurrentMinutes === null) return;
+
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch (err) {
+      // Ignore capture release errors
+    }
 
     setIsDragging(false);
     const min = Math.min(dragStartMinutes, dragCurrentMinutes);
@@ -260,7 +268,7 @@ export default function TimetablePage() {
 
   // Edit / Open existing block
   const handleBlockClick = (blockId: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Avoid triggering column mouse events
+    e.stopPropagation(); // Avoid triggering column pointer events
     const block = timetableBlocks.rows.find((b) => b.id === blockId);
     if (!block) return;
 
@@ -509,21 +517,21 @@ export default function TimetablePage() {
                   return (
                     <div
                       key={dIdx}
-                      className="h-full relative cursor-pointer select-none"
-                      onMouseDown={(e) => handleMouseDown(dIdx, day, e)}
-                      onMouseMove={(e) => handleMouseMove(e)}
-                      onMouseUp={() => handleMouseUp(day)}
+                      className="h-full relative cursor-pointer select-none touch-none"
+                      onPointerDown={(e) => handlePointerDown(dIdx, day, e)}
+                      onPointerMove={(e) => handlePointerMove(e)}
+                      onPointerUp={(e) => handlePointerUp(day, e)}
                     >
                       {/* Gray out whole column if day is in the past */}
                       {pastDay && (
-                        <div className="absolute inset-0 bg-zinc-150/35 pointer-events-none z-10" />
+                        <div className="absolute inset-0 bg-zinc-200/20 pointer-events-none z-10" />
                       )}
 
                       {/* Gray out past hours of Today column */}
                       {isToday && (
                         <>
                           <div
-                            className="absolute left-0 right-0 top-0 bg-zinc-150/35 pointer-events-none border-b border-dashed border-zinc-200 z-10"
+                            className="absolute left-0 right-0 top-0 bg-zinc-200/20 pointer-events-none border-b border-dashed border-zinc-200 z-10"
                             style={{ height: `${pastMinutesHeight}px` }}
                           />
                           {/* Current Time Red horizontal Indicator Line */}
@@ -549,7 +557,7 @@ export default function TimetablePage() {
 
                           return (
                             <div
-                              className="absolute left-1 right-1 bg-indigo-100/60 border-2 border-dashed border-indigo-400 rounded-xl z-20 pointer-events-none flex flex-col justify-center items-center text-indigo-700 text-[10px] font-bold shadow-sm"
+                              className="absolute left-1 right-1 bg-indigo-500/20 border-2 border-dashed border-indigo-500 rounded-xl z-20 pointer-events-none flex flex-col justify-center items-center text-indigo-700 text-[10px] font-bold shadow-sm"
                               style={{
                                 top: `${top}px`,
                                 height: `${height}px`
@@ -579,12 +587,11 @@ export default function TimetablePage() {
                             key={block.id}
                             onClick={(e) => handleBlockClick(block.id, e)}
                             className={cn(
-                              "absolute left-1 right-1 p-2 rounded-xl border-1.5 shadow-sm cursor-pointer transition-all pointer-events-auto flex flex-col justify-between overflow-hidden",
-                              cl.bg,
-                              cl.text,
-                              cl.border,
-                              cl.hover,
-                              block.isTaskDone && "opacity-60 bg-zinc-50 border-zinc-200 text-zinc-400"
+                              "absolute left-1 right-1 p-2.5 rounded-xl border shadow-sm cursor-pointer transition-all pointer-events-auto flex flex-col justify-between overflow-hidden",
+                              isDragging && "pointer-events-none", // Avoid intercepting gesture coords
+                              block.isTaskDone
+                                ? "opacity-60 bg-zinc-100 border-zinc-200 text-zinc-400 hover:bg-zinc-200"
+                                : cn(cl.bg, cl.text, cl.border, cl.hover)
                             )}
                             style={{
                               top: `${block.top}px`,
@@ -599,14 +606,14 @@ export default function TimetablePage() {
                                 <span
                                   className={cn(
                                     "text-xs font-bold truncate block",
-                                    block.isTaskDone && "line-through"
+                                    block.isTaskDone && "line-through text-zinc-400"
                                   )}
                                 >
                                   {block.title}
                                 </span>
                               </div>
                             </div>
-                            <span className="text-[10px] font-semibold opacity-80 shrink-0">
+                            <span className="text-[10px] font-semibold opacity-90 shrink-0">
                               {block.start_time} - {block.end_time}
                             </span>
                           </div>
@@ -739,7 +746,7 @@ export default function TimetablePage() {
                     onClick={() => setBlockColor(c.value)}
                     className={cn(
                       "h-6 px-2.5 rounded-lg border text-[11px] font-semibold transition-all",
-                      c.bg,
+                      clBgCircle(c.value),
                       c.text,
                       c.border,
                       blockColor === c.value ? "ring-2 ring-indigo-500 border-indigo-400 scale-105" : "opacity-80"
@@ -887,7 +894,7 @@ export default function TimetablePage() {
                     onClick={() => setBlockColor(c.value)}
                     className={cn(
                       "h-6 px-2.5 rounded-lg border text-[11px] font-semibold transition-all",
-                      c.bg,
+                      clBgCircle(c.value),
                       c.text,
                       c.border,
                       blockColor === c.value ? "ring-2 ring-indigo-500 border-indigo-400 scale-105" : "opacity-80"
@@ -927,4 +934,18 @@ export default function TimetablePage() {
       </Dialog>
     </div>
   );
+}
+
+// Inline helper to get a light color background for the selection pill button
+function clBgCircle(color: string) {
+  switch (color) {
+    case "indigo": return "bg-indigo-50 text-indigo-700 border-indigo-200";
+    case "emerald": return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    case "rose": return "bg-rose-50 text-rose-700 border-rose-200";
+    case "amber": return "bg-amber-50 text-amber-700 border-amber-200";
+    case "purple": return "bg-purple-50 text-purple-700 border-purple-200";
+    case "sky": return "bg-sky-50 text-sky-700 border-sky-200";
+    case "pink": return "bg-pink-50 text-pink-700 border-pink-200";
+    default: return "bg-zinc-50 border-zinc-200";
+  }
 }
