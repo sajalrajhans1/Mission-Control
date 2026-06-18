@@ -737,24 +737,29 @@ export default function TimetablePage() {
 
             {/* Color selector */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-zinc-700">Color Label</label>
-              <div className="flex flex-wrap gap-2">
-                {COLORS.map((c) => (
-                  <button
-                    key={c.value}
-                    type="button"
-                    onClick={() => setBlockColor(c.value)}
-                    className={cn(
-                      "h-6 px-2.5 rounded-lg border text-[11px] font-semibold transition-all",
-                      clBgCircle(c.value),
-                      c.text,
-                      c.border,
-                      blockColor === c.value ? "ring-2 ring-indigo-500 border-indigo-400 scale-105" : "opacity-80"
-                    )}
-                  >
-                    {c.label}
-                  </button>
-                ))}
+              <label className="text-xs font-bold text-zinc-700">Choose Block Color</label>
+              <div className="flex flex-wrap gap-2.5">
+                {COLORS.map((c) => {
+                  const isSelected = blockColor === c.value;
+                  return (
+                    <button
+                      key={c.value}
+                      type="button"
+                      onClick={() => setBlockColor(c.value)}
+                      className={cn(
+                        "h-8 w-8 rounded-full border transition-all flex items-center justify-center shadow-sm hover:scale-105 active:scale-95 focus:outline-none",
+                        c.bg,
+                        c.border,
+                        isSelected ? "ring-2 ring-indigo-500 ring-offset-2 scale-105" : "opacity-90"
+                      )}
+                      title={c.label}
+                    >
+                      {isSelected && (
+                        <Check className="h-4 w-4 text-white font-bold" />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -885,24 +890,29 @@ export default function TimetablePage() {
 
             {/* Color selector */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-zinc-700">Color Label</label>
-              <div className="flex flex-wrap gap-2">
-                {COLORS.map((c) => (
-                  <button
-                    key={c.value}
-                    type="button"
-                    onClick={() => setBlockColor(c.value)}
-                    className={cn(
-                      "h-6 px-2.5 rounded-lg border text-[11px] font-semibold transition-all",
-                      clBgCircle(c.value),
-                      c.text,
-                      c.border,
-                      blockColor === c.value ? "ring-2 ring-indigo-500 border-indigo-400 scale-105" : "opacity-80"
-                    )}
-                  >
-                    {c.label}
-                  </button>
-                ))}
+              <label className="text-xs font-bold text-zinc-700">Choose Block Color</label>
+              <div className="flex flex-wrap gap-2.5">
+                {COLORS.map((c) => {
+                  const isSelected = blockColor === c.value;
+                  return (
+                    <button
+                      key={c.value}
+                      type="button"
+                      onClick={() => setBlockColor(c.value)}
+                      className={cn(
+                        "h-8 w-8 rounded-full border transition-all flex items-center justify-center shadow-sm hover:scale-105 active:scale-95 focus:outline-none",
+                        c.bg,
+                        c.border,
+                        isSelected ? "ring-2 ring-indigo-500 ring-offset-2 scale-105" : "opacity-90"
+                      )}
+                      title={c.label}
+                    >
+                      {isSelected && (
+                        <Check className="h-4 w-4 text-white font-bold" />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -934,18 +944,4 @@ export default function TimetablePage() {
       </Dialog>
     </div>
   );
-}
-
-// Inline helper to get a light color background for the selection pill button
-function clBgCircle(color: string) {
-  switch (color) {
-    case "indigo": return "bg-indigo-50 text-indigo-700 border-indigo-200";
-    case "emerald": return "bg-emerald-50 text-emerald-700 border-emerald-200";
-    case "rose": return "bg-rose-50 text-rose-700 border-rose-200";
-    case "amber": return "bg-amber-50 text-amber-700 border-amber-200";
-    case "purple": return "bg-purple-50 text-purple-700 border-purple-200";
-    case "sky": return "bg-sky-50 text-sky-700 border-sky-200";
-    case "pink": return "bg-pink-50 text-pink-700 border-pink-200";
-    default: return "bg-zinc-50 border-zinc-200";
-  }
 }
