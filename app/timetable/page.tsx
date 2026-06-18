@@ -37,14 +37,19 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-// Calendar helper constants
+// Hour grid helper constants
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
-const TIME_SLOTS = Array.from({ length: 48 }, (_, i) => {
+const START_TIME_SLOTS = Array.from({ length: 48 }, (_, i) => {
   const h = Math.floor(i / 2);
   const m = i % 2 === 0 ? "00" : "30";
-  const hStr = h.toString().padStart(2, "0");
-  return `${hStr}:${m}`;
+  return `${h.toString().padStart(2, "0")}:${m}`;
+});
+
+const END_TIME_SLOTS = Array.from({ length: 48 }, (_, i) => {
+  const h = Math.floor((i + 1) / 2);
+  const m = (i + 1) % 2 === 0 ? "00" : "30";
+  return `${h.toString().padStart(2, "0")}:${m}`;
 });
 
 const COLORS = [
@@ -57,6 +62,15 @@ const COLORS = [
   { value: "pink", label: "Pink", bg: "bg-pink-50", text: "text-pink-700", border: "border-pink-200", hover: "hover:bg-pink-100/80" }
 ];
 
+// Helper to convert minutes to HH:MM string
+function minutesToTimeString(totalMinutes: number): string {
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  const hStr = Math.max(0, Math.min(24, h)).toString().padStart(2, "0");
+  const mStr = Math.max(0, Math.min(59, m)).toString().padStart(2, "0");
+  return `${hStr}:${mStr}`;
+}
+
 export default function TimetablePage() {
   const { timetableBlocks, tasks, activeUser } = useData();
   const { activeUserName } = useActiveUser();
@@ -65,6 +79,19 @@ export default function TimetablePage() {
   // Navigation State
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const gridContainerRef = useRef<HTMLDivElement>(null);
+
+  // Dynamic Clock State for Real-Time overlays
+  const [now, setNow] = useState<Date>(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Mouse Dragging States
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [dragColumnIndex, setDragColumnIndex] = useState<number | null>(null);
+  const [dragStartMinutes, setDragStartMinutes] = useState<number | null>(null);
+  const [dragCurrentMinutes, setDragCurrentMinutes] = useState<number | null>(null);
 
   // Dialog States
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -126,29 +153,70 @@ export default function TimetablePage() {
       }
       return !t.completed;
     });
-  }, [tasks.rows, activeUser, activeUserName, user1, user2]);
+  }, [tasks.rows, activeUser, user1, user2]);
+
+  // Check if a day has already passed (ignores current day)
+  const isPastDay = (day: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dCopy = new Date(day);
+    dCopy.setHours(0, 0, 0, 0);
+    return dCopy.getTime() < today.getTime();
+  };
 
   // Handle previous/next week navigation
   const prevWeek = () => setCurrentDate((prev) => subWeeks(prev, 1));
   const nextWeek = () => setCurrentDate((prev) => addWeeks(prev, 1));
   const goToday = () => setCurrentDate(new Date());
 
-  // Handle cell click in timetable grid
-  const handleCellClick = (date: Date, hour: number) => {
-    const hStr = hour.toString().padStart(2, "0");
-    
-    setSelectedDay(format(date, "yyyy-MM-dd"));
-    setStartTime(`${hStr}:00`);
-    
-    // Set end time to next hour
-    const nextHStr = (hour + 1).toString().padStart(2, "0");
-    setEndTime(`${nextHStr}:00`);
-    
+  // Mouse selection gesture event handlers
+  const handleMouseDown = (colIdx: number, day: Date, e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return; // Only process left clicks
+    const rect = e.currentTarget.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const minutes = Math.floor(y / 64 * 60);
+    const rounded = Math.round(minutes / 30) * 30;
+
+    setIsDragging(true);
+    setDragColumnIndex(colIdx);
+    setDragStartMinutes(rounded);
+    setDragCurrentMinutes(rounded);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || dragColumnIndex === null) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const minutes = Math.floor(y / 64 * 60);
+    const rounded = Math.round(minutes / 30) * 30;
+    setDragCurrentMinutes(Math.max(0, Math.min(1440, rounded)));
+  };
+
+  const handleMouseUp = (day: Date) => {
+    if (!isDragging || dragColumnIndex === null || dragStartMinutes === null || dragCurrentMinutes === null) return;
+
+    setIsDragging(false);
+    const min = Math.min(dragStartMinutes, dragCurrentMinutes);
+    let max = Math.max(dragStartMinutes, dragCurrentMinutes);
+
+    // If selection is too small, default to a 1 hour duration block
+    if (max - min < 30) {
+      max = min + 60;
+    }
+
+    setSelectedDay(format(day, "yyyy-MM-dd"));
+    setStartTime(minutesToTimeString(min));
+    setEndTime(minutesToTimeString(Math.min(1440, max)));
     setBlockTitle("");
     setBlockColor("indigo");
     setLinkTask(false);
     setSelectedTaskId("");
     setIsCreateOpen(true);
+
+    // Clear dragging state
+    setDragColumnIndex(null);
+    setDragStartMinutes(null);
+    setDragCurrentMinutes(null);
   };
 
   // Synchronize title when task is selected
@@ -192,7 +260,7 @@ export default function TimetablePage() {
 
   // Edit / Open existing block
   const handleBlockClick = (blockId: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Avoid triggering cell click
+    e.stopPropagation(); // Avoid triggering column mouse events
     const block = timetableBlocks.rows.find((b) => b.id === blockId);
     if (!block) return;
 
@@ -252,7 +320,7 @@ export default function TimetablePage() {
     if (!task) return;
 
     const assigneeClean = (task.assigned_to || "").trim().toLowerCase();
-    
+
     if (assigneeClean === "both") {
       if (activeUser === "user1") {
         const nextVal = !task.completed_user1;
@@ -278,7 +346,7 @@ export default function TimetablePage() {
       // Find matching date in the week days array
       const blockDateObj = parseISO(b.block_date);
       const matchingDayIndex = weekDays.findIndex((d) => isSameDay(d, blockDateObj));
-      
+
       if (matchingDayIndex === -1) return [];
 
       // Extract time details
@@ -325,6 +393,19 @@ export default function TimetablePage() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Scrollable date jump picker */}
+          <Input
+            type="date"
+            value={format(currentDate, "yyyy-MM-dd")}
+            onChange={(e) => {
+              if (e.target.value) {
+                setCurrentDate(parseISO(e.target.value));
+              }
+            }}
+            className="h-9 w-36 px-2.5 rounded-xl border bg-white shadow-soft text-xs font-semibold text-zinc-700"
+            title="Jump to date"
+          />
+
           <Button variant="outline" size="sm" onClick={goToday} className="h-9 px-3 rounded-xl font-medium">
             Today
           </Button>
@@ -415,20 +496,74 @@ export default function TimetablePage() {
                 ))}
               </div>
 
-              {/* Clickable Grid Blocks overlay */}
+              {/* Drag-to-Create Selection & Graying Overlay Columns */}
               <div className="absolute inset-0 grid grid-cols-7 z-10">
-                {weekDays.map((day, dIdx) => (
-                  <div key={dIdx} className="h-full relative">
-                    {/* Hour guidelines trigger clicks */}
-                    {HOURS.map((hour) => (
-                      <div
-                        key={hour}
-                        onClick={() => handleCellClick(day, hour)}
-                        className="h-16 w-full cursor-pointer hover:bg-zinc-50/50 transition-colors border-b border-zinc-100/30"
-                      />
-                    ))}
-                  </div>
-                ))}
+                {weekDays.map((day, dIdx) => {
+                  const isToday = isSameDay(day, new Date());
+                  const pastDay = isPastDay(day);
+
+                  // Calculate past Y-height for Today column graying
+                  const todayMinutes = now.getHours() * 60 + now.getMinutes();
+                  const pastMinutesHeight = (todayMinutes / 60) * 64;
+
+                  return (
+                    <div
+                      key={dIdx}
+                      className="h-full relative cursor-pointer select-none"
+                      onMouseDown={(e) => handleMouseDown(dIdx, day, e)}
+                      onMouseMove={(e) => handleMouseMove(e)}
+                      onMouseUp={() => handleMouseUp(day)}
+                    >
+                      {/* Gray out whole column if day is in the past */}
+                      {pastDay && (
+                        <div className="absolute inset-0 bg-zinc-150/35 pointer-events-none z-10" />
+                      )}
+
+                      {/* Gray out past hours of Today column */}
+                      {isToday && (
+                        <>
+                          <div
+                            className="absolute left-0 right-0 top-0 bg-zinc-150/35 pointer-events-none border-b border-dashed border-zinc-200 z-10"
+                            style={{ height: `${pastMinutesHeight}px` }}
+                          />
+                          {/* Current Time Red horizontal Indicator Line */}
+                          <div
+                            className="absolute left-0 right-0 flex items-center pointer-events-none z-30"
+                            style={{ top: `${pastMinutesHeight}px` }}
+                          >
+                            <div className="h-2.5 w-2.5 rounded-full bg-red-500 -ml-1.25" />
+                            <div className="h-0.5 flex-1 bg-red-500" />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Live visual selection dashed preview block overlay */}
+                      {isDragging && dragColumnIndex === dIdx && dragStartMinutes !== null && dragCurrentMinutes !== null && (
+                        (() => {
+                          const min = Math.min(dragStartMinutes, dragCurrentMinutes);
+                          let max = Math.max(dragStartMinutes, dragCurrentMinutes);
+                          if (max - min < 30) max = min + 60;
+
+                          const top = (min / 60) * 64;
+                          const height = ((max - min) / 60) * 64;
+
+                          return (
+                            <div
+                              className="absolute left-1 right-1 bg-indigo-100/60 border-2 border-dashed border-indigo-400 rounded-xl z-20 pointer-events-none flex flex-col justify-center items-center text-indigo-700 text-[10px] font-bold shadow-sm"
+                              style={{
+                                top: `${top}px`,
+                                height: `${height}px`
+                              }}
+                            >
+                              <span>New Block</span>
+                              <span>{minutesToTimeString(min)} - {minutesToTimeString(max)}</span>
+                            </div>
+                          );
+                        })()
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Absolute Positioned Scheduled Blocks overlay */}
@@ -567,7 +702,7 @@ export default function TimetablePage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="max-h-56">
-                    {TIME_SLOTS.map((t) => (
+                    {START_TIME_SLOTS.map((t) => (
                       <SelectItem key={t} value={t}>
                         {t}
                       </SelectItem>
@@ -583,7 +718,7 @@ export default function TimetablePage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="max-h-56">
-                    {TIME_SLOTS.map((t) => (
+                    {END_TIME_SLOTS.map((t) => (
                       <SelectItem key={t} value={t}>
                         {t}
                       </SelectItem>
@@ -715,7 +850,7 @@ export default function TimetablePage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="max-h-56">
-                    {TIME_SLOTS.map((t) => (
+                    {START_TIME_SLOTS.map((t) => (
                       <SelectItem key={t} value={t}>
                         {t}
                       </SelectItem>
@@ -731,7 +866,7 @@ export default function TimetablePage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="max-h-56">
-                    {TIME_SLOTS.map((t) => (
+                    {END_TIME_SLOTS.map((t) => (
                       <SelectItem key={t} value={t}>
                         {t}
                       </SelectItem>
