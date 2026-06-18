@@ -3,7 +3,8 @@
 import { useMemo, useState, useEffect } from "react";
 import {
   ExternalLink, Lightbulb, Link as LinkIcon,
-  Pencil, Pin, Plus, StickyNote, Trash2, WandSparkles, Check, Copy, Lock, Unlock
+  Pencil, Pin, Plus, StickyNote, Trash2, WandSparkles, Check, Copy, Lock, Unlock,
+  Briefcase
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,7 +33,8 @@ const DEFAULT_VAULT_ICONS: Record<string, React.ReactNode> = {
   WandSparkles: <WandSparkles className="h-4 w-4" />,
   Lightbulb: <Lightbulb className="h-4 w-4" />,
   Link: <LinkIcon className="h-4 w-4" />,
-  StickyNote: <StickyNote className="h-4 w-4" />
+  StickyNote: <StickyNote className="h-4 w-4" />,
+  Briefcase: <Briefcase className="h-4 w-4" />
 };
 
 // ─── Sub-panels for each default vault ───────────────────────────────────────
@@ -852,6 +854,385 @@ function StickyNotesPanel({ search }: { search: string }) {
   );
 }
 
+function DeliverablesPanel({ search }: { search: string }) {
+  const data = useData();
+  const { activeUser } = useActiveUser();
+  const q = search.toLowerCase();
+
+  const [showCreate, setShowCreate] = useState(false);
+  const [editingItem, setEditingItem] = useState<Row<"work_deliverables"> | null>(null);
+  const [deletingItem, setDeletingItem] = useState<Row<"work_deliverables"> | null>(null);
+
+  const [newDeliverable, setNewDeliverable] = useState({
+    title: "",
+    description: "",
+    delivery_date: new Date().toISOString().split("T")[0],
+    client_name: "",
+    amount: 0,
+    status: "delivered"
+  });
+
+  const deliverables = useMemo(() => {
+    if (!data.workDeliverables?.rows) return [];
+    return data.workDeliverables.rows
+      .filter((i) =>
+        `${i.title} ${i.description} ${i.client_name}`.toLowerCase().includes(q)
+      )
+      .sort((a, b) => b.delivery_date.localeCompare(a.delivery_date));
+  }, [data.workDeliverables?.rows, q]);
+
+  const stats = useMemo(() => {
+    let totalCount = 0;
+    let totalAmount = 0;
+    let paidAmount = 0;
+    let unpaidAmount = 0;
+
+    deliverables.forEach((item) => {
+      totalCount++;
+      totalAmount += Number(item.amount) || 0;
+      if (item.status === "paid") {
+        paidAmount += Number(item.amount) || 0;
+      } else {
+        unpaidAmount += Number(item.amount) || 0;
+      }
+    });
+
+    return { totalCount, totalAmount, paidAmount, unpaidAmount };
+  }, [deliverables]);
+
+  const handleCreate = async () => {
+    if (!newDeliverable.title.trim()) return;
+    if (!activeUser) return;
+
+    const { error } = await data.workDeliverables.create({
+      ...newDeliverable,
+      user_key: activeUser
+    });
+
+    if (error) {
+      alert(`Failed to log deliverable: ${error.message}`);
+      return;
+    }
+
+    setNewDeliverable({
+      title: "",
+      description: "",
+      delivery_date: new Date().toISOString().split("T")[0],
+      client_name: "",
+      amount: 0,
+      status: "delivered"
+    });
+    setShowCreate(false);
+  };
+
+  const handleUpdate = async () => {
+    if (!editingItem || !editingItem.title.trim()) return;
+
+    const { error } = await data.workDeliverables.update(editingItem.id, {
+      title: editingItem.title,
+      description: editingItem.description,
+      delivery_date: editingItem.delivery_date,
+      client_name: editingItem.client_name,
+      amount: Number(editingItem.amount) || 0,
+      status: editingItem.status
+    });
+
+    if (error) {
+      alert(`Failed to update deliverable: ${error.message}`);
+      return;
+    }
+
+    setEditingItem(null);
+  };
+
+  const handleDelete = async () => {
+    if (!deletingItem) return;
+
+    const { error } = await data.workDeliverables.remove(deletingItem.id);
+    if (error) {
+      alert(`Failed to delete deliverable: ${error.message}`);
+      return;
+    }
+
+    setDeletingItem(null);
+  };
+
+  return (
+    <div className="grid gap-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="bg-white border-zinc-200 shadow-sm">
+          <CardContent className="p-4 flex flex-col justify-between">
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Total Deliverables</span>
+            <span className="text-2xl font-extrabold text-zinc-800 mt-1">{stats.totalCount}</span>
+            <span className="text-[10px] text-zinc-400 mt-1">Items successfully delivered</span>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white border-zinc-200 shadow-sm">
+          <CardContent className="p-4 flex flex-col justify-between">
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Total Earnings Logged</span>
+            <span className="text-2xl font-extrabold text-zinc-800 mt-1">₹{stats.totalAmount.toLocaleString()}</span>
+            <span className="text-[10px] text-zinc-400 mt-1">Claimable value of all items</span>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white border-emerald-100 bg-emerald-50/10 shadow-sm">
+          <CardContent className="p-4 flex flex-col justify-between">
+            <span className="text-[10px] font-bold text-emerald-600/70 uppercase tracking-wider">Paid amount</span>
+            <span className="text-2xl font-extrabold text-emerald-600 mt-1">₹{stats.paidAmount.toLocaleString()}</span>
+            <span className="text-[10px] text-emerald-500/80 mt-1">Cleared by client HR / CEO</span>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white border-amber-100 bg-amber-50/10 shadow-sm">
+          <CardContent className="p-4 flex flex-col justify-between">
+            <span className="text-[10px] font-bold text-amber-600/70 uppercase tracking-wider">Pending invoice</span>
+            <span className="text-2xl font-extrabold text-amber-600 mt-1">₹{stats.unpaidAmount.toLocaleString()}</span>
+            <span className="text-[10px] text-amber-500/80 mt-1">Claimable for monthly settlement</span>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex justify-between items-center gap-4">
+        <Button onClick={() => setShowCreate(true)} className="rounded-xl bg-zinc-950 hover:bg-zinc-850 text-white">
+          <Plus className="h-4 w-4 mr-1.5" /> Log Deliverable
+        </Button>
+      </div>
+
+      <div className="border border-zinc-200 bg-white rounded-2xl overflow-hidden shadow-soft">
+        {deliverables.length === 0 ? (
+          <div className="p-10 text-center">
+            <EmptyState title="No deliverables logged yet." />
+            <p className="text-xs text-muted-foreground mt-2">Log your design drafts, code revisions, and pull requests to track your earnings.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left text-xs">
+              <thead className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-semibold uppercase tracking-wider">
+                <tr>
+                  <th className="p-4">Deliverable Title</th>
+                  <th className="p-4">Client</th>
+                  <th className="p-4">Delivery Date</th>
+                  <th className="p-4">Amount</th>
+                  <th className="p-4">Status</th>
+                  <th className="p-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100">
+                {deliverables.map((item) => (
+                  <tr key={item.id} className="hover:bg-zinc-50/30 transition-colors">
+                    <td className="p-4">
+                      <div className="font-bold text-zinc-800">{item.title}</div>
+                      {item.description && (
+                        <div className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
+                          {item.description}
+                        </div>
+                      )}
+                    </td>
+                    <td className="p-4 font-semibold text-zinc-600">{item.client_name || "N/A"}</td>
+                    <td className="p-4 text-zinc-500">{item.delivery_date}</td>
+                    <td className="p-4 font-bold text-zinc-700">₹{item.amount.toLocaleString()}</td>
+                    <td className="p-4">
+                      <span className={cn(
+                        "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider",
+                        item.status === "paid" && "bg-emerald-100 text-emerald-800 border border-emerald-200",
+                        item.status === "delivered" && "bg-blue-100 text-blue-800 border border-blue-200",
+                        item.status === "pending" && "bg-amber-100 text-amber-800 border border-amber-200"
+                      )}>
+                        {item.status}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Button
+                          variant="ghost" size="icon" className="h-8 w-8 text-zinc-500 hover:text-zinc-950"
+                          onClick={() => setEditingItem(item)}
+                          title="Edit"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-red-50 hover:text-destructive"
+                          onClick={() => setDeletingItem(item)}
+                          title="Delete"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <Dialog open={showCreate} onOpenChange={(open) => !open && setShowCreate(false)}>
+        <DialogContent className="max-w-md rounded-2xl bg-white">
+          <DialogHeader><DialogTitle>Log Work Deliverable</DialogTitle></DialogHeader>
+          <div className="grid gap-3.5 pt-2 text-xs">
+            <Field label="Deliverable Title">
+              <Input
+                placeholder="e.g. Auth flow login page, Homepage banner design..."
+                value={newDeliverable.title}
+                onChange={(e) => setNewDeliverable({ ...newDeliverable, title: e.target.value })}
+                className="bg-white border-zinc-200"
+              />
+            </Field>
+
+            <div className="grid grid-cols-2 gap-3.5">
+              <Field label="Client Name">
+                <Input
+                  placeholder="e.g. Acme Corp, Germany Client..."
+                  value={newDeliverable.client_name}
+                  onChange={(e) => setNewDeliverable({ ...newDeliverable, client_name: e.target.value })}
+                  className="bg-white border-zinc-200"
+                />
+              </Field>
+              <Field label="Delivery Date">
+                <Input
+                  type="date"
+                  value={newDeliverable.delivery_date}
+                  onChange={(e) => setNewDeliverable({ ...newDeliverable, delivery_date: e.target.value })}
+                  className="bg-white border-zinc-200"
+                />
+              </Field>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3.5">
+              <Field label="Value / Amount (₹)">
+                <Input
+                  type="number"
+                  placeholder="e.g. 5000, 15000..."
+                  value={newDeliverable.amount === 0 ? "" : newDeliverable.amount}
+                  onChange={(e) => setNewDeliverable({ ...newDeliverable, amount: Number(e.target.value) || 0 })}
+                  className="bg-white border-zinc-200"
+                />
+              </Field>
+              <Field label="Payment Status">
+                <Select
+                  value={newDeliverable.status}
+                  onValueChange={(val) => setNewDeliverable({ ...newDeliverable, status: val })}
+                >
+                  <SelectTrigger className="bg-white border-zinc-200">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="delivered">Delivered / Invoice Sent</SelectItem>
+                    <SelectItem value="pending">Review Pending</SelectItem>
+                    <SelectItem value="paid">Paid & Cleared</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+            </div>
+
+            <Field label="Description / Notes">
+              <Textarea
+                placeholder="Include PR links, Figma links, or tech stack details..."
+                value={newDeliverable.description}
+                onChange={(e) => setNewDeliverable({ ...newDeliverable, description: e.target.value })}
+                rows={3}
+                className="bg-white border-zinc-200 resize-none"
+              />
+            </Field>
+
+            <div className="flex justify-end gap-2 mt-2">
+              <Button variant="outline" onClick={() => setShowCreate(false)} className="rounded-xl border-zinc-250">Cancel</Button>
+              <Button onClick={handleCreate} className="rounded-xl bg-zinc-950 hover:bg-zinc-850 text-white">Log Deliverable</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
+        {editingItem && (
+          <DialogContent className="max-w-md rounded-2xl bg-white">
+            <DialogHeader><DialogTitle>Edit Logged Deliverable</DialogTitle></DialogHeader>
+            <div className="grid gap-3.5 pt-2 text-xs">
+              <Field label="Deliverable Title">
+                <Input
+                  value={editingItem.title}
+                  onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
+                  className="bg-white border-zinc-200"
+                />
+              </Field>
+
+              <div className="grid grid-cols-2 gap-3.5">
+                <Field label="Client Name">
+                  <Input
+                    value={editingItem.client_name}
+                    onChange={(e) => setEditingItem({ ...editingItem, client_name: e.target.value })}
+                    className="bg-white border-zinc-200"
+                  />
+                </Field>
+                <Field label="Delivery Date">
+                  <Input
+                    type="date"
+                    value={editingItem.delivery_date}
+                    onChange={(e) => setEditingItem({ ...editingItem, delivery_date: e.target.value })}
+                    className="bg-white border-zinc-200"
+                  />
+                </Field>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3.5">
+                <Field label="Value / Amount (₹)">
+                  <Input
+                    type="number"
+                    value={editingItem.amount}
+                    onChange={(e) => setEditingItem({ ...editingItem, amount: Number(e.target.value) || 0 })}
+                    className="bg-white border-zinc-200"
+                  />
+                </Field>
+                <Field label="Payment Status">
+                  <Select
+                    value={editingItem.status}
+                    onValueChange={(val) => setEditingItem({ ...editingItem, status: val })}
+                  >
+                    <SelectTrigger className="bg-white border-zinc-200">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      <SelectItem value="delivered">Delivered / Invoice Sent</SelectItem>
+                      <SelectItem value="pending">Review Pending</SelectItem>
+                      <SelectItem value="paid">Paid & Cleared</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
+
+              <Field label="Description / Notes">
+                <Textarea
+                  value={editingItem.description}
+                  onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
+                  rows={3}
+                  className="bg-white border-zinc-200 resize-none"
+                />
+              </Field>
+
+              <div className="flex justify-end gap-2 mt-2">
+                <Button variant="outline" onClick={() => setEditingItem(null)} className="rounded-xl border-zinc-250">Cancel</Button>
+                <Button onClick={handleUpdate} className="rounded-xl bg-zinc-950 hover:bg-zinc-850 text-white">Save Changes</Button>
+              </div>
+            </div>
+          </DialogContent>
+        )}
+      </Dialog>
+
+      <ConfirmDialog
+        open={!!deletingItem}
+        onOpenChange={(open) => !open && setDeletingItem(null)}
+        title="Delete Deliverable Log?"
+        description="Are you sure you want to permanently delete this logged deliverable? This action will remove it from your earnings sheet."
+        confirmText="Delete log"
+        variant="destructive"
+        onConfirm={handleDelete}
+      />
+    </div>
+  );
+}
+
 function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: string }) {
   const data = useData();
   const q = search.toLowerCase();
@@ -1219,6 +1600,8 @@ export default function VaultPage() {
           <ResourcesPanel search={search} />
         ) : activeVault.name === "Sticky Notes" && activeVault.is_default ? (
           <StickyNotesPanel search={search} />
+        ) : activeVault.name === "Work Deliverables" && activeVault.is_default ? (
+          <DeliverablesPanel search={search} />
         ) : (
           <CustomVaultPanel vault={activeVault} search={search} />
         )}

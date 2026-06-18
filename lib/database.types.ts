@@ -326,6 +326,33 @@ export type Database = {
         };
         Update: Partial<Database["public"]["Tables"]["timetable_blocks"]["Insert"]>;
       };
+      work_deliverables: {
+        Row: {
+          id: string;
+          user_key: string;
+          title: string;
+          description: string;
+          delivery_date: string;
+          client_name: string;
+          amount: number;
+          status: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_key: string;
+          title: string;
+          description?: string;
+          delivery_date: string;
+          client_name?: string;
+          amount?: number;
+          status?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["work_deliverables"]["Insert"]>;
+      };
     };
   };
 };

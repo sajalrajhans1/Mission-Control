@@ -23,6 +23,7 @@ type DataContextValue = {
   projectMilestones: ReturnType<typeof useRealtimeTable<"project_milestones">>;
   notifications: ReturnType<typeof useRealtimeTable<"notifications">>;
   timetableBlocks: ReturnType<typeof useRealtimeTable<"timetable_blocks">>;
+  workDeliverables: ReturnType<typeof useRealtimeTable<"work_deliverables">>;
   activeUser: "user1" | "user2" | null;
   activeUserName: string;
   onlineUsers: string[];
@@ -97,6 +98,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const projectMilestones = useRealtimeTable("project_milestones", { column: "due_date", ascending: true });
   const notifications = useRealtimeTable("notifications", { column: "created_at", ascending: false });
   const timetableBlocks = useRealtimeTable("timetable_blocks", { column: "start_time", ascending: true });
+  const workDeliverables = useRealtimeTable("work_deliverables", { column: "delivery_date", ascending: false });
 
   const [activeUser, setActiveUser] = useState<"user1" | "user2" | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
@@ -149,6 +151,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
       rows: timetableBlocks.rows.filter((b) => b.user_key === activeUser)
     };
   }, [timetableBlocks, activeUser]);
+
+  const filteredWorkDeliverables = useMemo(() => {
+    return {
+      ...workDeliverables,
+      rows: workDeliverables.rows.filter((wd) => wd.user_key === activeUser)
+    };
+  }, [workDeliverables, activeUser]);
 
   useEffect(() => {
     const saved = sessionStorage.getItem("mc_session");
@@ -402,6 +411,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       projectMilestones: filteredMilestones,
       notifications,
       timetableBlocks: filteredTimetableBlocks,
+      workDeliverables: filteredWorkDeliverables,
       activeUser,
       activeUserName,
       onlineUsers,
@@ -429,6 +439,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       filteredMilestones,
       notifications,
       filteredTimetableBlocks,
+      filteredWorkDeliverables,
       activeUser,
       activeUserName,
       onlineUsers,
