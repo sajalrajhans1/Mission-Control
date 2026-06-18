@@ -299,6 +299,33 @@ export type Database = {
         };
         Update: Partial<Database["public"]["Tables"]["notifications"]["Insert"]>;
       };
+      timetable_blocks: {
+        Row: {
+          id: string;
+          user_key: string;
+          title: string;
+          block_date: string;
+          start_time: string;
+          end_time: string;
+          task_id: string | null;
+          color: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_key: string;
+          title: string;
+          block_date: string;
+          start_time: string;
+          end_time: string;
+          task_id?: string | null;
+          color?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["timetable_blocks"]["Insert"]>;
+      };
     };
   };
 };

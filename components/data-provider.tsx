@@ -23,6 +23,7 @@ type DataContextValue = {
   projectFiles: ReturnType<typeof useRealtimeTable<"project_files">>;
   projectMilestones: ReturnType<typeof useRealtimeTable<"project_milestones">>;
   notifications: ReturnType<typeof useRealtimeTable<"notifications">>;
+  timetableBlocks: ReturnType<typeof useRealtimeTable<"timetable_blocks">>;
   activeUser: "user1" | "user2" | null;
   activeUserName: string;
   onlineUsers: string[];
@@ -96,6 +97,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const projectFiles = useRealtimeTable("project_files", { column: "created_at", ascending: false });
   const projectMilestones = useRealtimeTable("project_milestones", { column: "due_date", ascending: true });
   const notifications = useRealtimeTable("notifications", { column: "created_at", ascending: false });
+  const timetableBlocks = useRealtimeTable("timetable_blocks", { column: "start_time", ascending: true });
 
   const [activeUser, setActiveUser] = useState<"user1" | "user2" | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
@@ -141,6 +143,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
       })
     };
   }, [projectMilestones, projects.rows, activeUser]);
+
+  const filteredTimetableBlocks = useMemo(() => {
+    return {
+      ...timetableBlocks,
+      rows: timetableBlocks.rows.filter((b) => b.user_key === activeUser)
+    };
+  }, [timetableBlocks, activeUser]);
 
   useEffect(() => {
     const saved = sessionStorage.getItem("mc_session");
@@ -393,6 +402,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       projectFiles: filteredProjectFiles,
       projectMilestones: filteredMilestones,
       notifications,
+      timetableBlocks: filteredTimetableBlocks,
       activeUser,
       activeUserName,
       onlineUsers,
@@ -419,6 +429,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       filteredProjectFiles,
       filteredMilestones,
       notifications,
+      filteredTimetableBlocks,
       activeUser,
       activeUserName,
       onlineUsers,

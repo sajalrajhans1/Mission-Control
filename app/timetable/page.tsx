@@ -1,0 +1,795 @@
+"use client";
+
+import { useState, useMemo, useEffect, useRef } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Trash2,
+  Check,
+  AlertCircle,
+  Link as LinkIcon
+} from "lucide-react";
+import {
+  format,
+  startOfWeek,
+  addDays,
+  subWeeks,
+  addWeeks,
+  isSameDay,
+  parseISO
+} from "date-fns";
+import { useData, useActiveUser, useUserNames } from "@/components/data-provider";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+
+// Calendar helper constants
+const HOURS = Array.from({ length: 24 }, (_, i) => i);
+
+const TIME_SLOTS = Array.from({ length: 48 }, (_, i) => {
+  const h = Math.floor(i / 2);
+  const m = i % 2 === 0 ? "00" : "30";
+  const hStr = h.toString().padStart(2, "0");
+  return `${hStr}:${m}`;
+});
+
+const COLORS = [
+  { value: "indigo", label: "Indigo", bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200", hover: "hover:bg-indigo-100/80" },
+  { value: "emerald", label: "Emerald", bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", hover: "hover:bg-emerald-100/80" },
+  { value: "rose", label: "Rose", bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200", hover: "hover:bg-rose-100/80" },
+  { value: "amber", label: "Amber", bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", hover: "hover:bg-amber-100/80" },
+  { value: "purple", label: "Purple", bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200", hover: "hover:bg-purple-100/80" },
+  { value: "sky", label: "Sky", bg: "bg-sky-50", text: "text-sky-700", border: "border-sky-200", hover: "hover:bg-sky-100/80" },
+  { value: "pink", label: "Pink", bg: "bg-pink-50", text: "text-pink-700", border: "border-pink-200", hover: "hover:bg-pink-100/80" }
+];
+
+export default function TimetablePage() {
+  const { timetableBlocks, tasks, activeUser } = useData();
+  const { activeUserName } = useActiveUser();
+  const { user1, user2 } = useUserNames();
+
+  // Navigation State
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const gridContainerRef = useRef<HTMLDivElement>(null);
+
+  // Dialog States
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
+  // Form States
+  const [selectedDay, setSelectedDay] = useState<string>("");
+  const [startTime, setStartTime] = useState<string>("09:00");
+  const [endTime, setEndTime] = useState<string>("10:00");
+  const [blockTitle, setBlockTitle] = useState<string>("");
+  const [blockColor, setBlockColor] = useState<string>("indigo");
+  const [linkTask, setLinkTask] = useState<boolean>(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<string>("");
+
+  // Edit Form State
+  const [editingBlockId, setEditingBlockId] = useState<string>("");
+
+  // Center scroll position at 08:00 AM on initial load
+  useEffect(() => {
+    if (gridContainerRef.current) {
+      gridContainerRef.current.scrollTop = 8 * 64; // Hour row is 64px tall
+    }
+  }, []);
+
+  // Compute days of the current week (Mon - Sun)
+  const weekDays = useMemo(() => {
+    const start = startOfWeek(currentDate, { weekStartsOn: 1 });
+    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
+  }, [currentDate]);
+
+  const weekRangeLabel = useMemo(() => {
+    if (weekDays.length < 7) return "";
+    const first = weekDays[0];
+    const last = weekDays[6];
+    if (first.getMonth() === last.getMonth()) {
+      return `${format(first, "MMM d")} – ${format(last, "d, yyyy")}`;
+    }
+    return `${format(first, "MMM d")} – ${format(last, "MMM d, yyyy")}`;
+  }, [weekDays]);
+
+  // Filter pending tasks assigned to the active user (or both)
+  const myPendingTasks = useMemo(() => {
+    const cleanU1 = (user1 || "").trim().toLowerCase();
+    const cleanU2 = (user2 || "").trim().toLowerCase();
+
+    return tasks.rows.filter((t) => {
+      const assigneeClean = (t.assigned_to || "").trim().toLowerCase();
+      const isAssigned =
+        assigneeClean === "both" ||
+        assigneeClean === activeUser ||
+        (activeUser === "user1" && assigneeClean === cleanU1) ||
+        (activeUser === "user2" && assigneeClean === cleanU2);
+
+      if (!isAssigned) return false;
+
+      // Check if task is completed
+      if (assigneeClean === "both") {
+        return activeUser === "user1" ? !t.completed_user1 : !t.completed_user2;
+      }
+      return !t.completed;
+    });
+  }, [tasks.rows, activeUser, activeUserName, user1, user2]);
+
+  // Handle previous/next week navigation
+  const prevWeek = () => setCurrentDate((prev) => subWeeks(prev, 1));
+  const nextWeek = () => setCurrentDate((prev) => addWeeks(prev, 1));
+  const goToday = () => setCurrentDate(new Date());
+
+  // Handle cell click in timetable grid
+  const handleCellClick = (date: Date, hour: number) => {
+    const hStr = hour.toString().padStart(2, "0");
+    
+    setSelectedDay(format(date, "yyyy-MM-dd"));
+    setStartTime(`${hStr}:00`);
+    
+    // Set end time to next hour
+    const nextHStr = (hour + 1).toString().padStart(2, "0");
+    setEndTime(`${nextHStr}:00`);
+    
+    setBlockTitle("");
+    setBlockColor("indigo");
+    setLinkTask(false);
+    setSelectedTaskId("");
+    setIsCreateOpen(true);
+  };
+
+  // Synchronize title when task is selected
+  const handleTaskChange = (taskId: string) => {
+    setSelectedTaskId(taskId);
+    const selectedTask = tasks.rows.find((t) => t.id === taskId);
+    if (selectedTask) {
+      setBlockTitle(selectedTask.title);
+    }
+  };
+
+  // Submit new block creation
+  const handleCreateBlockSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeUser) return;
+    if (!blockTitle.trim()) return;
+
+    // Check block duration
+    const [sh, sm] = startTime.split(":").map(Number);
+    const [eh, em] = endTime.split(":").map(Number);
+    if (eh < sh || (eh === sh && em <= sm)) {
+      alert("End time must be after start time");
+      return;
+    }
+
+    try {
+      await timetableBlocks.create({
+        user_key: activeUser,
+        title: blockTitle.trim(),
+        block_date: selectedDay,
+        start_time: startTime,
+        end_time: endTime,
+        task_id: linkTask && selectedTaskId ? selectedTaskId : null,
+        color: blockColor
+      });
+      setIsCreateOpen(false);
+    } catch (err) {
+      console.error("Failed to create timetable block:", err);
+    }
+  };
+
+  // Edit / Open existing block
+  const handleBlockClick = (blockId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Avoid triggering cell click
+    const block = timetableBlocks.rows.find((b) => b.id === blockId);
+    if (!block) return;
+
+    setEditingBlockId(blockId);
+    setBlockTitle(block.title);
+    setSelectedDay(block.block_date);
+    setStartTime(block.start_time);
+    setEndTime(block.end_time);
+    setBlockColor(block.color);
+    setLinkTask(!!block.task_id);
+    setSelectedTaskId(block.task_id || "");
+    setIsEditOpen(true);
+  };
+
+  // Update existing block
+  const handleUpdateBlockSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingBlockId) return;
+
+    // Check block duration
+    const [sh, sm] = startTime.split(":").map(Number);
+    const [eh, em] = endTime.split(":").map(Number);
+    if (eh < sh || (eh === sh && em <= sm)) {
+      alert("End time must be after start time");
+      return;
+    }
+
+    try {
+      await timetableBlocks.update(editingBlockId, {
+        title: blockTitle.trim(),
+        block_date: selectedDay,
+        start_time: startTime,
+        end_time: endTime,
+        task_id: linkTask && selectedTaskId ? selectedTaskId : null,
+        color: blockColor
+      });
+      setIsEditOpen(false);
+    } catch (err) {
+      console.error("Failed to update timetable block:", err);
+    }
+  };
+
+  // Delete timetable block
+  const handleDeleteBlock = async () => {
+    if (!editingBlockId) return;
+    try {
+      await timetableBlocks.remove(editingBlockId);
+      setIsEditOpen(false);
+    } catch (err) {
+      console.error("Failed to delete timetable block:", err);
+    }
+  };
+
+  // Toggle task completion from within timetable block
+  const handleToggleTaskCompletion = async (taskId: string, currentCompleted: boolean) => {
+    const task = tasks.rows.find((t) => t.id === taskId);
+    if (!task) return;
+
+    const assigneeClean = (task.assigned_to || "").trim().toLowerCase();
+    
+    if (assigneeClean === "both") {
+      if (activeUser === "user1") {
+        const nextVal = !task.completed_user1;
+        await tasks.update(taskId, {
+          completed_user1: nextVal,
+          completed: nextVal && !!task.completed_user2
+        });
+      } else if (activeUser === "user2") {
+        const nextVal = !task.completed_user2;
+        await tasks.update(taskId, {
+          completed_user2: nextVal,
+          completed: !!task.completed_user1 && nextVal
+        });
+      }
+    } else {
+      await tasks.update(taskId, { completed: !currentCompleted });
+    }
+  };
+
+  // Map database blocks into days of the week
+  const weekBlocks = useMemo(() => {
+    return timetableBlocks.rows.flatMap((b) => {
+      // Find matching date in the week days array
+      const blockDateObj = parseISO(b.block_date);
+      const matchingDayIndex = weekDays.findIndex((d) => isSameDay(d, blockDateObj));
+      
+      if (matchingDayIndex === -1) return [];
+
+      // Extract time details
+      const [sh, sm] = b.start_time.split(":").map(Number);
+      const [eh, em] = b.end_time.split(":").map(Number);
+
+      const top = (sh * 64) + (sm / 60 * 64);
+      const height = ((eh - sh) * 64) + ((em - sm) / 60 * 64);
+
+      // Check linked task completion
+      let isTaskDone = false;
+      let linkedTaskTitle = "";
+      if (b.task_id) {
+        const task = tasks.rows.find((t) => t.id === b.task_id);
+        if (task) {
+          linkedTaskTitle = task.title;
+          const assigneeClean = (task.assigned_to || "").trim().toLowerCase();
+          if (assigneeClean === "both") {
+            isTaskDone = activeUser === "user1" ? task.completed_user1 : task.completed_user2;
+          } else {
+            isTaskDone = task.completed;
+          }
+        }
+      }
+
+      return [{
+        ...b,
+        dayIndex: matchingDayIndex,
+        top,
+        height,
+        isTaskDone,
+        linkedTaskTitle
+      }];
+    });
+  }, [timetableBlocks.rows, weekDays, tasks.rows, activeUser]);
+
+  return (
+    <div className="flex h-[calc(100vh-64px)] flex-col bg-[#fafafa] p-4 lg:p-8">
+      {/* Title & Navigation Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-4 border-zinc-100">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Weekly Timetable</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">Time-block your schedule privately and sync with your tasks.</p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={goToday} className="h-9 px-3 rounded-xl font-medium">
+            Today
+          </Button>
+
+          <div className="flex items-center border rounded-xl bg-white shadow-soft">
+            <Button variant="ghost" size="icon" onClick={prevWeek} className="h-9 w-9 rounded-l-xl border-r">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="px-4 text-xs font-semibold text-zinc-700 min-w-[160px] text-center">
+              {weekRangeLabel}
+            </span>
+            <Button variant="ghost" size="icon" onClick={nextWeek} className="h-9 w-9 rounded-r-xl border-l">
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <Button
+            onClick={() => {
+              setSelectedDay(format(new Date(), "yyyy-MM-dd"));
+              setStartTime("09:00");
+              setEndTime("10:00");
+              setBlockTitle("");
+              setBlockColor("indigo");
+              setLinkTask(false);
+              setSelectedTaskId("");
+              setIsCreateOpen(true);
+            }}
+            className="h-9 rounded-xl gap-1.5 font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
+          >
+            <Plus className="h-4 w-4" />
+            New Block
+          </Button>
+        </div>
+      </div>
+
+      {/* Scheduler Calendar Body */}
+      <div className="flex-1 min-h-0 mt-6 flex flex-col border border-zinc-200/80 bg-white rounded-2xl shadow-soft overflow-hidden">
+        {/* Days Header */}
+        <div className="grid grid-cols-[64px_1fr] border-b border-zinc-100 bg-zinc-50/50">
+          <div className="border-r border-zinc-100 py-3 text-center text-[10px] font-bold text-zinc-400">GMT</div>
+          <div className="grid grid-cols-7 divide-x divide-zinc-100">
+            {weekDays.map((day, idx) => {
+              const isToday = isSameDay(day, new Date());
+              return (
+                <div key={idx} className="py-2.5 text-center flex flex-col items-center">
+                  <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
+                    {format(day, "eee")}
+                  </span>
+                  <span
+                    className={cn(
+                      "mt-1 flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold text-zinc-700",
+                      isToday && "bg-indigo-600 text-white shadow-md shadow-indigo-100"
+                    )}
+                  >
+                    {format(day, "d")}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Scrollable Hours Grid */}
+        <div
+          ref={gridContainerRef}
+          className="flex-1 overflow-y-auto relative scrollbar-sleek"
+        >
+          <div className="grid grid-cols-[64px_1fr] min-h-[1536px]">
+            {/* Time Labels */}
+            <div className="border-r border-zinc-100 bg-zinc-50/20 divide-y divide-zinc-100/50">
+              {HOURS.map((hour) => {
+                const ampm = hour >= 12 ? "PM" : "AM";
+                const displayH = hour % 12 === 0 ? 12 : hour % 12;
+                return (
+                  <div key={hour} className="h-16 text-[10px] font-semibold text-zinc-400 text-right pr-2.5 pt-1">
+                    {displayH} {ampm}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Grid Columns */}
+            <div className="relative divide-y divide-zinc-100/60 bg-grid-pattern">
+              {/* Vertical Column Divider Guidelines */}
+              <div className="absolute inset-0 grid grid-cols-7 divide-x divide-zinc-100/60 pointer-events-none z-0">
+                {Array.from({ length: 7 }).map((_, i) => (
+                  <div key={i} className="h-full" />
+                ))}
+              </div>
+
+              {/* Clickable Grid Blocks overlay */}
+              <div className="absolute inset-0 grid grid-cols-7 z-10">
+                {weekDays.map((day, dIdx) => (
+                  <div key={dIdx} className="h-full relative">
+                    {/* Hour guidelines trigger clicks */}
+                    {HOURS.map((hour) => (
+                      <div
+                        key={hour}
+                        onClick={() => handleCellClick(day, hour)}
+                        className="h-16 w-full cursor-pointer hover:bg-zinc-50/50 transition-colors border-b border-zinc-100/30"
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+
+              {/* Absolute Positioned Scheduled Blocks overlay */}
+              <div className="absolute inset-0 grid grid-cols-7 pointer-events-none z-20">
+                {Array.from({ length: 7 }).map((_, colIdx) => {
+                  const dayBlocks = weekBlocks.filter((b) => b.dayIndex === colIdx);
+                  return (
+                    <div key={colIdx} className="h-full relative">
+                      {dayBlocks.map((block) => {
+                        const cl = COLORS.find((c) => c.value === block.color) || COLORS[0];
+                        return (
+                          <div
+                            key={block.id}
+                            onClick={(e) => handleBlockClick(block.id, e)}
+                            className={cn(
+                              "absolute left-1 right-1 p-2 rounded-xl border-1.5 shadow-sm cursor-pointer transition-all pointer-events-auto flex flex-col justify-between overflow-hidden",
+                              cl.bg,
+                              cl.text,
+                              cl.border,
+                              cl.hover,
+                              block.isTaskDone && "opacity-60 bg-zinc-50 border-zinc-200 text-zinc-400"
+                            )}
+                            style={{
+                              top: `${block.top}px`,
+                              height: `${block.height}px`
+                            }}
+                          >
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1">
+                                {block.task_id && (
+                                  <LinkIcon className="h-3 w-3 shrink-0" />
+                                )}
+                                <span
+                                  className={cn(
+                                    "text-xs font-bold truncate block",
+                                    block.isTaskDone && "line-through"
+                                  )}
+                                >
+                                  {block.title}
+                                </span>
+                              </div>
+                            </div>
+                            <span className="text-[10px] font-semibold opacity-80 shrink-0">
+                              {block.start_time} - {block.end_time}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* CREATE DIALOG */}
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-zinc-900 font-bold">New Timetable Block</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateBlockSubmit} className="space-y-4 pt-2">
+            {/* Task Link Switcher */}
+            <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+              <div className="flex items-center gap-2">
+                <LinkIcon className="h-4 w-4 text-indigo-500" />
+                <div>
+                  <p className="text-xs font-bold text-zinc-800">Link an existing task?</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">Tie this block to a task from your checklist.</p>
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={linkTask}
+                onChange={(e) => setLinkTask(e.target.checked)}
+                className="h-4 w-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+              />
+            </div>
+
+            {/* Existing Task Selector dropdown */}
+            {linkTask && (
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-zinc-700">Select Task</label>
+                {myPendingTasks.length === 0 ? (
+                  <div className="flex items-center gap-2 text-amber-600 bg-amber-50 p-2.5 rounded-xl border border-amber-100 text-xs">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    <span>No pending tasks found for you. Please uncheck &quot;Link task&quot; or create a task first.</span>
+                  </div>
+                ) : (
+                  <Select value={selectedTaskId} onValueChange={handleTaskChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Choose a task to link..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {myPendingTasks.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            )}
+
+            {/* Custom Title Input */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-zinc-700">Block Title</label>
+              <Input
+                placeholder="e.g. Code Review, Lunch Break"
+                value={blockTitle}
+                onChange={(e) => setBlockTitle(e.target.value)}
+                disabled={linkTask && !selectedTaskId}
+                required
+              />
+            </div>
+
+            {/* Date and Times */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1 col-span-2">
+                <label className="text-xs font-bold text-zinc-700">Date</label>
+                <Input
+                  type="date"
+                  value={selectedDay}
+                  onChange={(e) => setSelectedDay(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-zinc-700">Start Time</label>
+                <Select value={startTime} onValueChange={setStartTime}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-56">
+                    {TIME_SLOTS.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-zinc-700">End Time</label>
+                <Select value={endTime} onValueChange={setEndTime}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-56">
+                    {TIME_SLOTS.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Color selector */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-zinc-700">Color Label</label>
+              <div className="flex flex-wrap gap-2">
+                {COLORS.map((c) => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setBlockColor(c.value)}
+                    className={cn(
+                      "h-6 px-2.5 rounded-lg border text-[11px] font-semibold transition-all",
+                      c.bg,
+                      c.text,
+                      c.border,
+                      blockColor === c.value ? "ring-2 ring-indigo-500 border-indigo-400 scale-105" : "opacity-80"
+                    )}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-2 pt-2 border-t mt-4">
+              <Button type="button" variant="ghost" onClick={() => setIsCreateOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={linkTask && !selectedTaskId}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
+              >
+                Create Block
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* EDIT / VIEW DIALOG */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-zinc-900 font-bold">Edit Timetable Block</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdateBlockSubmit} className="space-y-4 pt-2">
+            {/* Task Link Display and Toggle */}
+            {linkTask && selectedTaskId && (
+              (() => {
+                const task = tasks.rows.find((t) => t.id === selectedTaskId);
+                if (!task) return null;
+
+                const assigneeClean = (task.assigned_to || "").trim().toLowerCase();
+                let isTaskDone = false;
+                if (assigneeClean === "both") {
+                  isTaskDone = activeUser === "user1" ? task.completed_user1 : task.completed_user2;
+                } else {
+                  isTaskDone = task.completed;
+                }
+
+                return (
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+                    <div className="flex items-center gap-2">
+                      <Check className={cn("h-4 w-4", isTaskDone ? "text-emerald-500" : "text-zinc-400")} />
+                      <div>
+                        <p className={cn("text-xs font-bold text-zinc-800", isTaskDone && "line-through text-zinc-400")}>
+                          {task.title}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">Linked checklist task</p>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleToggleTaskCompletion(selectedTaskId, isTaskDone)}
+                      className={cn(
+                        "h-7 text-[10px] px-2.5 rounded-lg font-bold border-2",
+                        isTaskDone
+                          ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
+                          : "border-zinc-200 text-zinc-600 hover:bg-zinc-100"
+                      )}
+                    >
+                      {isTaskDone ? "Done" : "Mark Done"}
+                    </Button>
+                  </div>
+                );
+              })()
+            )}
+
+            {/* Custom Title Input */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-zinc-700">Block Title</label>
+              <Input
+                placeholder="Title"
+                value={blockTitle}
+                onChange={(e) => setBlockTitle(e.target.value)}
+                disabled={linkTask}
+                required
+              />
+            </div>
+
+            {/* Date and Times */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1 col-span-2">
+                <label className="text-xs font-bold text-zinc-700">Date</label>
+                <Input
+                  type="date"
+                  value={selectedDay}
+                  onChange={(e) => setSelectedDay(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-zinc-700">Start Time</label>
+                <Select value={startTime} onValueChange={setStartTime}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-56">
+                    {TIME_SLOTS.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-zinc-700">End Time</label>
+                <Select value={endTime} onValueChange={setEndTime}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-56">
+                    {TIME_SLOTS.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Color selector */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-zinc-700">Color Label</label>
+              <div className="flex flex-wrap gap-2">
+                {COLORS.map((c) => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setBlockColor(c.value)}
+                    className={cn(
+                      "h-6 px-2.5 rounded-lg border text-[11px] font-semibold transition-all",
+                      c.bg,
+                      c.text,
+                      c.border,
+                      blockColor === c.value ? "ring-2 ring-indigo-500 border-indigo-400 scale-105" : "opacity-80"
+                    )}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-between items-center pt-2 border-t mt-4">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleDeleteBlock}
+                className="text-red-600 hover:bg-red-50 hover:text-red-700 gap-1 rounded-xl"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </Button>
+              <div className="flex gap-2">
+                <Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

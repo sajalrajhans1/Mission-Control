@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Brain, CheckSquare, Folder, Home, LogOut, Settings, WalletCards, Lock
+  Brain, CheckSquare, Folder, Home, LogOut, Settings, WalletCards, Lock, Calendar
 } from "lucide-react";
 import { useActiveUser, useUserNames, useUserColors } from "@/components/data-provider";
 import { GlobalSearch } from "@/components/global-search";
@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 const nav = [
   { href: "/", label: "Home", icon: Home },
   { href: "/tasks", label: "Tasks", icon: CheckSquare },
+  { href: "/timetable", label: "Timetable", icon: Calendar },
   { href: "/projects", label: "Projects", icon: Folder },
   { href: "/vault", label: "Vault", icon: Brain },
   { href: "/money", label: "Money", icon: WalletCards },
