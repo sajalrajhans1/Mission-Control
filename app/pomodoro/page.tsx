@@ -81,7 +81,7 @@ const createNoiseBuffer = (type: "white" | "pink" | "brown", ctx: AudioContext):
 };
 
 export default function PomodoroPage() {
-  const { tasks, activeUser } = useData();
+  const { tasks, activeUser, timetableBlocks } = useData();
   const { user1, user2 } = useUserNames();
 
   // Mode state: 'work' | 'shortBreak' | 'longBreak'
@@ -102,8 +102,10 @@ export default function PomodoroPage() {
 
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
 
-  // Focus Task Integration
+  // Focus Task & Block Integration
+  const [focusType, setFocusType] = useState<"task" | "block">("task");
   const [selectedTaskId, setSelectedTaskId] = useState<string>("");
+  const [selectedBlockId, setSelectedBlockId] = useState<string>("");
   const [completedSessionsCount, setCompletedSessionsCount] = useState<number>(0);
   const [focusLogs, setFocusLogs] = useState<FocusSessionLog[]>([]);
 
@@ -197,6 +199,29 @@ export default function PomodoroPage() {
   const activeFocusTask = useMemo(() => {
     return tasks.rows.find((t) => t.id === selectedTaskId);
   }, [tasks.rows, selectedTaskId]);
+
+  // Sync selected timetable block
+  const activeFocusBlock = useMemo(() => {
+    return timetableBlocks?.rows.find((b) => b.id === selectedBlockId);
+  }, [timetableBlocks?.rows, selectedBlockId]);
+
+  // Filter timetable blocks for the active user
+  const myTimetableBlocks = useMemo(() => {
+    if (!timetableBlocks?.rows) return [];
+    return timetableBlocks.rows.filter((b) => b.user_key === activeUser);
+  }, [timetableBlocks?.rows, activeUser]);
+
+  // Sort timetable blocks by date and time (most recent first)
+  const myTimetableBlocksSorted = useMemo(() => {
+    const list = [...myTimetableBlocks];
+    list.sort((a, b) => {
+      if (a.block_date !== b.block_date) {
+        return b.block_date.localeCompare(a.block_date);
+      }
+      return b.start_time.localeCompare(a.start_time);
+    });
+    return list;
+  }, [myTimetableBlocks]);
 
   // Handle task completion from within Pomodoro
   const handleCompleteActiveTask = useCallback(async () => {
@@ -460,7 +485,15 @@ export default function PomodoroPage() {
     // 1. Add log
     const duration = mode === "work" ? settings.work : mode === "shortBreak" ? settings.shortBreak : settings.longBreak;
     const timestamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    const logTitle = mode === "work" && activeFocusTask ? activeFocusTask.title : "General Focus Session";
+    
+    let logTitle = "General Focus Session";
+    if (mode === "work") {
+      if (focusType === "task" && activeFocusTask) {
+        logTitle = activeFocusTask.title;
+      } else if (focusType === "block" && activeFocusBlock) {
+        logTitle = `Block: ${activeFocusBlock.title}`;
+      }
+    }
 
     const newLog: FocusSessionLog = {
       id: Math.random().toString(36).substring(2, 9),
@@ -505,7 +538,7 @@ export default function PomodoroPage() {
         }
       }, 1200);
     }
-  }, [mode, settings, activeFocusTask, completedSessionsCount]);
+  }, [mode, settings, activeFocusTask, activeFocusBlock, focusType, completedSessionsCount]);
 
   // Main countdown ticker hook
   useEffect(() => {
@@ -716,19 +749,25 @@ export default function PomodoroPage() {
             </div>
           </div>
 
-          {/* Active focus task label */}
-          {mode === "work" && activeFocusTask && (
+          {/* Active focus task/block label */}
+          {mode === "work" && (focusType === "task" ? activeFocusTask : activeFocusBlock) && (
             <div className="mt-12 max-w-md text-center px-4 animate-fade-in">
-              <p className="text-xs text-zinc-500 uppercase font-semibold tracking-wider">Current Focus Task</p>
+              <p className="text-xs text-zinc-500 uppercase font-semibold tracking-wider">
+                {focusType === "task" ? "Current Focus Task" : "Current Focus Block"}
+              </p>
               <div className="flex items-center justify-center gap-2 mt-2">
-                <span className="text-lg font-bold text-zinc-200">{activeFocusTask.title}</span>
-                <button
-                  onClick={handleCompleteActiveTask}
-                  className="h-6 w-6 rounded-full border border-zinc-700 text-zinc-500 hover:text-emerald-500 hover:border-emerald-500 flex items-center justify-center transition-all bg-zinc-900"
-                  title="Mark Completed"
-                >
-                  <Check className="h-3 w-3" />
-                </button>
+                <span className="text-lg font-bold text-zinc-200">
+                  {focusType === "task" ? activeFocusTask?.title : activeFocusBlock?.title}
+                </span>
+                {focusType === "task" && activeFocusTask && (
+                  <button
+                    onClick={handleCompleteActiveTask}
+                    className="h-6 w-6 rounded-full border border-zinc-700 text-zinc-500 hover:text-emerald-500 hover:border-emerald-500 flex items-center justify-center transition-all bg-zinc-900"
+                    title="Mark Completed"
+                  >
+                    <Check className="h-3 w-3" />
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -898,24 +937,36 @@ export default function PomodoroPage() {
               </Button>
             </div>
 
-            {/* Active task linking card */}
+             {/* Active focus target linking card */}
             {mode === "work" && (
               <div className="w-full max-w-md border rounded-2xl p-4 mt-8 bg-zinc-50/50 border-zinc-100 flex items-center justify-between gap-4 z-10">
                 <div className="flex items-center gap-3 min-w-0">
                   <ListTodo className="h-5 w-5 text-indigo-500 shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide">Focusing Task</p>
-                    {activeFocusTask ? (
-                      <span className="text-xs font-bold text-zinc-800 truncate block mt-0.5">
-                        {activeFocusTask.title}
-                      </span>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide">
+                      {focusType === "task" ? "Focusing Task" : "Focusing Block"}
+                    </p>
+                    {focusType === "task" ? (
+                      activeFocusTask ? (
+                        <span className="text-xs font-bold text-zinc-800 truncate block mt-0.5">
+                          {activeFocusTask.title}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground italic mt-0.5">No task linked</span>
+                      )
                     ) : (
-                      <span className="text-xs text-muted-foreground italic mt-0.5">No task linked</span>
+                      activeFocusBlock ? (
+                        <span className="text-xs font-bold text-zinc-800 truncate block mt-0.5">
+                          {activeFocusBlock.title} ({activeFocusBlock.block_date} {activeFocusBlock.start_time} - {activeFocusBlock.end_time})
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground italic mt-0.5">No block linked</span>
+                      )
                     )}
                   </div>
                 </div>
 
-                {activeFocusTask ? (
+                {focusType === "task" && activeFocusTask ? (
                   <Button
                     onClick={handleCompleteActiveTask}
                     variant="outline"
@@ -1164,34 +1215,92 @@ export default function PomodoroPage() {
             </div>
           )}
 
-          {/* Focus Task Dropdown Selection */}
+          {/* Focus Target Dropdown Selection */}
           <div className="border border-zinc-200/80 bg-white rounded-3xl p-6 shadow-soft flex flex-col gap-4">
             <div>
-              <h3 className="text-sm font-bold text-zinc-800">Checklist Task Integrations</h3>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Focus on an uncompleted task from your global checklist space.</p>
+              <h3 className="text-sm font-bold text-zinc-800">Focus Integrations</h3>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Focus on an uncompleted task or a scheduled timetable block.</p>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-zinc-500 uppercase">Select Target Task</label>
-              {myPendingTasks.length === 0 ? (
-                <div className="p-3 bg-zinc-50 border rounded-xl text-xs text-muted-foreground italic text-center">
-                  No pending tasks in your checklist.
-                </div>
-              ) : (
-                <select
-                  value={selectedTaskId}
-                  onChange={(e) => setSelectedTaskId(e.target.value)}
-                  className="w-full text-xs font-semibold rounded-xl border border-zinc-200 bg-white p-2.5 text-zinc-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="">-- Choose a task to track --</option>
-                  {myPendingTasks.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.title}
-                    </option>
-                  ))}
-                </select>
-              )}
+            {/* Segmented tab controls */}
+            <div className="flex bg-zinc-50 border p-1 rounded-2xl w-full">
+              <button
+                type="button"
+                onClick={() => setFocusType("task")}
+                className={cn(
+                  "flex-1 py-1.5 rounded-xl text-xs font-bold transition-all",
+                  focusType === "task"
+                    ? "bg-white text-indigo-600 shadow-sm border border-indigo-100"
+                    : "text-zinc-500 hover:text-zinc-900"
+                )}
+              >
+                Task Checklist
+              </button>
+              <button
+                type="button"
+                onClick={() => setFocusType("block")}
+                className={cn(
+                  "flex-1 py-1.5 rounded-xl text-xs font-bold transition-all",
+                  focusType === "block"
+                    ? "bg-white text-indigo-600 shadow-sm border border-indigo-100"
+                    : "text-zinc-500 hover:text-zinc-900"
+                )}
+              >
+                Timetable Blocks
+              </button>
             </div>
+
+            {focusType === "task" ? (
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-zinc-500 uppercase">Select Target Task</label>
+                {myPendingTasks.length === 0 ? (
+                  <div className="p-3 bg-zinc-50 border rounded-xl text-xs text-muted-foreground italic text-center">
+                    No pending tasks in your checklist.
+                  </div>
+                ) : (
+                  <select
+                    value={selectedTaskId}
+                    onChange={(e) => {
+                      setSelectedTaskId(e.target.value);
+                      setSelectedBlockId("");
+                    }}
+                    className="w-full text-xs font-semibold rounded-xl border border-zinc-200 bg-white p-2.5 text-zinc-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="">-- Choose a task to track --</option>
+                    {myPendingTasks.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.title}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-zinc-500 uppercase">Select Target Block</label>
+                {myTimetableBlocksSorted.length === 0 ? (
+                  <div className="p-3 bg-zinc-50 border rounded-xl text-xs text-muted-foreground italic text-center">
+                    No scheduled timetable blocks found.
+                  </div>
+                ) : (
+                  <select
+                    value={selectedBlockId}
+                    onChange={(e) => {
+                      setSelectedBlockId(e.target.value);
+                      setSelectedTaskId("");
+                    }}
+                    className="w-full text-xs font-semibold rounded-xl border border-zinc-200 bg-white p-2.5 text-zinc-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="">-- Choose a block to track --</option>
+                    {myTimetableBlocksSorted.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.title} ({b.block_date} {b.start_time} - {b.end_time})
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Session Statistics Dashboard */}
