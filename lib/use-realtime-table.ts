@@ -49,7 +49,8 @@ function seedDefaults() {
       { id: uuid(), name: "Prompts", icon: "WandSparkles", order_index: 0, is_default: true, created_at: nowISO(), updated_at: nowISO() },
       { id: uuid(), name: "Ideas", icon: "Lightbulb", order_index: 1, is_default: true, created_at: nowISO(), updated_at: nowISO() },
       { id: uuid(), name: "Resources", icon: "Link", order_index: 2, is_default: true, created_at: nowISO(), updated_at: nowISO() },
-      { id: uuid(), name: "Sticky Notes", icon: "StickyNote", order_index: 3, is_default: true, created_at: nowISO(), updated_at: nowISO() }
+      { id: uuid(), name: "Sticky Notes", icon: "StickyNote", order_index: 3, is_default: true, created_at: nowISO(), updated_at: nowISO() },
+      { id: uuid(), name: "Work Deliverables", icon: "Briefcase", order_index: 4, is_default: true, created_at: nowISO(), updated_at: nowISO() }
     ];
     lsWrite("vaults", defaults);
   }

@@ -41,7 +41,8 @@ const DEFAULT_VAULTS: Insert<"vaults">[] = [
   { name: "Prompts",      icon: "WandSparkles", order_index: 0, is_default: true },
   { name: "Ideas",        icon: "Lightbulb",    order_index: 1, is_default: true },
   { name: "Resources",    icon: "Link",          order_index: 2, is_default: true },
-  { name: "Sticky Notes", icon: "StickyNote",   order_index: 3, is_default: true }
+  { name: "Sticky Notes", icon: "StickyNote",   order_index: 3, is_default: true },
+  { name: "Work Deliverables", icon: "Briefcase", order_index: 4, is_default: true }
 ];
 
 const DEFAULT_SETTINGS: Insert<"settings">[] = [

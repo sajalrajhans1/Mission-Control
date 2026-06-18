@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect } from "react";
 import {
   ExternalLink, Lightbulb, Link as LinkIcon,
   Pencil, Pin, Plus, StickyNote, Trash2, WandSparkles, Check, Copy, Lock, Unlock,
-  Briefcase
+  Briefcase, AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -959,6 +959,19 @@ function DeliverablesPanel({ search }: { search: string }) {
 
   return (
     <div className="grid gap-6">
+      {data.workDeliverables?.error && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-800 flex items-start gap-3 shadow-sm">
+          <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <div className="font-bold text-amber-900 text-sm">Database Schema Migration Required</div>
+            <p className="mt-1 leading-relaxed text-amber-700">
+              The <code>work_deliverables</code> table was not found in your Supabase database. Please copy the SQL from 
+              <code className="bg-amber-100/50 px-1 py-0.5 rounded ml-1 font-mono">supabase/migrations/015_work_deliverables.sql</code> and execute it in your Supabase SQL Editor to activate the deliverables log.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-white border-zinc-200 shadow-sm">
           <CardContent className="p-4 flex flex-col justify-between">
