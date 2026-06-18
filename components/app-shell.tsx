@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Brain, CheckSquare, Folder, Home, LogOut, Settings, WalletCards, Lock, Calendar
+  Brain, CheckSquare, Folder, Home, LogOut, Settings, WalletCards, Lock, Calendar, Timer
 } from "lucide-react";
 import { useActiveUser, useUserNames, useUserColors } from "@/components/data-provider";
 import { GlobalSearch } from "@/components/global-search";
@@ -20,6 +20,7 @@ const nav = [
   { href: "/", label: "Home", icon: Home },
   { href: "/tasks", label: "Tasks", icon: CheckSquare },
   { href: "/timetable", label: "Timetable", icon: Calendar },
+  { href: "/pomodoro", label: "Pomodoro", icon: Timer },
   { href: "/projects", label: "Projects", icon: Folder },
   { href: "/vault", label: "Vault", icon: Brain },
   { href: "/money", label: "Money", icon: WalletCards },
@@ -55,13 +56,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Workspace Lock trigger
-  const lock = () => {
+  const lock = useCallback(() => {
     if (!activeUser) return;
     sessionStorage.setItem("mc_locked", "true");
     setIsLocked(true);
     setPassword("");
     setUnlockError(null);
-  };
+  }, [activeUser]);
 
   // Keyboard shortcut listener: Alt+L, Ctrl+Alt+L, Ctrl+Shift+L, Alt+Space+L
   useEffect(() => {
@@ -84,7 +85,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeUser]);
+  }, [activeUser, lock]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

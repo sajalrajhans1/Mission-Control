@@ -87,7 +87,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         setActiveTab("tasks");
       }
     }
-  }, [project?.project_type]);
+  }, [project]);
 
   const getMilestoneStyle = (m: Row<"project_milestones">) => {
     if (m.completed) {

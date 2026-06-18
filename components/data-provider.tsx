@@ -3,7 +3,6 @@
 import { createContext, useContext, useEffect, useMemo, useCallback, useRef, useState, type ReactNode } from "react";
 import { useRealtimeTable } from "@/lib/use-realtime-table";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
-import { formatMoney } from "@/lib/utils";
 import type { Row, Insert } from "@/lib/database.types";
 
 type DataContextValue = {
