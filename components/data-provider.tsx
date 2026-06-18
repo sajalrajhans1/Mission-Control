@@ -1,9 +1,27 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useCallback, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useCallback, useRef, useState, type ReactNode, type Dispatch, type SetStateAction } from "react";
 import { useRealtimeTable } from "@/lib/use-realtime-table";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import type { Row, Insert } from "@/lib/database.types";
+
+export interface TimerSettings {
+  work: number;
+  shortBreak: number;
+  longBreak: number;
+  longBreakInterval: number;
+  targetSessions: number;
+  autoStartBreaks: boolean;
+  autoStartWork: boolean;
+}
+
+export interface FocusSessionLog {
+  id: string;
+  taskTitle: string;
+  duration: number; // minutes
+  timestamp: string;
+  mode: "work" | "shortBreak" | "longBreak";
+}
 
 type DataContextValue = {
   projects: ReturnType<typeof useRealtimeTable<"projects">>;
@@ -32,6 +50,42 @@ type DataContextValue = {
   setPassword: (user: "user1" | "user2", newPassword?: string) => Promise<void>;
   isPasswordSet: (user: "user1" | "user2") => boolean;
   sendNotification: (forUser: "user1" | "user2", title: string, body: string) => Promise<void>;
+  
+  // Pomodoro Timer context fields
+  pomoMode: "work" | "shortBreak" | "longBreak";
+  setPomoMode: Dispatch<SetStateAction<"work" | "shortBreak" | "longBreak">>;
+  pomoIsPlaying: boolean;
+  setPomoIsPlaying: Dispatch<SetStateAction<boolean>>;
+  pomoTimeLeft: number;
+  setPomoTimeLeft: Dispatch<SetStateAction<number>>;
+  pomoSettings: TimerSettings;
+  setPomoSettings: (settings: TimerSettings) => void;
+  pomoFocusType: "task" | "block";
+  setPomoFocusType: Dispatch<SetStateAction<"task" | "block">>;
+  pomoTaskId: string;
+  setPomoTaskId: Dispatch<SetStateAction<string>>;
+  pomoBlockId: string;
+  setPomoBlockId: Dispatch<SetStateAction<string>>;
+  pomoCompletedCount: number;
+  setPomoCompletedCount: (count: number) => void;
+  pomoLogs: FocusSessionLog[];
+  setPomoLogs: (logs: FocusSessionLog[]) => void;
+  pomoAmbientSoundType: "none" | "white" | "pink" | "brown" | "rain";
+  setPomoAmbientSoundType: Dispatch<SetStateAction<"none" | "white" | "pink" | "brown" | "rain">>;
+  pomoAmbientVolume: number;
+  setPomoAmbientVolume: Dispatch<SetStateAction<number>>;
+  pomoIsMuted: boolean;
+  setPomoIsMuted: Dispatch<SetStateAction<boolean>>;
+  pomoAlarmSound: "zen" | "digital" | "chime";
+  setPomoAlarmSound: Dispatch<SetStateAction<"zen" | "digital" | "chime">>;
+  pomoIsTicking: boolean;
+  setPomoIsTicking: Dispatch<SetStateAction<boolean>>;
+  pomoIsZenMode: boolean;
+  setPomoIsZenMode: Dispatch<SetStateAction<boolean>>;
+  playAlarmSound: () => void;
+  startAmbientSound: (type: "white" | "pink" | "brown" | "rain") => void;
+  stopAmbientSound: () => void;
+  getAudioContext: () => AudioContext;
 };
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -81,6 +135,41 @@ function triggerBrowserNotification(title: string, body?: string) {
   }
 }
 
+const createNoiseBuffer = (type: "white" | "pink" | "brown", ctx: AudioContext): AudioBuffer => {
+  const bufferSize = 2 * ctx.sampleRate;
+  const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const output = noiseBuffer.getChannelData(0);
+
+  if (type === "white") {
+    for (let i = 0; i < bufferSize; i++) {
+      output[i] = Math.random() * 2 - 1;
+    }
+  } else if (type === "brown") {
+    let lastOut = 0.0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      output[i] = (lastOut + 0.02 * white) / 1.02;
+      lastOut = output[i];
+      output[i] *= 3.5;
+    }
+  } else {
+    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      b0 = 0.99886 * b0 + white * 0.0555179;
+      b1 = 0.99332 * b1 + white * 0.0750759;
+      b2 = 0.96900 * b2 + white * 0.1538520;
+      b3 = 0.86650 * b3 + white * 0.3104856;
+      b4 = 0.55000 * b4 + white * 0.5329522;
+      b5 = -0.7616 * b5 - white * 0.0168980;
+      output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+      output[i] *= 0.11;
+      b6 = white * 0.115926;
+    }
+  }
+  return noiseBuffer;
+};
+
 export function DataProvider({ children }: { children: ReactNode }) {
   const projects = useRealtimeTable("projects", { column: "name", ascending: true });
   const tasks = useRealtimeTable("tasks", { column: "created_at", ascending: false });
@@ -103,6 +192,374 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const [activeUser, setActiveUser] = useState<"user1" | "user2" | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+
+  // ─── Pomodoro Global States ───────────────────────────────────────────────────
+  const [pomoMode, setPomoMode] = useState<"work" | "shortBreak" | "longBreak">("work");
+  const [pomoIsPlaying, setPomoIsPlaying] = useState<boolean>(false);
+  const [pomoTimeLeft, setPomoTimeLeft] = useState<number>(25 * 60);
+  const [pomoCompletedCount, setPomoCompletedCount] = useState<number>(0);
+  const [pomoLogs, setPomoLogs] = useState<FocusSessionLog[]>([]);
+  const [pomoFocusType, setPomoFocusType] = useState<"task" | "block">("task");
+  const [pomoTaskId, setPomoTaskId] = useState<string>("");
+  const [pomoBlockId, setPomoBlockId] = useState<string>("");
+  
+  const [pomoSettings, setPomoSettings] = useState<TimerSettings>({
+    work: 25,
+    shortBreak: 5,
+    longBreak: 15,
+    longBreakInterval: 4,
+    targetSessions: 4,
+    autoStartBreaks: true,
+    autoStartWork: false
+  });
+
+  const [pomoAmbientSoundType, setPomoAmbientSoundType] = useState<"none" | "white" | "pink" | "brown" | "rain">("none");
+  const [pomoAmbientVolume, setPomoAmbientVolume] = useState<number>(0.3);
+  const [pomoIsMuted, setPomoIsMuted] = useState<boolean>(false);
+  const [pomoAlarmSound, setPomoAlarmSound] = useState<"zen" | "digital" | "chime">("zen");
+  const [pomoIsTicking, setPomoIsTicking] = useState<boolean>(false);
+  const [pomoIsZenMode, setPomoIsZenMode] = useState<boolean>(false);
+
+  // Web Audio Context & Synthesizer Nodes Refs
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const ambientSourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
+  const ambientGainNodeRef = useRef<GainNode | null>(null);
+  const tickerOscillatorIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Derivations for active targets
+  const activeFocusTask = useMemo(() => {
+    return tasks.rows.find((t) => t.id === pomoTaskId);
+  }, [tasks.rows, pomoTaskId]);
+
+  const activeFocusBlock = useMemo(() => {
+    return timetableBlocks?.rows.find((b) => b.id === pomoBlockId);
+  }, [timetableBlocks?.rows, pomoBlockId]);
+
+  const pomoIsPlayingRef = useRef(pomoIsPlaying);
+  useEffect(() => {
+    pomoIsPlayingRef.current = pomoIsPlaying;
+  }, [pomoIsPlaying]);
+
+  // Load stats, logs and settings from localStorage when activeUser changes
+  useEffect(() => {
+    if (!activeUser) return;
+
+    const savedSettings = localStorage.getItem(`pomo_settings_${activeUser}`);
+    if (savedSettings) {
+      try {
+        const parsed = JSON.parse(savedSettings);
+        setPomoSettings(parsed);
+        if (!pomoIsPlayingRef.current) {
+          setPomoTimeLeft(parsed.work * 60);
+        }
+      } catch (e) {
+        console.error("Failed to parse pomo_settings", e);
+      }
+    } else {
+      const defaults = {
+        work: 25,
+        shortBreak: 5,
+        longBreak: 15,
+        longBreakInterval: 4,
+        targetSessions: 4,
+        autoStartBreaks: true,
+        autoStartWork: false
+      };
+      setPomoSettings(defaults);
+      if (!pomoIsPlayingRef.current) {
+        setPomoTimeLeft(defaults.work * 60);
+      }
+    }
+
+    const savedLogs = localStorage.getItem(`pomo_logs_${activeUser}`);
+    if (savedLogs) {
+      try {
+        setPomoLogs(JSON.parse(savedLogs));
+      } catch (e) {
+        console.error("Failed to parse pomo_logs", e);
+      }
+    } else {
+      setPomoLogs([]);
+    }
+
+    const savedCount = localStorage.getItem(`pomo_completed_count_${activeUser}`);
+    if (savedCount) {
+      setPomoCompletedCount(Number(savedCount));
+    } else {
+      setPomoCompletedCount(0);
+    }
+  }, [activeUser]);
+
+  // Save setters
+  const savePomoSettings = useCallback((newSettings: TimerSettings) => {
+    setPomoSettings(newSettings);
+    if (activeUser) {
+      localStorage.setItem(`pomo_settings_${activeUser}`, JSON.stringify(newSettings));
+    }
+  }, [activeUser]);
+
+  const savePomoLogs = useCallback((newLogs: FocusSessionLog[]) => {
+    setPomoLogs(newLogs);
+    if (activeUser) {
+      localStorage.setItem(`pomo_logs_${activeUser}`, JSON.stringify(newLogs));
+    }
+  }, [activeUser]);
+
+  const savePomoCompletedCount = useCallback((newCount: number) => {
+    setPomoCompletedCount(newCount);
+    if (activeUser) {
+      localStorage.setItem(`pomo_completed_count_${activeUser}`, String(newCount));
+    }
+  }, [activeUser]);
+
+  // Safe Web Audio Context initializer
+  const getAudioContext = useCallback((): AudioContext => {
+    if (!audioCtxRef.current) {
+      const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      audioCtxRef.current = new AudioContextClass();
+    }
+    if (audioCtxRef.current?.state === "suspended") {
+      audioCtxRef.current.resume();
+    }
+    return audioCtxRef.current as AudioContext;
+  }, []);
+
+  const stopAmbientSound = useCallback(() => {
+    if (ambientSourceNodeRef.current) {
+      try {
+        ambientSourceNodeRef.current.stop();
+        ambientSourceNodeRef.current.disconnect();
+      } catch {}
+      ambientSourceNodeRef.current = null;
+    }
+    if (ambientGainNodeRef.current) {
+      ambientGainNodeRef.current.disconnect();
+      ambientGainNodeRef.current = null;
+    }
+  }, []);
+
+  // Play ambient synthesized soundscapes
+  const startAmbientSound = useCallback((type: "white" | "pink" | "brown" | "rain") => {
+    stopAmbientSound();
+    if (pomoIsMuted) return;
+
+    try {
+      const ctx = getAudioContext();
+      const buffer = createNoiseBuffer(type === "rain" ? "brown" : type, ctx);
+      
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.loop = true;
+
+      const gainNode = ctx.createGain();
+      const scale = type === "white" ? 0.4 : type === "pink" ? 0.6 : 1.0;
+      gainNode.gain.setValueAtTime(pomoAmbientVolume * scale, ctx.currentTime);
+
+      if (type === "rain") {
+        const filter = ctx.createBiquadFilter();
+        filter.type = "lowpass";
+        filter.frequency.value = 600;
+        
+        source.connect(filter);
+        filter.connect(gainNode);
+      } else {
+        source.connect(gainNode);
+      }
+
+      gainNode.connect(ctx.destination);
+      source.start(0);
+
+      ambientSourceNodeRef.current = source;
+      ambientGainNodeRef.current = gainNode;
+    } catch (e) {
+      console.error("Failed to start ambient sound", e);
+    }
+  }, [pomoIsMuted, pomoAmbientVolume, stopAmbientSound, getAudioContext]);
+
+  // Synthesize Completion Alarm Bells
+  const playAlarmSound = useCallback(() => {
+    if (pomoIsMuted) return;
+    try {
+      const ctx = getAudioContext();
+      const nowTime = ctx.currentTime;
+
+      if (pomoAlarmSound === "zen") {
+        const freqs = [380, 570, 760];
+        freqs.forEach((f, idx) => {
+          const osc = ctx.createOscillator();
+          const gainNode = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(f, nowTime);
+          
+          gainNode.gain.setValueAtTime(0, nowTime);
+          gainNode.gain.linearRampToValueAtTime(0.3 / freqs.length, nowTime + 0.1);
+          gainNode.gain.exponentialRampToValueAtTime(0.0001, nowTime + 4 - idx * 0.5);
+          
+          osc.connect(gainNode);
+          gainNode.connect(ctx.destination);
+          osc.start(nowTime);
+          osc.stop(nowTime + 4.5);
+        });
+      } else if (pomoAlarmSound === "digital") {
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(950, nowTime);
+
+        gainNode.gain.setValueAtTime(0, nowTime);
+        gainNode.gain.setValueAtTime(0.25, nowTime + 0.05);
+        gainNode.gain.setValueAtTime(0, nowTime + 0.25);
+        gainNode.gain.setValueAtTime(0.25, nowTime + 0.35);
+        gainNode.gain.setValueAtTime(0, nowTime + 0.55);
+        gainNode.gain.setValueAtTime(0.25, nowTime + 0.65);
+        gainNode.gain.setValueAtTime(0, nowTime + 0.85);
+
+        osc.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        osc.start(nowTime);
+        osc.stop(nowTime + 0.95);
+      } else {
+        const freqs = [523.25, 659.25, 783.99, 1046.5];
+        freqs.forEach((f, idx) => {
+          const osc = ctx.createOscillator();
+          const gainNode = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(f, nowTime + idx * 0.15);
+          
+          gainNode.gain.setValueAtTime(0, nowTime + idx * 0.15);
+          gainNode.gain.linearRampToValueAtTime(0.12, nowTime + idx * 0.15 + 0.05);
+          gainNode.gain.exponentialRampToValueAtTime(0.0001, nowTime + idx * 0.15 + 1.5);
+          
+          osc.connect(gainNode);
+          gainNode.connect(ctx.destination);
+          osc.start(nowTime + idx * 0.15);
+          osc.stop(nowTime + idx * 0.15 + 1.8);
+        });
+      }
+    } catch (e) {
+      console.error("Failed to play alarm chime", e);
+    }
+  }, [pomoIsMuted, pomoAlarmSound, getAudioContext]);
+
+  // Session completed logic
+  const handleSessionCompleted = useCallback(() => {
+    const duration = pomoMode === "work" ? pomoSettings.work : pomoMode === "shortBreak" ? pomoSettings.shortBreak : pomoSettings.longBreak;
+    const timestamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    
+    let logTitle = "General Focus Session";
+    if (pomoMode === "work") {
+      if (pomoFocusType === "task" && activeFocusTask) {
+        logTitle = activeFocusTask.title;
+      } else if (pomoFocusType === "block" && activeFocusBlock) {
+        logTitle = `Block: ${activeFocusBlock.title}`;
+      }
+    }
+
+    const newLog: FocusSessionLog = {
+      id: Math.random().toString(36).substring(2, 9),
+      taskTitle: pomoMode === "work" ? logTitle : pomoMode === "shortBreak" ? "Short Break" : "Long Break",
+      duration,
+      timestamp,
+      mode: pomoMode
+    };
+
+    const nextLogs = [newLog, ...pomoLogs].slice(0, 50);
+    savePomoLogs(nextLogs);
+
+    if (pomoMode === "work") {
+      const nextCount = pomoCompletedCount + 1;
+      savePomoCompletedCount(nextCount);
+
+      setTimeout(() => {
+        const triggersLongBreak = nextCount % pomoSettings.longBreakInterval === 0;
+        const nextMode = triggersLongBreak ? "longBreak" : "shortBreak";
+        setPomoMode(nextMode);
+        setPomoTimeLeft(nextMode === "shortBreak" ? pomoSettings.shortBreak * 60 : pomoSettings.longBreak * 60);
+        
+        if (pomoSettings.autoStartBreaks) {
+          setPomoIsPlaying(true);
+        }
+      }, 1200);
+    } else {
+      setTimeout(() => {
+        setPomoMode("work");
+        setPomoTimeLeft(pomoSettings.work * 60);
+
+        if (pomoSettings.autoStartWork) {
+          setPomoIsPlaying(true);
+        }
+      }, 1200);
+    }
+  }, [pomoMode, pomoSettings, activeFocusTask, activeFocusBlock, pomoFocusType, pomoCompletedCount, pomoLogs, savePomoLogs, savePomoCompletedCount]);
+
+  // Metronome metronome ticking oscillator sound effect loop
+  useEffect(() => {
+    if (pomoIsPlaying && pomoIsTicking && !pomoIsMuted) {
+      tickerOscillatorIntervalRef.current = setInterval(() => {
+        try {
+          const ctx = getAudioContext();
+          const nowTime = ctx.currentTime;
+          const osc = ctx.createOscillator();
+          const gainNode = ctx.createGain();
+          
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(450, nowTime);
+          
+          gainNode.gain.setValueAtTime(0, nowTime);
+          gainNode.gain.linearRampToValueAtTime(0.02, nowTime + 0.01);
+          gainNode.gain.exponentialRampToValueAtTime(0.00001, nowTime + 0.08);
+          
+          osc.connect(gainNode);
+          gainNode.connect(ctx.destination);
+          osc.start(nowTime);
+          osc.stop(nowTime + 0.1);
+        } catch {}
+      }, 1000);
+    } else {
+      if (tickerOscillatorIntervalRef.current) clearInterval(tickerOscillatorIntervalRef.current);
+    }
+
+    return () => {
+      if (tickerOscillatorIntervalRef.current) clearInterval(tickerOscillatorIntervalRef.current);
+    };
+  }, [pomoIsPlaying, pomoIsTicking, pomoIsMuted, getAudioContext]);
+
+  // Ambient soundscape loop trigger
+  useEffect(() => {
+    if (pomoAmbientSoundType === "none" || pomoIsMuted) {
+      stopAmbientSound();
+    } else {
+      startAmbientSound(pomoAmbientSoundType);
+    }
+    return () => {
+      stopAmbientSound();
+    };
+  }, [pomoAmbientSoundType, pomoIsMuted, pomoAmbientVolume, startAmbientSound, stopAmbientSound]);
+
+  // Main countdown interval ticking loop (Global background execution)
+  useEffect(() => {
+    if (pomoIsPlaying) {
+      timerIntervalRef.current = setInterval(() => {
+        setPomoTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(timerIntervalRef.current!);
+            setPomoIsPlaying(false);
+            playAlarmSound();
+            handleSessionCompleted();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    }
+
+    return () => {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    };
+  }, [pomoIsPlaying, playAlarmSound, handleSessionCompleted]);
 
   // Filter projects/tasks/files/milestones based on privacy setting in real time
   const filteredProjects = useMemo(() => {
@@ -420,7 +877,43 @@ export function DataProvider({ children }: { children: ReactNode }) {
       logout,
       setPassword,
       isPasswordSet,
-      sendNotification
+      sendNotification,
+      
+      // Pomodoro exports
+      pomoMode,
+      setPomoMode,
+      pomoIsPlaying,
+      setPomoIsPlaying,
+      pomoTimeLeft,
+      setPomoTimeLeft,
+      pomoSettings,
+      setPomoSettings: savePomoSettings,
+      pomoFocusType,
+      setPomoFocusType,
+      pomoTaskId,
+      setPomoTaskId,
+      pomoBlockId,
+      setPomoBlockId,
+      pomoCompletedCount,
+      setPomoCompletedCount: savePomoCompletedCount,
+      pomoLogs,
+      setPomoLogs: savePomoLogs,
+      pomoAmbientSoundType,
+      setPomoAmbientSoundType,
+      pomoAmbientVolume,
+      setPomoAmbientVolume,
+      pomoIsMuted,
+      setPomoIsMuted,
+      pomoAlarmSound,
+      setPomoAlarmSound,
+      pomoIsTicking,
+      setPomoIsTicking,
+      pomoIsZenMode,
+      setPomoIsZenMode,
+      playAlarmSound,
+      startAmbientSound,
+      stopAmbientSound,
+      getAudioContext
     }),
     [
       filteredProjects,
@@ -448,7 +941,30 @@ export function DataProvider({ children }: { children: ReactNode }) {
       logout,
       setPassword,
       isPasswordSet,
-      sendNotification
+      sendNotification,
+      
+      pomoMode,
+      pomoIsPlaying,
+      pomoTimeLeft,
+      pomoSettings,
+      pomoFocusType,
+      pomoTaskId,
+      pomoBlockId,
+      pomoCompletedCount,
+      pomoLogs,
+      pomoAmbientSoundType,
+      pomoAmbientVolume,
+      pomoIsMuted,
+      pomoAlarmSound,
+      pomoIsTicking,
+      pomoIsZenMode,
+      playAlarmSound,
+      startAmbientSound,
+      stopAmbientSound,
+      getAudioContext,
+      savePomoSettings,
+      savePomoLogs,
+      savePomoCompletedCount
     ]
   );
 

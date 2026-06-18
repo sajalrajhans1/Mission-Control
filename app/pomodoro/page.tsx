@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Play,
   Pause,
@@ -23,111 +23,48 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-// Types for settings
-interface TimerSettings {
-  work: number;
-  shortBreak: number;
-  longBreak: number;
-  longBreakInterval: number;
-  targetSessions: number;
-  autoStartBreaks: boolean;
-  autoStartWork: boolean;
-}
-
-// Types for focus log entries
-interface FocusSessionLog {
-  id: string;
-  taskTitle: string;
-  duration: number; // minutes
-  timestamp: string;
-  mode: "work" | "shortBreak" | "longBreak";
-}
-
-// Synthesize noise buffer (White, Pink, Brown)
-const createNoiseBuffer = (type: "white" | "pink" | "brown", ctx: AudioContext): AudioBuffer => {
-  const bufferSize = 2 * ctx.sampleRate;
-  const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-  const output = noiseBuffer.getChannelData(0);
-
-  if (type === "white") {
-    for (let i = 0; i < bufferSize; i++) {
-      output[i] = Math.random() * 2 - 1;
-    }
-  } else if (type === "brown") {
-    let lastOut = 0.0;
-    for (let i = 0; i < bufferSize; i++) {
-      const white = Math.random() * 2 - 1;
-      output[i] = (lastOut + 0.02 * white) / 1.02;
-      lastOut = output[i];
-      output[i] *= 3.5; // Compensate volume loss
-    }
-  } else {
-    // Pink noise Voss-McCartney algorithm
-    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
-    for (let i = 0; i < bufferSize; i++) {
-      const white = Math.random() * 2 - 1;
-      b0 = 0.99886 * b0 + white * 0.0555179;
-      b1 = 0.99332 * b1 + white * 0.0750759;
-      b2 = 0.96900 * b2 + white * 0.1538520;
-      b3 = 0.86650 * b3 + white * 0.3104856;
-      b4 = 0.55000 * b4 + white * 0.5329522;
-      b5 = -0.7616 * b5 - white * 0.0168980;
-      output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
-      output[i] *= 0.11;
-      b6 = white * 0.115926;
-    }
-  }
-  return noiseBuffer;
-};
-
 export default function PomodoroPage() {
-  const { tasks, activeUser, timetableBlocks } = useData();
+  const data = useData();
+  const { tasks, activeUser, timetableBlocks } = data;
   const { user1, user2 } = useUserNames();
 
-  // Mode state: 'work' | 'shortBreak' | 'longBreak'
-  const [mode, setMode] = useState<"work" | "shortBreak" | "longBreak">("work");
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [timeLeft, setTimeLeft] = useState<number>(25 * 60);
-
-  // Settings state (initialized from localStorage on mount)
-  const [settings, setSettings] = useState<TimerSettings>({
-    work: 25,
-    shortBreak: 5,
-    longBreak: 15,
-    longBreakInterval: 4,
-    targetSessions: 4,
-    autoStartBreaks: true,
-    autoStartWork: false
-  });
+  const {
+    pomoMode: mode,
+    setPomoMode: setMode,
+    pomoIsPlaying: isPlaying,
+    setPomoIsPlaying: setIsPlaying,
+    pomoTimeLeft: timeLeft,
+    setPomoTimeLeft: setTimeLeft,
+    pomoSettings: settings,
+    setPomoSettings: setSettings,
+    pomoFocusType: focusType,
+    setPomoFocusType: setFocusType,
+    pomoTaskId: selectedTaskId,
+    setPomoTaskId: setSelectedTaskId,
+    pomoBlockId: selectedBlockId,
+    setPomoBlockId: setSelectedBlockId,
+    pomoCompletedCount: completedSessionsCount,
+    setPomoCompletedCount: setCompletedSessionsCount,
+    pomoLogs: focusLogs,
+    setPomoLogs: setFocusLogs,
+    pomoAmbientSoundType: ambientSoundType,
+    setPomoAmbientSoundType: setAmbientSoundType,
+    pomoAmbientVolume: ambientVolume,
+    setPomoAmbientVolume: setAmbientVolume,
+    pomoIsMuted: isMuted,
+    setPomoIsMuted: setIsMuted,
+    pomoAlarmSound: alarmSound,
+    setPomoAlarmSound: setAlarmSound,
+    pomoIsTicking: isTicking,
+    setPomoIsTicking: setIsTicking,
+    pomoIsZenMode: isZenMode,
+    setPomoIsZenMode: setIsZenMode,
+    playAlarmSound,
+    getAudioContext
+  } = data;
 
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
-
-  // Focus Task & Block Integration
-  const [focusType, setFocusType] = useState<"task" | "block">("task");
-  const [selectedTaskId, setSelectedTaskId] = useState<string>("");
-  const [selectedBlockId, setSelectedBlockId] = useState<string>("");
-  const [completedSessionsCount, setCompletedSessionsCount] = useState<number>(0);
-  const [focusLogs, setFocusLogs] = useState<FocusSessionLog[]>([]);
-
-  // Soundscape States
-  const [ambientSoundType, setAmbientSoundType] = useState<"none" | "white" | "pink" | "brown" | "rain">("none");
-  const [ambientVolume, setAmbientVolume] = useState<number>(0.3);
-  const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [alarmSound, setAlarmSound] = useState<"zen" | "digital" | "chime">("zen");
-  const [isTicking, setIsTicking] = useState<boolean>(false);
-
-  // Zen Mode State
-  const [isZenMode, setIsZenMode] = useState<boolean>(false);
   const [shortcutsOpen, setShortcutsOpen] = useState<boolean>(false);
-
-  // Web Audio Context & Synthesizer Nodes Refs
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const ambientSourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
-  const ambientGainNodeRef = useRef<GainNode | null>(null);
-  const tickerOscillatorIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  
-  // Timer Interval Ref
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Total initial seconds for the current mode
   const totalSeconds = useMemo(() => {
@@ -143,35 +80,6 @@ export default function PomodoroPage() {
     const progress = timeLeft / totalSeconds;
     return circumference * (1 - progress);
   }, [timeLeft, totalSeconds]);
-
-  // Load stats, logs and settings from localStorage
-  useEffect(() => {
-    const savedSettings = localStorage.getItem("pomo_settings");
-    if (savedSettings) {
-      try {
-        const parsed = JSON.parse(savedSettings);
-        setSettings(parsed);
-        // Set initial timer based on parsed settings
-        setTimeLeft(parsed.work * 60);
-      } catch (e) {
-        console.error("Failed to parse pomo_settings", e);
-      }
-    }
-
-    const savedLogs = localStorage.getItem("pomo_logs");
-    if (savedLogs) {
-      try {
-        setFocusLogs(JSON.parse(savedLogs));
-      } catch (e) {
-        console.error("Failed to parse pomo_logs", e);
-      }
-    }
-
-    const savedCount = localStorage.getItem("pomo_completed_count");
-    if (savedCount) {
-      setCompletedSessionsCount(Number(savedCount));
-    }
-  }, []);
 
   // Filter pending tasks assigned to the active user (or both)
   const myPendingTasks = useMemo(() => {
@@ -250,218 +158,22 @@ export default function PomodoroPage() {
     }
     // Deselect task
     setSelectedTaskId("");
-  }, [selectedTaskId, activeFocusTask, activeUser, tasks]);
-
-  // Safe Web Audio Context initializer
-  const getAudioContext = useCallback((): AudioContext => {
-    if (!audioCtxRef.current) {
-      const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      audioCtxRef.current = new AudioContextClass();
-    }
-    if (audioCtxRef.current?.state === "suspended") {
-      audioCtxRef.current.resume();
-    }
-    return audioCtxRef.current as AudioContext;
-  }, []);
-
-  const stopAmbientSound = useCallback(() => {
-    if (ambientSourceNodeRef.current) {
-      try {
-        ambientSourceNodeRef.current.stop();
-        ambientSourceNodeRef.current.disconnect();
-      } catch {}
-      ambientSourceNodeRef.current = null;
-    }
-    if (ambientGainNodeRef.current) {
-      ambientGainNodeRef.current.disconnect();
-      ambientGainNodeRef.current = null;
-    }
-  }, []);
-
-  // Play ambient synthesized soundscapes
-  const startAmbientSound = useCallback((type: "white" | "pink" | "brown" | "rain") => {
-    stopAmbientSound();
-    if (isMuted) return;
-
-    try {
-      const ctx = getAudioContext();
-      const buffer = createNoiseBuffer(type === "rain" ? "brown" : type, ctx);
-      
-      const source = ctx.createBufferSource();
-      source.buffer = buffer;
-      source.loop = true;
-
-      const gainNode = ctx.createGain();
-      // Apply lower base volume for white/pink noise to prevent spikes
-      const scale = type === "white" ? 0.4 : type === "pink" ? 0.6 : 1.0;
-      gainNode.gain.setValueAtTime(ambientVolume * scale, ctx.currentTime);
-
-      if (type === "rain") {
-        // Rain is filtered brown noise + modulated low pass filter
-        const filter = ctx.createBiquadFilter();
-        filter.type = "lowpass";
-        filter.frequency.setValueAtTime(1000, ctx.currentTime);
-        source.connect(filter);
-        filter.connect(gainNode);
-      } else {
-        source.connect(gainNode);
-      }
-
-      gainNode.connect(ctx.destination);
-      source.start();
-
-      ambientSourceNodeRef.current = source;
-      ambientGainNodeRef.current = gainNode;
-    } catch (e) {
-      console.error("Failed to start Web Audio ambient synthesizer", e);
-    }
-  }, [isMuted, ambientVolume, getAudioContext, stopAmbientSound]);
-
-  // Adjust volume of synthesized sounds live
-  useEffect(() => {
-    if (ambientGainNodeRef.current && audioCtxRef.current) {
-      const scale = ambientSoundType === "white" ? 0.4 : ambientSoundType === "pink" ? 0.6 : 1.0;
-      ambientGainNodeRef.current.gain.setValueAtTime(
-        isMuted ? 0 : ambientVolume * scale,
-        audioCtxRef.current.currentTime
-      );
-    }
-  }, [ambientVolume, isMuted, ambientSoundType]);
-
-  // Monitor soundscapes mode changes
-  useEffect(() => {
-    if (ambientSoundType !== "none" && isPlaying) {
-      startAmbientSound(ambientSoundType);
-    } else {
-      stopAmbientSound();
-    }
-    return () => stopAmbientSound();
-  }, [ambientSoundType, isPlaying, startAmbientSound, stopAmbientSound]);
-
-  // Synthesize single click (ticking metronome effect)
-  const playTickSound = useCallback(() => {
-    if (isMuted) return;
-    try {
-      const ctx = getAudioContext();
-      const nowTime = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(1600, nowTime);
-
-      gainNode.gain.setValueAtTime(0.02, nowTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.00001, nowTime + 0.02);
-
-      osc.connect(gainNode);
-      gainNode.connect(ctx.destination);
-      osc.start(nowTime);
-      osc.stop(nowTime + 0.03);
-    } catch {}
-  }, [isMuted, getAudioContext]);
-
-  // Ticking metronome triggers
-  useEffect(() => {
-    if (isPlaying && isTicking) {
-      tickerOscillatorIntervalRef.current = setInterval(() => {
-        playTickSound();
-      }, 1000);
-    } else {
-      if (tickerOscillatorIntervalRef.current) {
-        clearInterval(tickerOscillatorIntervalRef.current);
-      }
-    }
-    return () => {
-      if (tickerOscillatorIntervalRef.current) {
-        clearInterval(tickerOscillatorIntervalRef.current);
-      }
-    };
-  }, [isPlaying, isTicking, playTickSound]);
-
-  // Synthesize Completion Alarm Bells
-  const playAlarmSound = useCallback(() => {
-    if (isMuted) return;
-    try {
-      const ctx = getAudioContext();
-      const nowTime = ctx.currentTime;
-
-      if (alarmSound === "zen") {
-        // Multi-frequency soothing Zen Bowl oscillation
-        const freqs = [380, 570, 760];
-        freqs.forEach((f, idx) => {
-          const osc = ctx.createOscillator();
-          const gainNode = ctx.createGain();
-          osc.type = "sine";
-          osc.frequency.setValueAtTime(f, nowTime);
-          
-          gainNode.gain.setValueAtTime(0, nowTime);
-          gainNode.gain.linearRampToValueAtTime(0.3 / freqs.length, nowTime + 0.1);
-          gainNode.gain.exponentialRampToValueAtTime(0.0001, nowTime + 4 - idx * 0.5);
-          
-          osc.connect(gainNode);
-          gainNode.connect(ctx.destination);
-          osc.start(nowTime);
-          osc.stop(nowTime + 4.5);
-        });
-      } else if (alarmSound === "digital") {
-        // Triple high beep
-        const osc = ctx.createOscillator();
-        const gainNode = ctx.createGain();
-        osc.type = "triangle";
-        osc.frequency.setValueAtTime(950, nowTime);
-
-        gainNode.gain.setValueAtTime(0, nowTime);
-        gainNode.gain.setValueAtTime(0.25, nowTime + 0.05);
-        gainNode.gain.setValueAtTime(0, nowTime + 0.25);
-        gainNode.gain.setValueAtTime(0.25, nowTime + 0.35);
-        gainNode.gain.setValueAtTime(0, nowTime + 0.55);
-        gainNode.gain.setValueAtTime(0.25, nowTime + 0.65);
-        gainNode.gain.setValueAtTime(0, nowTime + 0.85);
-
-        osc.connect(gainNode);
-        gainNode.connect(ctx.destination);
-        osc.start(nowTime);
-        osc.stop(nowTime + 0.95);
-      } else {
-        // Arpeggiated soft wind chime
-        const freqs = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
-        freqs.forEach((f, idx) => {
-          const osc = ctx.createOscillator();
-          const gainNode = ctx.createGain();
-          osc.type = "sine";
-          osc.frequency.setValueAtTime(f, nowTime + idx * 0.15);
-          
-          gainNode.gain.setValueAtTime(0, nowTime + idx * 0.15);
-          gainNode.gain.linearRampToValueAtTime(0.12, nowTime + idx * 0.15 + 0.05);
-          gainNode.gain.exponentialRampToValueAtTime(0.0001, nowTime + idx * 0.15 + 1.5);
-          
-          osc.connect(gainNode);
-          gainNode.connect(ctx.destination);
-          osc.start(nowTime + idx * 0.15);
-          osc.stop(nowTime + idx * 0.15 + 1.8);
-        });
-      }
-    } catch (e) {
-      console.error("Failed to play alarm chime", e);
-    }
-  }, [isMuted, alarmSound, getAudioContext]);
+  }, [selectedTaskId, activeFocusTask, activeUser, tasks, setSelectedTaskId]);
 
   // Timer play / pause / switch handler
   const handleToggleTimer = useCallback(() => {
-    // Unsuspend audio context on gesture (required by browsers)
     getAudioContext();
-    setIsPlaying((prev) => !prev);
-  }, [getAudioContext]);
+    setIsPlaying(!isPlaying);
+  }, [getAudioContext, isPlaying, setIsPlaying]);
 
   const handleResetTimer = useCallback(() => {
     setIsPlaying(false);
     setTimeLeft(totalSeconds);
-  }, [totalSeconds]);
+  }, [totalSeconds, setIsPlaying, setTimeLeft]);
 
   const handleSkipMode = useCallback(() => {
     setIsPlaying(false);
     if (mode === "work") {
-      // Auto switch to short break or long break based on session progress
       const nextMode = (completedSessionsCount + 1) % settings.longBreakInterval === 0 ? "longBreak" : "shortBreak";
       setMode(nextMode);
       setTimeLeft(nextMode === "shortBreak" ? settings.shortBreak * 60 : settings.longBreak * 60);
@@ -469,109 +181,23 @@ export default function PomodoroPage() {
       setMode("work");
       setTimeLeft(settings.work * 60);
     }
-  }, [mode, completedSessionsCount, settings]);
+  }, [mode, completedSessionsCount, settings, setMode, setTimeLeft, setIsPlaying]);
 
-  // Direct tab selectors
   const handleSelectMode = useCallback((newMode: "work" | "shortBreak" | "longBreak") => {
     setIsPlaying(false);
     setMode(newMode);
     if (newMode === "work") setTimeLeft(settings.work * 60);
     else if (newMode === "shortBreak") setTimeLeft(settings.shortBreak * 60);
     else setTimeLeft(settings.longBreak * 60);
-  }, [settings]);
+  }, [settings, setMode, setTimeLeft, setIsPlaying]);
 
-  // Session completed logic
-  const handleSessionCompleted = useCallback(() => {
-    // 1. Add log
-    const duration = mode === "work" ? settings.work : mode === "shortBreak" ? settings.shortBreak : settings.longBreak;
-    const timestamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    
-    let logTitle = "General Focus Session";
-    if (mode === "work") {
-      if (focusType === "task" && activeFocusTask) {
-        logTitle = activeFocusTask.title;
-      } else if (focusType === "block" && activeFocusBlock) {
-        logTitle = `Block: ${activeFocusBlock.title}`;
-      }
-    }
 
-    const newLog: FocusSessionLog = {
-      id: Math.random().toString(36).substring(2, 9),
-      taskTitle: mode === "work" ? logTitle : mode === "shortBreak" ? "Short Break" : "Long Break",
-      duration,
-      timestamp,
-      mode
-    };
-
-    setFocusLogs((prevLogs) => {
-      const updatedLogs = [newLog, ...prevLogs].slice(0, 50); // limit to 50 logs
-      localStorage.setItem("pomo_logs", JSON.stringify(updatedLogs));
-      return updatedLogs;
-    });
-
-    // 2. Increment Work counter
-    if (mode === "work") {
-      const nextCount = completedSessionsCount + 1;
-      setCompletedSessionsCount(nextCount);
-      localStorage.setItem("pomo_completed_count", String(nextCount));
-
-      // 3. Switch mode auto-trigger
-      setTimeout(() => {
-        const triggersLongBreak = nextCount % settings.longBreakInterval === 0;
-        const nextMode = triggersLongBreak ? "longBreak" : "shortBreak";
-        
-        setMode(nextMode);
-        setTimeLeft(nextMode === "shortBreak" ? settings.shortBreak * 60 : settings.longBreak * 60);
-        
-        if (settings.autoStartBreaks) {
-          setIsPlaying(true);
-        }
-      }, 1200);
-    } else {
-      // Completed a break, switch back to work
-      setTimeout(() => {
-        setMode("work");
-        setTimeLeft(settings.work * 60);
-
-        if (settings.autoStartWork) {
-          setIsPlaying(true);
-        }
-      }, 1200);
-    }
-  }, [mode, settings, activeFocusTask, activeFocusBlock, focusType, completedSessionsCount]);
-
-  // Main countdown ticker hook
-  useEffect(() => {
-    if (isPlaying) {
-      timerIntervalRef.current = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            // Timer expired!
-            clearInterval(timerIntervalRef.current!);
-            setIsPlaying(false);
-            playAlarmSound();
-            handleSessionCompleted();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    }
-
-    return () => {
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    };
-  }, [isPlaying, playAlarmSound, handleSessionCompleted]);
 
   // Clear session stats and history
   const handleClearHistory = () => {
     if (confirm("Are you sure you want to clear your focus session statistics?")) {
       setCompletedSessionsCount(0);
       setFocusLogs([]);
-      localStorage.removeItem("pomo_completed_count");
-      localStorage.removeItem("pomo_logs");
     }
   };
 
@@ -608,7 +234,7 @@ export default function PomodoroPage() {
 
     window.addEventListener("keydown", handleGlobalShortcuts);
     return () => window.removeEventListener("keydown", handleGlobalShortcuts);
-  }, [handleToggleTimer, handleResetTimer, handleSelectMode]);
+  }, [handleToggleTimer, handleResetTimer, handleSelectMode, setIsZenMode]);
 
   // Esc key handler specifically for Zen Mode
   useEffect(() => {
@@ -619,7 +245,7 @@ export default function PomodoroPage() {
     };
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
-  }, [isZenMode]);
+  }, [isZenMode, setIsZenMode]);
 
   // Settings Save Handler
   const handleSaveSettings = (e: React.FormEvent) => {
