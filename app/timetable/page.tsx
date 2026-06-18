@@ -8,7 +8,8 @@ import {
   Trash2,
   Check,
   AlertCircle,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Calendar as CalendarIcon
 } from "lucide-react";
 import {
   format,
@@ -17,7 +18,8 @@ import {
   subWeeks,
   addWeeks,
   isSameDay,
-  parseISO
+  parseISO,
+  differenceInDays
 } from "date-fns";
 import { useData, useActiveUser, useUserNames } from "@/components/data-provider";
 import { Button } from "@/components/ui/button";
@@ -55,11 +57,21 @@ const END_TIME_SLOTS = Array.from({ length: 48 }, (_, i) => {
 const COLORS = [
   { value: "indigo", label: "Indigo", bg: "bg-indigo-600", text: "text-white", border: "border-indigo-700", hover: "hover:bg-indigo-700" },
   { value: "emerald", label: "Emerald", bg: "bg-emerald-600", text: "text-white", border: "border-emerald-700", hover: "hover:bg-emerald-700" },
-  { value: "rose", label: "Rose", bg: "bg-rose-500", text: "text-white", border: "border-rose-600", hover: "hover:bg-rose-600" },
+  { value: "rose", label: "Rose", bg: "bg-rose-500", text: "text-white", border: "border-rose-600", hover: "hover:bg-rose-605" },
   { value: "amber", label: "Amber", bg: "bg-amber-500", text: "text-white", border: "border-amber-600", hover: "hover:bg-amber-600" },
   { value: "purple", label: "Purple", bg: "bg-purple-600", text: "text-white", border: "border-purple-700", hover: "hover:bg-purple-700" },
   { value: "sky", label: "Sky", bg: "bg-sky-500", text: "text-white", border: "border-sky-600", hover: "hover:bg-sky-650" },
   { value: "pink", label: "Pink", bg: "bg-pink-500", text: "text-white", border: "border-pink-600", hover: "hover:bg-pink-605" }
+];
+
+const DAYS_OF_WEEK = [
+  { label: "M", value: 1, name: "Monday" },
+  { label: "T", value: 2, name: "Tuesday" },
+  { label: "W", value: 3, name: "Wednesday" },
+  { label: "T", value: 4, name: "Thursday" },
+  { label: "F", value: 5, name: "Friday" },
+  { label: "S", value: 6, name: "Saturday" },
+  { label: "S", value: 0, name: "Sunday" }
 ];
 
 // Helper to convert minutes to HH:MM string
@@ -105,6 +117,11 @@ export default function TimetablePage() {
   const [blockColor, setBlockColor] = useState<string>("indigo");
   const [linkTask, setLinkTask] = useState<boolean>(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string>("");
+
+  // Recurrence States
+  const [isRecurring, setIsRecurring] = useState<boolean>(false);
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState<string>("");
+  const [recurringDays, setRecurringDays] = useState<number[]>([]);
 
   // Edit Form State
   const [editingBlockId, setEditingBlockId] = useState<string>("");
@@ -169,7 +186,16 @@ export default function TimetablePage() {
   const nextWeek = () => setCurrentDate((prev) => addWeeks(prev, 1));
   const goToday = () => setCurrentDate(new Date());
 
-  // Pointer selection gesture event handlers
+  // Toggle day in recurrence checklist
+  const toggleRecurringDay = (dayIndex: number) => {
+    setRecurringDays((prev) =>
+      prev.includes(dayIndex)
+        ? prev.filter((d) => d !== dayIndex)
+        : [...prev, dayIndex]
+    );
+  };
+
+  // Mouse selection gesture event handlers
   const handlePointerDown = (colIdx: number, day: Date, e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return; // Only process left clicks
     const rect = e.currentTarget.getBoundingClientRect();
@@ -219,6 +245,14 @@ export default function TimetablePage() {
     setBlockColor("indigo");
     setLinkTask(false);
     setSelectedTaskId("");
+
+    // Prefill recurrence defaults based on selected day
+    setIsRecurring(false);
+    const startDayOfWeek = day.getDay();
+    setRecurringDays([startDayOfWeek]);
+    const nextWeekDate = addWeeks(day, 1);
+    setRecurrenceEndDate(format(nextWeekDate, "yyyy-MM-dd"));
+
     setIsCreateOpen(true);
 
     // Clear dragging state
@@ -251,15 +285,53 @@ export default function TimetablePage() {
     }
 
     try {
-      await timetableBlocks.create({
-        user_key: activeUser,
-        title: blockTitle.trim(),
-        block_date: selectedDay,
-        start_time: startTime,
-        end_time: endTime,
-        task_id: linkTask && selectedTaskId ? selectedTaskId : null,
-        color: blockColor
-      });
+      if (isRecurring && recurrenceEndDate) {
+        const start = parseISO(selectedDay);
+        const end = parseISO(recurrenceEndDate);
+        const diff = differenceInDays(end, start);
+
+        if (diff < 0) {
+          alert("End date must be on or after start date");
+          return;
+        }
+        if (diff > 90) {
+          alert("Recurrence is limited to a maximum of 90 days to protect performance.");
+          return;
+        }
+        if (recurringDays.length === 0) {
+          alert("Please select at least one day of the week to repeat on.");
+          return;
+        }
+
+        // Loop through dates and create matching blocks
+        for (let i = 0; i <= diff; i++) {
+          const current = addDays(start, i);
+          const dayOfWeek = current.getDay(); // 0 = Sunday, 1 = Monday, ...
+          if (recurringDays.includes(dayOfWeek)) {
+            const dateStr = format(current, "yyyy-MM-dd");
+            await timetableBlocks.create({
+              user_key: activeUser,
+              title: blockTitle.trim(),
+              block_date: dateStr,
+              start_time: startTime,
+              end_time: endTime,
+              task_id: linkTask && selectedTaskId ? selectedTaskId : null,
+              color: blockColor
+            });
+          }
+        }
+      } else {
+        // Single block creation
+        await timetableBlocks.create({
+          user_key: activeUser,
+          title: blockTitle.trim(),
+          block_date: selectedDay,
+          start_time: startTime,
+          end_time: endTime,
+          task_id: linkTask && selectedTaskId ? selectedTaskId : null,
+          color: blockColor
+        });
+      }
       setIsCreateOpen(false);
     } catch (err) {
       console.error("Failed to create timetable block:", err);
@@ -432,13 +504,20 @@ export default function TimetablePage() {
 
           <Button
             onClick={() => {
-              setSelectedDay(format(new Date(), "yyyy-MM-dd"));
+              const today = new Date();
+              setSelectedDay(format(today, "yyyy-MM-dd"));
               setStartTime("09:00");
               setEndTime("10:00");
               setBlockTitle("");
               setBlockColor("indigo");
               setLinkTask(false);
               setSelectedTaskId("");
+
+              // Pre-fill recurrence defaults
+              setIsRecurring(false);
+              setRecurringDays([today.getDay()]);
+              setRecurrenceEndDate(format(addWeeks(today, 1), "yyyy-MM-dd"));
+
               setIsCreateOpen(true);
             }}
             className="h-9 rounded-xl gap-1.5 font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
@@ -734,6 +813,64 @@ export default function TimetablePage() {
                 </Select>
               </div>
             </div>
+
+            {/* Make Recurring Option */}
+            <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+              <div className="flex items-center gap-2">
+                <CalendarIcon className="h-4 w-4 text-indigo-500" />
+                <div>
+                  <p className="text-xs font-bold text-zinc-800">Repeat event?</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">Repeat this block automatically across multiple days.</p>
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={isRecurring}
+                onChange={(e) => setIsRecurring(e.target.checked)}
+                className="h-4 w-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+              />
+            </div>
+
+            {isRecurring && (
+              <div className="p-3.5 rounded-xl border border-zinc-100 bg-zinc-50/50 space-y-3">
+                {/* Day of Week Checklist */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-zinc-650 block">Repeat On</label>
+                  <div className="flex gap-2">
+                    {DAYS_OF_WEEK.map((day) => {
+                      const active = recurringDays.includes(day.value);
+                      return (
+                        <button
+                          key={day.value}
+                          type="button"
+                          onClick={() => toggleRecurringDay(day.value)}
+                          className={cn(
+                            "h-7 w-7 rounded-full text-xs font-bold transition-all border flex items-center justify-center shadow-sm hover:scale-105 active:scale-95 focus:outline-none",
+                            active
+                              ? "bg-indigo-600 border-indigo-700 text-white font-black"
+                              : "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50"
+                          )}
+                          title={day.name}
+                        >
+                          {day.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Recurrence End Date */}
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-zinc-650 block">Repeat Until</label>
+                  <Input
+                    type="date"
+                    value={recurrenceEndDate}
+                    onChange={(e) => setRecurrenceEndDate(e.target.value)}
+                    required={isRecurring}
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Color selector */}
             <div className="space-y-1.5">
