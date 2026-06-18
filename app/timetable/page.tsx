@@ -21,7 +21,7 @@ import {
   parseISO,
   differenceInDays
 } from "date-fns";
-import { useData, useActiveUser, useUserNames } from "@/components/data-provider";
+import { useData, useUserNames } from "@/components/data-provider";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -85,7 +85,6 @@ function minutesToTimeString(totalMinutes: number): string {
 
 export default function TimetablePage() {
   const { timetableBlocks, tasks, activeUser } = useData();
-  const { activeUserName } = useActiveUser();
   const { user1, user2 } = useUserNames();
 
   // Navigation State
@@ -125,6 +124,29 @@ export default function TimetablePage() {
 
   // Edit Form State
   const [editingBlockId, setEditingBlockId] = useState<string>("");
+
+  const editingBlock = useMemo(() => {
+    return timetableBlocks.rows.find((b) => b.id === editingBlockId);
+  }, [timetableBlocks.rows, editingBlockId]);
+
+  const isEditingBlockPast = useMemo(() => {
+    if (!editingBlock) return false;
+    const blockDateObj = parseISO(editingBlock.block_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const blockDateZero = new Date(blockDateObj);
+    blockDateZero.setHours(0, 0, 0, 0);
+    
+    const isPastDayVal = blockDateZero.getTime() < today.getTime();
+    let isPastTimeVal = false;
+    if (blockDateZero.getTime() === today.getTime()) {
+      const [eh, em] = editingBlock.end_time.split(":").map(Number);
+      const endMinutes = eh * 60 + em;
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      isPastTimeVal = endMinutes <= nowMinutes;
+    }
+    return isPastDayVal || isPastTimeVal;
+  }, [editingBlock, now]);
 
   // Center scroll position at 08:00 AM on initial load
   useEffect(() => {
@@ -198,10 +220,20 @@ export default function TimetablePage() {
   // Mouse selection gesture event handlers
   const handlePointerDown = (colIdx: number, day: Date, e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return; // Only process left clicks
+
+    // Prevent creation/dragging on past days or past hours of today
+    const isToday = isSameDay(day, new Date());
+    const isPast = isPastDay(day);
     const rect = e.currentTarget.getBoundingClientRect();
     const y = e.clientY - rect.top;
     const minutes = Math.floor(y / 64 * 60);
     const rounded = Math.round(minutes / 30) * 30;
+
+    if (isPast) return;
+    if (isToday) {
+      const todayMinutes = now.getHours() * 60 + now.getMinutes();
+      if (rounded < todayMinutes) return;
+    }
 
     e.currentTarget.setPointerCapture(e.pointerId);
 
@@ -216,7 +248,16 @@ export default function TimetablePage() {
     const rect = e.currentTarget.getBoundingClientRect();
     const y = e.clientY - rect.top;
     const minutes = Math.floor(y / 64 * 60);
-    const rounded = Math.round(minutes / 30) * 30;
+    let rounded = Math.round(minutes / 30) * 30;
+
+    // Clamp dragging selection to prevent selecting past time slots on today
+    const day = weekDays[dragColumnIndex];
+    if (isSameDay(day, new Date())) {
+      const todayMinutes = now.getHours() * 60 + now.getMinutes();
+      const minAllowed = Math.ceil(todayMinutes / 30) * 30;
+      rounded = Math.max(minAllowed, rounded);
+    }
+
     setDragCurrentMinutes(Math.max(0, Math.min(1440, rounded)));
   };
 
@@ -225,13 +266,23 @@ export default function TimetablePage() {
 
     try {
       e.currentTarget.releasePointerCapture(e.pointerId);
-    } catch (err) {
+    } catch {
       // Ignore capture release errors
     }
 
     setIsDragging(false);
-    const min = Math.min(dragStartMinutes, dragCurrentMinutes);
+    let min = Math.min(dragStartMinutes, dragCurrentMinutes);
     let max = Math.max(dragStartMinutes, dragCurrentMinutes);
+
+    // Enforce future time limits for today
+    if (isSameDay(day, new Date())) {
+      const todayMinutes = now.getHours() * 60 + now.getMinutes();
+      const minAllowed = Math.ceil(todayMinutes / 30) * 30;
+      min = Math.max(minAllowed, min);
+      if (max <= min) {
+        max = min + 60;
+      }
+    }
 
     // If selection is too small, default to a 1 hour duration block
     if (max - min < 30) {
@@ -284,6 +335,27 @@ export default function TimetablePage() {
       return;
     }
 
+    // Prevent creating single blocks in the past
+    const blockDateObj = parseISO(selectedDay);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const blockDateZero = new Date(blockDateObj);
+    blockDateZero.setHours(0, 0, 0, 0);
+
+    const isPastDayVal = blockDateZero.getTime() < today.getTime();
+    let isPastTimeVal = false;
+    if (blockDateZero.getTime() === today.getTime()) {
+      const [shVal, smVal] = startTime.split(":").map(Number);
+      const startMinutes = shVal * 60 + smVal;
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      isPastTimeVal = startMinutes < nowMinutes;
+    }
+
+    if (!isRecurring && (isPastDayVal || isPastTimeVal)) {
+      alert("Cannot create a timetable block in the past.");
+      return;
+    }
+
     try {
       if (isRecurring && recurrenceEndDate) {
         const start = parseISO(selectedDay);
@@ -303,21 +375,34 @@ export default function TimetablePage() {
           return;
         }
 
-        // Loop through dates and create matching blocks
+        // Loop through dates and create matching blocks, skipping past instances
         for (let i = 0; i <= diff; i++) {
           const current = addDays(start, i);
           const dayOfWeek = current.getDay(); // 0 = Sunday, 1 = Monday, ...
           if (recurringDays.includes(dayOfWeek)) {
-            const dateStr = format(current, "yyyy-MM-dd");
-            await timetableBlocks.create({
-              user_key: activeUser,
-              title: blockTitle.trim(),
-              block_date: dateStr,
-              start_time: startTime,
-              end_time: endTime,
-              task_id: linkTask && selectedTaskId ? selectedTaskId : null,
-              color: blockColor
-            });
+            const dateZero = new Date(current);
+            dateZero.setHours(0, 0, 0, 0);
+            const isPastLoopDay = dateZero.getTime() < today.getTime();
+            let isPastLoopTime = false;
+            if (dateZero.getTime() === today.getTime()) {
+              const [shVal, smVal] = startTime.split(":").map(Number);
+              const startMinutes = shVal * 60 + smVal;
+              const nowMinutes = now.getHours() * 60 + now.getMinutes();
+              isPastLoopTime = startMinutes < nowMinutes;
+            }
+
+            if (!isPastLoopDay && !isPastLoopTime) {
+              const dateStr = format(current, "yyyy-MM-dd");
+              await timetableBlocks.create({
+                user_key: activeUser,
+                title: blockTitle.trim(),
+                block_date: dateStr,
+                start_time: startTime,
+                end_time: endTime,
+                task_id: linkTask && selectedTaskId ? selectedTaskId : null,
+                color: blockColor
+              });
+            }
           }
         }
       } else {
@@ -452,16 +537,34 @@ export default function TimetablePage() {
         }
       }
 
+      // Check if the block's time has passed
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const blockDateZero = new Date(blockDateObj);
+      blockDateZero.setHours(0, 0, 0, 0);
+      
+      const isPastDayVal = blockDateZero.getTime() < today.getTime();
+      const isTodayVal = blockDateZero.getTime() === today.getTime();
+      
+      let isPastTimeVal = false;
+      if (isTodayVal) {
+        const endMinutes = eh * 60 + em;
+        const nowMinutes = now.getHours() * 60 + now.getMinutes();
+        isPastTimeVal = endMinutes <= nowMinutes;
+      }
+      const isPast = isPastDayVal || isPastTimeVal;
+
       return [{
         ...b,
         dayIndex: matchingDayIndex,
         top,
         height,
         isTaskDone,
-        linkedTaskTitle
+        linkedTaskTitle,
+        isPast
       }];
     });
-  }, [timetableBlocks.rows, weekDays, tasks.rows, activeUser]);
+  }, [timetableBlocks.rows, weekDays, tasks.rows, activeUser, now]);
 
   return (
     <div className="flex h-[calc(100vh-64px)] flex-col bg-[#fafafa] p-4 lg:p-8">
@@ -596,22 +699,51 @@ export default function TimetablePage() {
                   return (
                     <div
                       key={dIdx}
-                      className="h-full relative cursor-pointer select-none touch-none"
-                      onPointerDown={(e) => handlePointerDown(dIdx, day, e)}
-                      onPointerMove={(e) => handlePointerMove(e)}
-                      onPointerUp={(e) => handlePointerUp(day, e)}
+                      className={cn(
+                        "h-full relative select-none touch-none",
+                        pastDay ? "cursor-not-allowed" : "cursor-pointer"
+                      )}
+                      onPointerDown={pastDay ? undefined : (e) => handlePointerDown(dIdx, day, e)}
+                      onPointerMove={pastDay ? undefined : (e) => handlePointerMove(e)}
+                      onPointerUp={pastDay ? undefined : (e) => handlePointerUp(day, e)}
                     >
                       {/* Gray out whole column if day is in the past */}
                       {pastDay && (
-                        <div className="absolute inset-0 bg-zinc-200/20 pointer-events-none z-10" />
+                        <div 
+                          className="absolute inset-0 bg-zinc-200/50 cursor-not-allowed pointer-events-auto z-15"
+                          onPointerDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                        />
                       )}
 
                       {/* Gray out past hours of Today column */}
                       {isToday && (
                         <>
                           <div
-                            className="absolute left-0 right-0 top-0 bg-zinc-200/20 pointer-events-none border-b border-dashed border-zinc-200 z-10"
+                            className="absolute left-0 right-0 top-0 bg-zinc-200/50 cursor-not-allowed pointer-events-auto border-b border-dashed border-zinc-300 z-15"
                             style={{ height: `${pastMinutesHeight}px` }}
+                            onPointerDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            onPointerUp={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            onPointerMove={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
                           />
                           {/* Current Time Red horizontal Indicator Line */}
                           <div
@@ -658,7 +790,7 @@ export default function TimetablePage() {
                 {Array.from({ length: 7 }).map((_, colIdx) => {
                   const dayBlocks = weekBlocks.filter((b) => b.dayIndex === colIdx);
                   return (
-                    <div key={colIdx} className="h-full relative">
+                    <div key={colIdx} className="h-full relative pointer-events-none">
                       {dayBlocks.map((block) => {
                         const cl = COLORS.find((c) => c.value === block.color) || COLORS[0];
                         return (
@@ -668,8 +800,8 @@ export default function TimetablePage() {
                             className={cn(
                               "absolute left-1 right-1 p-2.5 rounded-xl border shadow-sm cursor-pointer transition-all pointer-events-auto flex flex-col justify-between overflow-hidden",
                               isDragging && "pointer-events-none", // Avoid intercepting gesture coords
-                              block.isTaskDone
-                                ? "opacity-60 bg-zinc-100 border-zinc-200 text-zinc-400 hover:bg-zinc-200"
+                              (block.isTaskDone || block.isPast)
+                                ? "opacity-50 bg-zinc-100 border-zinc-200 text-zinc-400 hover:bg-zinc-200"
                                 : cn(cl.bg, cl.text, cl.border, cl.hover)
                             )}
                             style={{
@@ -921,7 +1053,9 @@ export default function TimetablePage() {
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-zinc-900 font-bold">Edit Timetable Block</DialogTitle>
+            <DialogTitle className="text-zinc-900 font-bold">
+              {isEditingBlockPast ? "View Timetable Block" : "Edit Timetable Block"}
+            </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleUpdateBlockSubmit} className="space-y-4 pt-2">
             {/* Task Link Display and Toggle */}
@@ -954,11 +1088,13 @@ export default function TimetablePage() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleToggleTaskCompletion(selectedTaskId, isTaskDone)}
+                      disabled={isEditingBlockPast}
                       className={cn(
                         "h-7 text-[10px] px-2.5 rounded-lg font-bold border-2",
                         isTaskDone
                           ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
-                          : "border-zinc-200 text-zinc-600 hover:bg-zinc-100"
+                          : "border-zinc-200 text-zinc-600 hover:bg-zinc-100",
+                        isEditingBlockPast && "opacity-55 cursor-not-allowed"
                       )}
                     >
                       {isTaskDone ? "Done" : "Mark Done"}
@@ -975,7 +1111,7 @@ export default function TimetablePage() {
                 placeholder="Title"
                 value={blockTitle}
                 onChange={(e) => setBlockTitle(e.target.value)}
-                disabled={linkTask}
+                disabled={linkTask || isEditingBlockPast}
                 required
               />
             </div>
@@ -988,13 +1124,14 @@ export default function TimetablePage() {
                   type="date"
                   value={selectedDay}
                   onChange={(e) => setSelectedDay(e.target.value)}
+                  disabled={isEditingBlockPast}
                   required
                 />
               </div>
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-zinc-700">Start Time</label>
-                <Select value={startTime} onValueChange={setStartTime}>
+                <Select value={startTime} onValueChange={setStartTime} disabled={isEditingBlockPast}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -1010,7 +1147,7 @@ export default function TimetablePage() {
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-zinc-700">End Time</label>
-                <Select value={endTime} onValueChange={setEndTime}>
+                <Select value={endTime} onValueChange={setEndTime} disabled={isEditingBlockPast}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -1036,11 +1173,13 @@ export default function TimetablePage() {
                       key={c.value}
                       type="button"
                       onClick={() => setBlockColor(c.value)}
+                      disabled={isEditingBlockPast}
                       className={cn(
                         "h-8 w-8 rounded-full border transition-all flex items-center justify-center shadow-sm hover:scale-105 active:scale-95 focus:outline-none",
                         c.bg,
                         c.border,
-                        isSelected ? "ring-2 ring-indigo-500 ring-offset-2 scale-105" : "opacity-90"
+                        isSelected ? "ring-2 ring-indigo-500 ring-offset-2 scale-105" : "opacity-90",
+                        isEditingBlockPast && "opacity-50 cursor-not-allowed"
                       )}
                       title={c.label}
                     >
@@ -1066,14 +1205,16 @@ export default function TimetablePage() {
               </Button>
               <div className="flex gap-2">
                 <Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)}>
-                  Cancel
+                  {isEditingBlockPast ? "Close" : "Cancel"}
                 </Button>
-                <Button
-                  type="submit"
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
-                >
-                  Save Changes
-                </Button>
+                {!isEditingBlockPast && (
+                  <Button
+                    type="submit"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
+                  >
+                    Save Changes
+                  </Button>
+                )}
               </div>
             </div>
           </form>
