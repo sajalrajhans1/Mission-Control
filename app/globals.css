@@ -20,8 +20,30 @@
   --ring: 240 5% 65%;
 }
 
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 4.9%;
+  --card-foreground: 0 0% 98%;
+  --primary: 0 0% 98%;
+  --primary-foreground: 240 10% 3.9%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 3.7% 17.9%;
+  --input: 240 3.7% 17.9%;
+  --ring: 240 4.9% 83.9%;
+}
+
 * {
   border-color: hsl(var(--border));
+}
+
+body, div, header, aside, main, button, input, textarea, select, span, p, h1, h2, h3, h4, h5, h6, a {
+  transition: background-color 0.2s ease, border-color 0.25s ease, color 0.2s ease, box-shadow 0.25s ease;
 }
 
 body {
