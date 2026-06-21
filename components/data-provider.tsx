@@ -42,6 +42,8 @@ type DataContextValue = {
   notifications: ReturnType<typeof useRealtimeTable<"notifications">>;
   timetableBlocks: ReturnType<typeof useRealtimeTable<"timetable_blocks">>;
   workDeliverables: ReturnType<typeof useRealtimeTable<"work_deliverables">>;
+  taskCardPositions: ReturnType<typeof useRealtimeTable<"task_card_positions">>;
+  taskCardConnections: ReturnType<typeof useRealtimeTable<"task_card_connections">>;
   activeUser: "user1" | "user2" | null;
   activeUserName: string;
   onlineUsers: string[];
@@ -189,6 +191,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const notifications = useRealtimeTable("notifications", { column: "created_at", ascending: false });
   const timetableBlocks = useRealtimeTable("timetable_blocks", { column: "start_time", ascending: true });
   const workDeliverables = useRealtimeTable("work_deliverables", { column: "delivery_date", ascending: false });
+  const taskCardPositions = useRealtimeTable("task_card_positions", { column: "card_id", ascending: true });
+  const taskCardConnections = useRealtimeTable("task_card_connections", { column: "created_at", ascending: true });
 
   const [activeUser, setActiveUser] = useState<"user1" | "user2" | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
@@ -219,6 +223,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [pomoAlarmSound, setPomoAlarmSound] = useState<"zen" | "digital" | "chime">("zen");
   const [pomoIsTicking, setPomoIsTicking] = useState<boolean>(false);
   const [pomoIsZenMode, setPomoIsZenMode] = useState<boolean>(false);
+
+  const names = useMemo(() => getUserNamesFromRows(settings.rows), [settings.rows]);
+  const activeUserName = activeUser === "user1" ? names.user1 : activeUser === "user2" ? names.user2 : "";
 
   // Web Audio Context & Synthesizer Nodes Refs
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -573,13 +580,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return {
       ...tasks,
       rows: tasks.rows.filter((t) => {
+        // 1. Task-level privacy: If private, only visible to creator
+        if (t.is_private) {
+          const isCreator = (t.created_by || "").trim().toLowerCase() === (activeUserName || "").trim().toLowerCase();
+          if (!isCreator) return false;
+        }
+
+        // 2. Project-level privacy
         if (!t.project_id) return true;
         const p = projects.rows.find((proj) => proj.id === t.project_id);
         if (!p) return false;
         return !p.is_private || p.created_by === activeUser;
       })
     };
-  }, [tasks, projects.rows, activeUser]);
+  }, [tasks, projects.rows, activeUser, activeUserName]);
 
   const filteredProjectFiles = useMemo(() => {
     return {
@@ -617,6 +631,43 @@ export function DataProvider({ children }: { children: ReactNode }) {
     };
   }, [workDeliverables, activeUser]);
 
+  const filteredPositions = useMemo(() => {
+    return {
+      ...taskCardPositions,
+      rows: taskCardPositions.rows.filter((pos) => {
+        // Position-level privacy
+        if (pos.is_private && pos.created_by !== activeUser) return false;
+
+        // Project-level visibility (if this position represents a project card)
+        if (pos.card_id !== "general") {
+          const p = projects.rows.find((proj) => proj.id === pos.card_id);
+          if (!p) return false;
+          if (p.is_private && p.created_by !== activeUser) return false;
+        }
+        return true;
+      })
+    };
+  }, [taskCardPositions, projects.rows, activeUser]);
+
+  const filteredConnections = useMemo(() => {
+    return {
+      ...taskCardConnections,
+      rows: taskCardConnections.rows.filter((conn) => {
+        // Connection-level privacy
+        if (conn.is_private && conn.created_by !== activeUser) return false;
+
+        // Both source and target must be visible projects (or 'general')
+        const isCardVisible = (cardId: string) => {
+          if (cardId === "general") return true;
+          const p = projects.rows.find((proj) => proj.id === cardId);
+          if (!p) return false;
+          return !p.is_private || p.created_by === activeUser;
+        };
+        return isCardVisible(conn.source_id) && isCardVisible(conn.target_id);
+      })
+    };
+  }, [taskCardConnections, projects.rows, activeUser]);
+
   useEffect(() => {
     const saved = sessionStorage.getItem("mc_session");
     if (saved === "user1" || saved === "user2") {
@@ -632,9 +683,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
       }
     }
   }, []);
-
-  const names = useMemo(() => getUserNamesFromRows(settings.rows), [settings.rows]);
-  const activeUserName = activeUser === "user1" ? names.user1 : activeUser === "user2" ? names.user2 : "";
 
   // Global realtime database change listener for browser notifications
   useEffect(() => {
@@ -870,6 +918,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       notifications,
       timetableBlocks: filteredTimetableBlocks,
       workDeliverables: filteredWorkDeliverables,
+      taskCardPositions: filteredPositions,
+      taskCardConnections: filteredConnections,
       activeUser,
       activeUserName,
       onlineUsers,
@@ -934,6 +984,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       notifications,
       filteredTimetableBlocks,
       filteredWorkDeliverables,
+      filteredPositions,
+      filteredConnections,
       activeUser,
       activeUserName,
       onlineUsers,

@@ -75,6 +75,7 @@ export type Database = {
           created_by: string;
           note: string;
           approved: boolean;
+          is_private: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -91,6 +92,7 @@ export type Database = {
           created_by?: string;
           note?: string;
           approved?: boolean;
+          is_private?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -352,6 +354,48 @@ export type Database = {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["work_deliverables"]["Insert"]>;
+      };
+      task_card_positions: {
+        Row: {
+          id: string;
+          card_id: string;
+          x: number;
+          y: number;
+          is_private: boolean;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          card_id: string;
+          x?: number;
+          y?: number;
+          is_private?: boolean;
+          created_by: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["task_card_positions"]["Insert"]>;
+      };
+      task_card_connections: {
+        Row: {
+          id: string;
+          source_id: string;
+          target_id: string;
+          is_private: boolean;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          source_id: string;
+          target_id: string;
+          is_private?: boolean;
+          created_by: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["task_card_connections"]["Insert"]>;
       };
     };
   };
