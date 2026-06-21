@@ -2,19 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 export function AutosaveTextarea({
   value,
   onSave,
   placeholder,
   minHeight = 160,
-  readOnly = false
+  readOnly = false,
+  className
 }: {
   value: string;
   onSave: (value: string) => void;
   placeholder?: string;
   minHeight?: number;
   readOnly?: boolean;
+  className?: string;
 }) {
   const [draft, setDraft] = useState(value);
 
@@ -32,7 +35,7 @@ export function AutosaveTextarea({
       onChange={(event) => setDraft(event.target.value)}
       placeholder={placeholder}
       style={{ minHeight }}
-      className="leading-6"
+      className={cn("leading-6", className)}
       readOnly={readOnly}
     />
   );
