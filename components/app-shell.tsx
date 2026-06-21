@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Brain, CheckSquare, Folder, Home, LogOut, Settings, WalletCards, Lock, Calendar, Timer,
-  GripHorizontal, X, Play, Pause, Tv, SkipForward
+  GripHorizontal, X, Play, Pause, Tv, SkipForward, Menu
 } from "lucide-react";
 import { useActiveUser, useUserNames, useUserColors, useData } from "@/components/data-provider";
 import { GlobalSearch } from "@/components/global-search";
@@ -33,6 +33,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { activeUser, activeUserName, login, logout, isPasswordSet } = useActiveUser();
   const names = useUserNames();
   const userColors = useUserColors();
+
+  // Sidebar open/collapse state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  // Handle auto-collapse sidebar on smaller screens
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Clear dark mode elements
   useEffect(() => {
@@ -280,7 +297,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-[#fafafa]">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r bg-white px-4 py-5 lg:block">
+      {/* Mobile backdrop shadow */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-20 bg-black/10 backdrop-blur-xs transition-opacity lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-30 w-64 border-r bg-white px-4 py-5 transition-transform duration-300 ease-in-out transform",
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
         <Link href="/" className="mb-8 block px-2">
           <div className="text-xl font-bold tracking-tight">Mission Control</div>
           <div className="text-xs text-muted-foreground">Private two-person OS</div>
@@ -294,6 +324,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground",
                 pathname === item.href && "bg-black text-white hover:bg-black hover:text-white"
               )}
+              onClick={() => {
+                // Auto close on navigation if on mobile
+                if (window.innerWidth < 1024) {
+                  setIsSidebarOpen(false);
+                }
+              }}
             >
               <item.icon className="h-4 w-4" />
               {item.label}
@@ -301,22 +337,39 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
       </aside>
-      <div className="lg:pl-64">
+      <div
+        className={cn(
+          "transition-all duration-300 ease-in-out",
+          isSidebarOpen ? "lg:pl-64" : "lg:pl-0"
+        )}
+      >
         <header className="sticky top-0 z-20 border-b bg-[#fafafa]/95 px-4 py-3 backdrop-blur sm:px-6">
           <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-3">
-            <div className="flex gap-2 overflow-x-auto lg:hidden">
-              {nav.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "rounded-xl border bg-white p-2",
-                    pathname === item.href && "bg-black text-white"
-                  )}
-                >
-                  <item.icon className="h-4 w-4" />
-                </Link>
-              ))}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="h-9 w-9 rounded-xl text-zinc-600 hover:text-zinc-900 hover:bg-zinc-150 shrink-0"
+                title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+              
+              <div className="flex gap-2 overflow-x-auto lg:hidden">
+                {nav.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "rounded-xl border bg-white p-2",
+                      pathname === item.href && "bg-black text-white"
+                    )}
+                  >
+                    <item.icon className="h-4 w-4" />
+                  </Link>
+                ))}
+              </div>
             </div>
             <div className="ml-auto flex items-center gap-3">
               <GlobalSearch />
