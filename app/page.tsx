@@ -273,7 +273,7 @@ export default function HomePage() {
                 )}
                 <div className="mb-3 flex items-start justify-between gap-2">
                   <Input
-                    className="border-transparent bg-transparent p-0 text-base font-semibold shadow-none focus-visible:ring-0 w-full"
+                    className="border-transparent dark:border-transparent bg-transparent dark:bg-transparent px-0 text-base font-semibold shadow-none focus-visible:ring-0 w-full text-inherit dark:text-inherit"
                     value={item.title}
                     onChange={(e) => {
                       const updatedVal = e.target.value;
@@ -313,8 +313,9 @@ export default function HomePage() {
                   }}
                   minHeight={110}
                   readOnly={!isCreator}
+                  className="border-transparent dark:border-transparent bg-transparent dark:bg-transparent p-0 shadow-none focus-visible:ring-0 text-inherit dark:text-inherit resize-none w-full"
                 />
-                <div className="mt-3 flex items-center justify-between text-xs text-black/60">
+                <div className="mt-3 flex items-center justify-between text-xs text-black/60 dark:text-zinc-400">
                   <span className="flex items-center gap-1.5 font-medium min-w-0 flex-1 truncate">
                     <span
                       className="h-2 w-2 rounded-full shrink-0"
@@ -323,14 +324,14 @@ export default function HomePage() {
                     <span className="truncate">{item.author}</span>
                   </span>
                   {item.is_private && (
-                    <span className="flex items-center gap-0.5 text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-semibold border border-amber-200/40 shrink-0 mx-1.5">
+                    <span className="flex items-center gap-0.5 text-[10px] text-amber-600 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-1.5 py-0.5 rounded font-semibold border border-amber-200/40 dark:border-amber-800/40 shrink-0 mx-1.5">
                       <Lock className="h-2.5 w-2.5" />
                       Private
                     </span>
                   )}
                   <button
                     onClick={() => stickyNotes.update(item.id, { read: !item.read })}
-                    className={cn("rounded px-1.5 py-0.5 transition-colors hover:bg-black/10 shrink-0", item.read ? "opacity-50" : "font-medium")}
+                    className={cn("rounded px-1.5 py-0.5 transition-colors hover:bg-black/10 dark:hover:bg-white/10 shrink-0", item.read ? "opacity-50" : "font-medium")}
                   >
                     {item.read ? "Read" : "Unread"}
                   </button>
