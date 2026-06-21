@@ -567,7 +567,7 @@ export default function TimetablePage() {
   }, [timetableBlocks.rows, weekDays, tasks.rows, activeUser, now]);
 
   return (
-    <div className="flex h-[calc(100vh-64px)] flex-col bg-[#fafafa] p-4 lg:p-8">
+    <div className="flex h-[calc(100vh-64px)] flex-col bg-transparent p-4 lg:p-8">
       {/* Title & Navigation Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-4 border-zinc-100">
         <div>
@@ -585,7 +585,7 @@ export default function TimetablePage() {
                 setCurrentDate(parseISO(e.target.value));
               }
             }}
-            className="h-9 w-36 px-2.5 rounded-xl border bg-white shadow-soft text-xs font-semibold text-zinc-700"
+            className="h-9 w-36 px-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-soft text-xs font-semibold text-zinc-700 dark:text-zinc-300"
             title="Jump to date"
           />
 
@@ -593,7 +593,7 @@ export default function TimetablePage() {
             Today
           </Button>
 
-          <div className="flex items-center border rounded-xl bg-white shadow-soft">
+          <div className="flex items-center border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-950 shadow-soft">
             <Button variant="ghost" size="icon" onClick={prevWeek} className="h-9 w-9 rounded-l-xl border-r">
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -632,11 +632,11 @@ export default function TimetablePage() {
       </div>
 
       {/* Scheduler Calendar Body */}
-      <div className="flex-1 min-h-0 mt-6 flex flex-col border border-zinc-200/80 bg-white rounded-2xl shadow-soft overflow-hidden">
+      <div className="flex-1 min-h-0 mt-6 flex flex-col border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/60 backdrop-blur-md rounded-2xl shadow-soft dark:shadow-2xl overflow-hidden">
         {/* Days Header */}
-        <div className="grid grid-cols-[64px_1fr] border-b border-zinc-100 bg-zinc-50/50">
-          <div className="border-r border-zinc-100 py-3 text-center text-[10px] font-bold text-zinc-400">GMT</div>
-          <div className="grid grid-cols-7 divide-x divide-zinc-100">
+        <div className="grid grid-cols-[64px_1fr] border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/40">
+          <div className="border-r border-zinc-100 dark:border-zinc-800 py-3 text-center text-[10px] font-bold text-zinc-400">GMT</div>
+          <div className="grid grid-cols-7 divide-x divide-zinc-100 dark:divide-zinc-800">
             {weekDays.map((day, idx) => {
               const isToday = isSameDay(day, new Date());
               return (
@@ -646,8 +646,8 @@ export default function TimetablePage() {
                   </span>
                   <span
                     className={cn(
-                      "mt-1 flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold text-zinc-700",
-                      isToday && "bg-indigo-600 text-white shadow-md shadow-indigo-100"
+                      "mt-1 flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold text-zinc-700 dark:text-zinc-300",
+                      isToday && "bg-indigo-600 text-white shadow-md shadow-indigo-900/30"
                     )}
                   >
                     {format(day, "d")}
@@ -665,7 +665,7 @@ export default function TimetablePage() {
         >
           <div className="grid grid-cols-[64px_1fr] min-h-[1536px]">
             {/* Time Labels */}
-            <div className="border-r border-zinc-100 bg-zinc-50/20 divide-y divide-zinc-100/50">
+            <div className="border-r border-zinc-100 dark:border-zinc-800 bg-zinc-50/20 dark:bg-zinc-950/20 divide-y divide-zinc-100/50 dark:divide-zinc-800/50">
               {HOURS.map((hour) => {
                 const ampm = hour >= 12 ? "PM" : "AM";
                 const displayH = hour % 12 === 0 ? 12 : hour % 12;
@@ -678,9 +678,9 @@ export default function TimetablePage() {
             </div>
 
             {/* Grid Columns */}
-            <div className="relative divide-y divide-zinc-100/60 bg-grid-pattern">
+            <div className="relative divide-y divide-zinc-100/60 dark:divide-zinc-800/60 bg-grid-pattern">
               {/* Vertical Column Divider Guidelines */}
-              <div className="absolute inset-0 grid grid-cols-7 divide-x divide-zinc-100/60 pointer-events-none z-0">
+              <div className="absolute inset-0 grid grid-cols-7 divide-x divide-zinc-100/60 dark:divide-zinc-800/60 pointer-events-none z-0">
                 {Array.from({ length: 7 }).map((_, i) => (
                   <div key={i} className="h-full" />
                 ))}
@@ -801,7 +801,7 @@ export default function TimetablePage() {
                               "absolute left-1 right-1 p-2.5 rounded-xl border shadow-sm cursor-pointer transition-all pointer-events-auto flex flex-col justify-between overflow-hidden",
                               isDragging && "pointer-events-none", // Avoid intercepting gesture coords
                               (block.isTaskDone || block.isPast)
-                                ? "opacity-50 bg-zinc-100 border-zinc-200 text-zinc-400 hover:bg-zinc-200"
+                                ? "opacity-50 bg-zinc-100 dark:bg-zinc-800/40 border-zinc-200 dark:border-zinc-700/40 text-zinc-400 dark:text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-800/60"
                                 : cn(cl.bg, cl.text, cl.border, cl.hover)
                             )}
                             style={{
@@ -847,7 +847,7 @@ export default function TimetablePage() {
           </DialogHeader>
           <form onSubmit={handleCreateBlockSubmit} className="space-y-4 pt-2">
             {/* Task Link Switcher */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 dark:bg-zinc-950/50 border border-zinc-100 dark:border-zinc-800">
               <div className="flex items-center gap-2">
                 <LinkIcon className="h-4 w-4 text-indigo-500" />
                 <div>
@@ -947,7 +947,7 @@ export default function TimetablePage() {
             </div>
 
             {/* Make Recurring Option */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 dark:bg-zinc-950/50 border border-zinc-100 dark:border-zinc-800">
               <div className="flex items-center gap-2">
                 <CalendarIcon className="h-4 w-4 text-indigo-500" />
                 <div>
@@ -964,7 +964,7 @@ export default function TimetablePage() {
             </div>
 
             {isRecurring && (
-              <div className="p-3.5 rounded-xl border border-zinc-100 bg-zinc-50/50 space-y-3">
+              <div className="p-3.5 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/30 space-y-3">
                 {/* Day of Week Checklist */}
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-zinc-650 block">Repeat On</label>
@@ -980,7 +980,7 @@ export default function TimetablePage() {
                             "h-7 w-7 rounded-full text-xs font-bold transition-all border flex items-center justify-center shadow-sm hover:scale-105 active:scale-95 focus:outline-none",
                             active
                               ? "bg-indigo-600 border-indigo-700 text-white font-black"
-                              : "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50"
+                              : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800"
                           )}
                           title={day.name}
                         >
@@ -1073,7 +1073,7 @@ export default function TimetablePage() {
                 }
 
                 return (
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 dark:bg-zinc-950/50 border border-zinc-100 dark:border-zinc-800">
                     <div className="flex items-center gap-2">
                       <Check className={cn("h-4 w-4", isTaskDone ? "text-emerald-500" : "text-zinc-400")} />
                       <div>

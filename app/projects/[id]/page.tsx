@@ -99,8 +99,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     }
     if (!m.due_date) {
       return {
-        colorClass: "bg-zinc-50/20 border-zinc-200/80 border-l-zinc-400 text-zinc-850 dark:bg-zinc-900/5 dark:border-zinc-800 dark:border-l-zinc-500 dark:text-zinc-200",
-        badgeClass: "bg-zinc-100 text-zinc-650 dark:bg-zinc-800 dark:text-zinc-400",
+        colorClass: "bg-zinc-50/20 border-zinc-200/80 border-l-zinc-400 text-zinc-800 dark:bg-zinc-900/5 dark:border-zinc-800 dark:border-l-zinc-500 dark:text-zinc-200",
+        badgeClass: "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400",
         statusLabel: ""
       };
     }
@@ -126,7 +126,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     }
     if (hoursDiff <= 72) {
       return {
-        colorClass: "bg-orange-50/10 border-zinc-200/80 border-l-orange-500 text-zinc-900 dark:bg-orange-950/5 dark:border-zinc-850 dark:border-l-orange-650 dark:text-zinc-105",
+        colorClass: "bg-orange-50/10 border-zinc-200/80 border-l-orange-500 text-zinc-900 dark:bg-orange-950/5 dark:border-zinc-800 dark:border-l-orange-600 dark:text-zinc-100",
         badgeClass: "bg-orange-100 text-orange-800 dark:bg-orange-950/40 dark:text-orange-400",
         statusLabel: "Medium"
       };
@@ -306,8 +306,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       {/* Header Navigator */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-4">
         <div className="flex items-center gap-3">
-          <Link href="/projects" className="p-2 hover:bg-zinc-100 rounded-xl transition-colors shrink-0">
-            <ArrowLeft className="h-5 w-5 text-zinc-600" />
+          <Link href="/projects" className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors shrink-0">
+            <ArrowLeft className="h-5 w-5 text-zinc-650 dark:text-zinc-350" />
           </Link>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -338,7 +338,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 flex flex-wrap items-center gap-2.5">
               {project.name}
               {project.archived && (
-                <span className="text-xs bg-zinc-200 text-zinc-700 px-2.5 py-0.5 rounded-full font-medium">Archived</span>
+                <span className="text-xs bg-zinc-200 dark:bg-zinc-800 text-zinc-750 dark:text-zinc-250 px-2.5 py-0.5 rounded-full font-medium">Archived</span>
               )}
             </h1>
           </div>
@@ -385,7 +385,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                       className={cn(
                         "px-2.5 py-1 font-semibold rounded-md transition-all",
                         activeScopeTab === "briefing"
-                          ? "bg-zinc-150 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50"
+                          ? "bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50"
                           : "text-muted-foreground hover:text-zinc-700"
                       )}
                     >
@@ -396,7 +396,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                       className={cn(
                         "px-2.5 py-1 font-semibold rounded-md transition-all",
                         activeScopeTab === "prd"
-                          ? "bg-zinc-150 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50"
+                          ? "bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50"
                           : "text-muted-foreground hover:text-zinc-700"
                       )}
                     >
@@ -504,20 +504,20 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     {milestones.length > 0 && (
                       <div className="flex flex-col gap-1.5 shrink-0 px-1 pt-1">
                         <div className="flex items-center justify-between text-xs font-semibold">
-                          <span className="text-zinc-500">Roadmap Progress</span>
-                          <span className="bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                          <span className="text-zinc-500 dark:text-zinc-400">Roadmap Progress</span>
+                          <span className="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded-full text-[10px] font-bold">
                             {milestones.filter(m => m.completed).length} / {milestones.length} done
                           </span>
                         </div>
                         <Progress
                           value={(milestones.filter(m => m.completed).length / milestones.length) * 100} 
-                          className="h-1.5 bg-zinc-100/80"
+                          className="h-1.5 bg-zinc-100/80 dark:bg-zinc-800/80"
                         />
                       </div>
                     )}
 
                     {/* Quick Add Form */}
-                    <div className="border p-4 rounded-xl bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/30 shrink-0 space-y-3 shadow-sm">
+                    <div className="border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl bg-zinc-50/50 dark:bg-zinc-950/20 shrink-0 space-y-3 shadow-sm">
                       <h4 className="text-xs font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
                         <Plus className="h-3.5 w-3.5 text-zinc-500" />
                         Add Milestone Checkpoint
@@ -545,7 +545,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             <Button 
                               onClick={handleAddMilestone} 
                               size="sm" 
-                              className="h-9 px-4 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white font-semibold text-xs shrink-0 transition-colors shadow"
+                              className="h-9 px-4 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 font-semibold text-xs shrink-0 transition-colors shadow"
                             >
                               Add Checkpoint
                             </Button>
@@ -653,14 +653,14 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               {/* TASKS TAB */}
               {activeTab === "tasks" && (
                 <div className="grid gap-4">
-                  <div className="grid gap-3 border p-4 rounded-xl bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/30">
+                  <div className="grid gap-3 border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl bg-zinc-50/50 dark:bg-zinc-955/20">
                     <Field label="Task Title">
                       <Input
                         value={newTaskTitle}
                         onChange={(e) => setNewTaskTitle(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && addProjectTask()}
                         placeholder="Add deliverables..."
-                        className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-805"
+                        className="bg-white dark:bg-zinc-955 border-zinc-200 dark:border-zinc-800"
                       />
                     </Field>
                     <Field label="Task Note">
@@ -669,13 +669,13 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         onChange={(e) => setNewTaskNote(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && addProjectTask()}
                         placeholder="Important details..."
-                        className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-805"
+                        className="bg-white dark:bg-zinc-955 border-zinc-200 dark:border-zinc-800"
                       />
                     </Field>
                     <div className="grid gap-2 sm:grid-cols-2">
                       <Field label="Assignee">
                         <Select value={newTaskAssigned} onValueChange={setNewTaskAssigned}>
-                          <SelectTrigger className="bg-white dark:bg-zinc-950 border-zinc-200"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="bg-white dark:bg-zinc-955 border-zinc-200 dark:border-zinc-800"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value={names.user1}>{names.user1}</SelectItem>
                             <SelectItem value={names.user2}>{names.user2}</SelectItem>
@@ -685,7 +685,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                       </Field>
                       <Field label="Priority">
                         <Select value={newTaskPriority} onValueChange={(v) => setNewTaskPriority(v as typeof newTaskPriority)}>
-                          <SelectTrigger className="bg-white dark:bg-zinc-950 border-zinc-200"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="bg-white dark:bg-zinc-955 border-zinc-200 dark:border-zinc-800"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="Low">Low</SelectItem>
                             <SelectItem value="Medium">Medium</SelectItem>
@@ -714,13 +714,13 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               {/* DOCUMENTS TAB */}
               {activeTab === "docs" && (
                 <div className="grid gap-4">
-                  <div className="grid gap-3 border p-4 rounded-xl bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/30">
+                  <div className="grid gap-3 border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl bg-zinc-50/50 dark:bg-zinc-955/20">
                     <div className="grid gap-2">
                       <Field label="Link Title">
-                        <Input value={docName} onChange={(e) => setDocName(e.target.value)} placeholder="Google Drive PRD..." className="bg-white dark:bg-zinc-955 border-zinc-200" />
+                        <Input value={docName} onChange={(e) => setDocName(e.target.value)} placeholder="Google Drive PRD..." className="bg-white dark:bg-zinc-955 border-zinc-200 dark:border-zinc-800" />
                       </Field>
                       <Field label="Document Link URL">
-                        <Input value={docUrl} onChange={(e) => setDocUrl(e.target.value)} placeholder="https://drive.google.com/..." className="bg-white dark:bg-zinc-955 border-zinc-200" />
+                        <Input value={docUrl} onChange={(e) => setDocUrl(e.target.value)} placeholder="https://drive.google.com/..." className="bg-white dark:bg-zinc-955 border-zinc-200 dark:border-zinc-800" />
                       </Field>
                     </div>
                     <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
@@ -813,7 +813,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                   </div>
 
                   {/* Message Input Box */}
-                  <form onSubmit={sendMsg} className="flex gap-2 border-t pt-3 bg-white dark:bg-zinc-950 mt-1 shrink-0">
+                  <form onSubmit={sendMsg} className="flex gap-2 border-t pt-3 border-zinc-150 dark:border-zinc-800 bg-white dark:bg-zinc-955 mt-1 shrink-0">
                     <Input
                       value={chatMessage}
                       onChange={(e) => setChatMessage(e.target.value)}

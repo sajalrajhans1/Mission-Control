@@ -459,7 +459,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
         {!isSupabaseConfigured ? (
-          <div className="border-b bg-white px-4 py-3 text-sm text-muted-foreground sm:px-6">
+          <div className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-4 py-3 text-sm text-muted-foreground sm:px-6">
             Add Supabase environment variables from <code>.env.example</code> to connect live data.
           </div>
         ) : null}
@@ -791,7 +791,7 @@ function FloatingPomodoro() {
             "h-7 w-7 rounded-lg flex items-center justify-center transition-colors border",
             isPlaying 
               ? "bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700" 
-              : "bg-zinc-100 border-zinc-200 text-zinc-900 hover:bg-white"
+              : "bg-zinc-100 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-800"
           )}
           title={isPlaying ? "Pause Timer" : "Start Timer"}
         >

@@ -146,21 +146,21 @@ export default function TasksPage() {
     <div className="grid gap-6">
       {/* Header */}
       <div className="flex flex-col gap-1.5">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Tasks</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Tasks</h1>
         <p className="text-sm text-muted-foreground">
           Assign, approve, and track work between {user1} and {user2}.
         </p>
       </div>
 
       {/* Main Spaces Navigation Tabs */}
-      <div className="flex border-b border-zinc-200">
+      <div className="flex border-b border-zinc-200 dark:border-zinc-800">
         <button
           onClick={() => handleSpaceChange("user1")}
           className={cn(
             "py-3.5 px-6 font-semibold text-sm border-b-2 transition-colors",
             activeSpace === "user1"
-              ? "border-zinc-900 text-zinc-900"
-              : "border-transparent text-muted-foreground hover:text-zinc-700"
+              ? "border-zinc-900 dark:border-white text-zinc-900 dark:text-white"
+              : "border-transparent text-muted-foreground hover:text-zinc-700 dark:hover:text-zinc-200"
           )}
         >
           {user1}&apos;s Tasks
@@ -170,8 +170,8 @@ export default function TasksPage() {
           className={cn(
             "py-3.5 px-6 font-semibold text-sm border-b-2 transition-colors",
             activeSpace === "user2"
-              ? "border-zinc-900 text-zinc-900"
-              : "border-transparent text-muted-foreground hover:text-zinc-700"
+              ? "border-zinc-900 dark:border-white text-zinc-900 dark:text-white"
+              : "border-transparent text-muted-foreground hover:text-zinc-700 dark:hover:text-zinc-200"
           )}
         >
           {user2}&apos;s Tasks
@@ -181,8 +181,8 @@ export default function TasksPage() {
           className={cn(
             "py-3.5 px-6 font-semibold text-sm border-b-2 transition-colors",
             activeSpace === "collab"
-              ? "border-zinc-900 text-zinc-900"
-              : "border-transparent text-muted-foreground hover:text-zinc-700"
+              ? "border-zinc-900 dark:border-white text-zinc-900 dark:text-white"
+              : "border-transparent text-muted-foreground hover:text-zinc-700 dark:hover:text-zinc-200"
           )}
         >
           Collaborative Tasks
@@ -190,9 +190,9 @@ export default function TasksPage() {
       </div>
 
       {/* Task Creation Form */}
-      <Card className="dark:bg-zinc-900/40 border-zinc-200">
+      <Card className="dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800">
         <CardHeader className="pb-3">
-          <CardTitle className="text-zinc-900 text-lg">Create New Task</CardTitle>
+          <CardTitle className="text-zinc-900 dark:text-zinc-100 text-lg">Create New Task</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 xl:grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_auto] xl:items-end">
           <Field label="Task Title">
@@ -269,13 +269,13 @@ export default function TasksPage() {
 
       {/* Task Requests / Approvals Panel */}
       {incomingRequests.length > 0 && (
-        <Card className="border-amber-200 bg-amber-50/40">
+        <Card className="border border-amber-200 dark:border-amber-900/40 bg-amber-50/40 dark:bg-amber-950/20">
           <CardHeader className="pb-2">
-            <CardTitle className="text-amber-800 text-base flex items-center gap-2">
+            <CardTitle className="text-amber-800 dark:text-amber-300 text-base flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-amber-600" />
               Incoming Task Requests ({incomingRequests.length})
             </CardTitle>
-            <p className="text-xs text-amber-700">
+            <p className="text-xs text-amber-700 dark:text-amber-400">
               Tasks assigned to you by the other user. Approve them to add them to your task space.
             </p>
           </CardHeader>
@@ -283,13 +283,13 @@ export default function TasksPage() {
             {incomingRequests.map((task) => (
               <div
                 key={task.id}
-                className="flex items-center justify-between gap-4 p-3 rounded-xl border border-amber-200 bg-white shadow-sm"
+                className="flex items-center justify-between gap-4 p-3 rounded-xl border border-amber-200 dark:border-amber-900/40 bg-white dark:bg-zinc-900/60 shadow-sm"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-sm text-zinc-900 truncate">{task.title}</p>
+                  <p className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 truncate">{task.title}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Created by: <span className="font-medium text-zinc-700">{task.created_by}</span>
-                    {task.note && <span className="italic ml-2 text-zinc-500">• Note: {task.note}</span>}
+                    Created by: <span className="font-medium text-zinc-700 dark:text-zinc-300">{task.created_by}</span>
+                    {task.note && <span className="italic ml-2 text-zinc-550 dark:text-zinc-400">• Note: {task.note}</span>}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -311,7 +311,7 @@ export default function TasksPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-8 rounded-lg border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
+                    className="h-8 rounded-lg border border-red-200 dark:border-red-900/40 text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-800 dark:hover:text-red-300"
                     onClick={() => tasks.remove(task.id)}
                   >
                     <X className="h-3.5 w-3.5 mr-1" /> Decline
@@ -324,21 +324,21 @@ export default function TasksPage() {
       )}
 
       {pendingRequests.length > 0 && (
-        <Card className="border-zinc-200 bg-zinc-50/50">
+        <Card className="border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/30">
           <CardHeader className="pb-2">
-            <CardTitle className="text-zinc-700 text-sm font-semibold flex items-center gap-2">
+            <CardTitle className="text-zinc-700 dark:text-zinc-300 text-sm font-semibold flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-zinc-500" />
               Sent Tasks Awaiting Approval ({pendingRequests.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2">
             {pendingRequests.map((task) => (
-              <div key={task.id} className="flex items-center justify-between p-2.5 rounded-lg border bg-white text-xs">
+              <div key={task.id} className="flex items-center justify-between p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 text-xs">
                 <div className="min-w-0">
-                  <span className="font-medium text-zinc-800">{task.title}</span>
+                  <span className="font-medium text-zinc-800 dark:text-zinc-200">{task.title}</span>
                   {task.note && <span className="italic text-muted-foreground ml-2">• Note: {task.note}</span>}
                 </div>
-                <span className="text-zinc-500 italic font-medium">Awaiting {activeSpace === "user1" ? user2 : user1}&apos;s approval</span>
+                <span className="text-zinc-500 dark:text-zinc-400 italic font-medium">Awaiting {activeSpace === "user1" ? user2 : user1}&apos;s approval</span>
               </div>
             ))}
           </CardContent>
