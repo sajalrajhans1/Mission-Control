@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Brain, CheckSquare, Folder, Home, LogOut, Settings, WalletCards, Lock, Calendar, Timer,
-  GripHorizontal, X, Play, Pause, Tv, SkipForward, Menu
+  GripHorizontal, X, Play, Pause, Tv, SkipForward, ChevronsLeft, ChevronsRight
 } from "lucide-react";
 import { useActiveUser, useUserNames, useUserColors, useData } from "@/components/data-provider";
 import { GlobalSearch } from "@/components/global-search";
@@ -350,10 +350,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="h-9 w-9 rounded-xl text-zinc-600 hover:text-zinc-900 hover:bg-zinc-150 shrink-0"
+                className="h-9 w-9 rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-all duration-200 hover:scale-105 active:scale-95 shrink-0"
                 title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
               >
-                <Menu className="h-5 w-5" />
+                {isSidebarOpen ? (
+                  <ChevronsLeft className="h-5 w-5" />
+                ) : (
+                  <ChevronsRight className="h-5 w-5 animate-pulse" />
+                )}
               </Button>
               
               <div className="flex gap-2 overflow-x-auto lg:hidden">
