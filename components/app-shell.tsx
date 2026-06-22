@@ -516,7 +516,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <video 
             ref={lockVideoRef}
             key={activeWallpaper}
-            className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+            className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none transform-gpu"
+            style={{ 
+              transform: "scale(1.01) translate3d(0,0,0)",
+              backfaceVisibility: "hidden"
+            }}
             autoPlay
             muted
             loop
@@ -597,7 +601,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <video 
             ref={shellVideoRef}
             key={activeWallpaper}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transform-gpu"
+            style={{ 
+              transform: "scale(1.01) translate3d(0,0,0)",
+              backfaceVisibility: "hidden"
+            }}
             autoPlay
             muted
             loop
