@@ -143,23 +143,23 @@ export default function HomePage() {
 
   return (
     <div className="grid gap-8">
-      <section className="flex flex-col justify-between gap-5 rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 bg-white/70 dark:bg-zinc-900/60 backdrop-blur-md p-6 shadow-soft md:flex-row md:items-center">
+      <section className="flex flex-col justify-between gap-5 rounded-xl border border-zinc-200/50 dark:border-dark-border/50 bg-white/70 dark:bg-dark-card/60 backdrop-blur-md p-6 shadow-soft md:flex-row md:items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-dark-text">
             Kya haal hai bhai, {activeUserName}?
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             {user1} &amp; {user2} — building momentum together.
           </p>
         </div>
-        <div className="flex items-center gap-3 bg-zinc-50 border px-4 py-2.5 rounded-xl dark:bg-zinc-900 dark:border-zinc-800 shrink-0">
+        <div className="flex items-center gap-3 bg-zinc-50 border px-4 py-2.5 rounded-xl dark:bg-dark-card dark:border-dark-border shrink-0">
           <div className="relative flex h-3 w-3">
             {isOtherUserOnline && (
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             )}
-            <span className={cn("relative inline-flex rounded-full h-3 w-3", isOtherUserOnline ? "bg-emerald-500" : "bg-zinc-300 dark:bg-zinc-600")}></span>
+            <span className={cn("relative inline-flex rounded-full h-3 w-3", isOtherUserOnline ? "bg-emerald-500" : "bg-zinc-300 dark:bg-dark-muted")}></span>
           </div>
-          <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          <span className="text-sm font-medium text-zinc-700 dark:text-dark-text-secondary">
             {otherUserName} is {isOtherUserOnline ? "online" : "offline"}
           </span>
         </div>
@@ -171,7 +171,7 @@ export default function HomePage() {
           {/* Progress Card */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
+              <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-dark-text">
                 <TrendingUp className="h-4 w-4" />
                 Progress
               </CardTitle>
@@ -180,7 +180,7 @@ export default function HomePage() {
               {progress.map((item) => (
                 <div key={item.person} className="grid gap-2">
                   <div className="flex justify-between text-sm">
-                    <span className="font-medium text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
+                    <span className="font-medium text-zinc-800 dark:text-dark-text flex items-center gap-1.5">
                       <span
                         className="h-2.5 w-2.5 rounded-full shrink-0"
                         style={{ backgroundColor: item.person === user1 ? userColors.user1 : userColors.user2 }}
@@ -200,7 +200,7 @@ export default function HomePage() {
           {/* Money Overview Card */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
+              <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-dark-text">
                 <WalletCards className="h-4 w-4" />
                 Money Overview
               </CardTitle>
@@ -208,15 +208,15 @@ export default function HomePage() {
             <CardContent className="grid grid-cols-3 gap-3">
               <div>
                 <p className="text-xs text-muted-foreground">Income</p>
-                <p className="font-semibold text-zinc-900 dark:text-zinc-100">{formatMoney(income, currencySymbol)}</p>
+                <p className="font-semibold text-zinc-900 dark:text-dark-text">{formatMoney(income, currencySymbol)}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Expenses</p>
-                <p className="font-semibold text-zinc-900 dark:text-zinc-100">{formatMoney(expenses, currencySymbol)}</p>
+                <p className="font-semibold text-zinc-900 dark:text-dark-text">{formatMoney(expenses, currencySymbol)}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Net</p>
-                <p className="font-semibold text-zinc-900 dark:text-zinc-100">{formatMoney(income - expenses, currencySymbol)}</p>
+                <p className="font-semibold text-zinc-900 dark:text-dark-text">{formatMoney(income - expenses, currencySymbol)}</p>
               </div>
             </CardContent>
           </Card>
@@ -225,7 +225,7 @@ export default function HomePage() {
         {/* Right Side: Shared Priority List */}
         <Card className="lg:col-span-5 flex flex-col h-full">
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
+            <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-dark-text">
               <ListTodo className="h-4 w-4 text-primary" />
               Shared Priority List
             </CardTitle>
@@ -256,7 +256,7 @@ export default function HomePage() {
       {/* Bottom Section: Sticky Notes */}
       <div className="grid gap-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+          <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-dark-text flex items-center gap-2">
             <StickyNote className="h-5 w-5" />
             Sticky Notes
           </h2>
@@ -267,7 +267,7 @@ export default function HomePage() {
           {notes.map((item) => {
             const isCreator = item.author === activeUserName;
             return (
-              <div key={item.id} className={cn("relative min-h-48 rounded-xl border border-zinc-200 dark:border-zinc-800/80 p-4 shadow-soft", NOTE_COLORS[item.color as keyof typeof NOTE_COLORS] ?? "bg-white dark:bg-zinc-900/60")}>
+              <div key={item.id} className={cn("relative min-h-48 rounded-xl border border-zinc-200 dark:border-dark-border/80 p-4 shadow-soft", NOTE_COLORS[item.color as keyof typeof NOTE_COLORS] ?? "bg-white dark:bg-dark-card/60")}>
                 {item.pinned && (
                   <div className="absolute -top-2 right-3 text-base" title="Pinned">📌</div>
                 )}
@@ -284,7 +284,7 @@ export default function HomePage() {
                   {isCreator && (
                     <div className="flex shrink-0 gap-1">
                       <Button
-                        variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-350"
+                        variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 hover:text-zinc-800 dark:hover:text-dark-text"
                         title={item.is_private ? "Make Public" : "Make Private"}
                         onClick={() => stickyNotes.update(item.id, { is_private: !item.is_private })}
                       >
@@ -315,7 +315,7 @@ export default function HomePage() {
                   readOnly={!isCreator}
                   className="border-transparent dark:border-transparent bg-transparent dark:bg-transparent p-0 shadow-none focus-visible:ring-0 text-inherit dark:text-inherit resize-none w-full"
                 />
-                <div className="mt-3 flex items-center justify-between text-xs text-black/60 dark:text-zinc-400">
+                <div className="mt-3 flex items-center justify-between text-xs text-black/60 dark:text-dark-text-secondary">
                   <span className="flex items-center gap-1.5 font-medium min-w-0 flex-1 truncate">
                     <span
                       className="h-2 w-2 rounded-full shrink-0"

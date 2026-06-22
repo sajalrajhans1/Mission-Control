@@ -86,34 +86,34 @@ function PromptsPanel({ search }: { search: string }) {
         {prompts.map((item) => (
           <Card
             key={item.id}
-            className="flex flex-col min-h-[200px] relative overflow-hidden group bg-white dark:bg-zinc-900/50 cursor-pointer hover:shadow-soft transition-shadow border-zinc-200 dark:border-zinc-800"
+            className="flex flex-col min-h-[200px] relative overflow-hidden group bg-white dark:bg-dark-card/50 cursor-pointer hover:shadow-soft transition-shadow border-zinc-200 dark:border-dark-border"
             onClick={() => setViewingPrompt(item)}
           >
             <CardHeader className="pb-2 flex flex-row items-start justify-between space-y-0">
-              <span className="text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-300 px-2 py-0.5 rounded-full">
+              <span className="text-xs font-semibold bg-zinc-100 dark:bg-dark-hover text-zinc-800 dark:text-dark-text-secondary px-2 py-0.5 rounded-full">
                 {item.category}
               </span>
               <Button
                 variant="outline"
                 size="icon"
-                className="h-8 w-8 rounded-lg shrink-0 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 dark:text-zinc-300"
+                className="h-8 w-8 rounded-lg shrink-0 border-zinc-200 dark:border-dark-border bg-white dark:bg-dark-card/50 dark:text-dark-text-secondary"
                 onClick={(e) => { e.stopPropagation(); handleCopy(item.id, item.content); }}
                 title="Copy Preset Content"
               >
-                {copiedId === item.id ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />}
+                {copiedId === item.id ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4 text-zinc-600 dark:text-dark-text-secondary" />}
               </Button>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col justify-between pt-1">
               <div className="min-w-0">
-                <h3 className="font-bold text-zinc-800 dark:text-zinc-150 line-clamp-1 mb-1 text-sm">{item.title}</h3>
+                <h3 className="font-bold text-zinc-800 dark:text-dark-text line-clamp-1 mb-1 text-sm">{item.title}</h3>
                 <p className="text-xs text-muted-foreground line-clamp-4 whitespace-pre-wrap leading-relaxed">
                   {item.content || "No content."}
                 </p>
               </div>
               
-              <div className="flex items-center justify-end gap-2 mt-4 pt-2 border-t border-zinc-100 dark:border-zinc-850 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center justify-end gap-2 mt-4 pt-2 border-t border-zinc-100 dark:border-dark-muted opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button
-                  variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
+                  variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-800 dark:hover:text-dark-text"
                   onClick={(e) => { e.stopPropagation(); setEditingPrompt(item); }}
                   title="Edit Preset"
                 >
@@ -138,7 +138,7 @@ function PromptsPanel({ search }: { search: string }) {
 
       {/* ── Create Preset Dialog ────────────────────────────────────────── */}
       <Dialog open={showCreate} onOpenChange={(open) => !open && setShowCreate(false)}>
-        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
+        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-dark-base border-zinc-200 dark:border-dark-border">
           <DialogHeader>
             <DialogTitle>New Preset Prompt</DialogTitle>
           </DialogHeader>
@@ -149,12 +149,12 @@ function PromptsPanel({ search }: { search: string }) {
                 value={newPrompt.title}
                 onChange={(e) => setNewPrompt({ ...newPrompt, title: e.target.value })}
                 onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-                className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
               />
             </Field>
             <Field label="Category">
               <Select value={newPrompt.category} onValueChange={(category) => setNewPrompt({ ...newPrompt, category })}>
-                <SelectTrigger className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {PROMPT_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
@@ -166,11 +166,11 @@ function PromptsPanel({ search }: { search: string }) {
                 value={newPrompt.content}
                 onChange={(e) => setNewPrompt({ ...newPrompt, content: e.target.value })}
                 rows={6}
-                className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 leading-relaxed text-sm"
+                className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text leading-relaxed text-sm"
               />
             </Field>
             <div className="flex gap-2 justify-end mt-2">
-              <Button variant="outline" onClick={() => setShowCreate(false)} className="border-zinc-200 dark:border-zinc-800 dark:hover:bg-zinc-900">Cancel</Button>
+              <Button variant="outline" onClick={() => setShowCreate(false)} className="border-zinc-200 dark:border-dark-border dark:hover:bg-dark-card">Cancel</Button>
               <Button onClick={handleCreate} disabled={!newPrompt.title.trim()}>Create Preset</Button>
             </div>
           </div>
@@ -179,7 +179,7 @@ function PromptsPanel({ search }: { search: string }) {
 
       {/* ── Edit Preset Dialog ──────────────────────────────────────────── */}
       <Dialog open={Boolean(editingPrompt)} onOpenChange={(open) => !open && setEditingPrompt(null)}>
-        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
+        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-dark-base border-zinc-200 dark:border-dark-border">
           <DialogHeader>
             <DialogTitle>Edit Preset Prompt</DialogTitle>
           </DialogHeader>
@@ -189,12 +189,12 @@ function PromptsPanel({ search }: { search: string }) {
                 <Input
                   value={editingPrompt.title}
                   onChange={(e) => setEditingPrompt({ ...editingPrompt, title: e.target.value })}
-                  className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                  className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
                 />
               </Field>
               <Field label="Category">
                 <Select value={editingPrompt.category} onValueChange={(category) => setEditingPrompt({ ...editingPrompt, category })}>
-                  <SelectTrigger className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {PROMPT_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                   </SelectContent>
@@ -205,11 +205,11 @@ function PromptsPanel({ search }: { search: string }) {
                   value={editingPrompt.content}
                   onSave={(content) => data.prompts.update(editingPrompt.id, { content })}
                   minHeight={160}
-                  className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                  className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
                 />
               </Field>
               <div className="flex gap-2 justify-end mt-2">
-                <Button variant="outline" onClick={() => setEditingPrompt(null)} className="border-zinc-200 dark:border-zinc-800 dark:hover:bg-zinc-900">Cancel</Button>
+                <Button variant="outline" onClick={() => setEditingPrompt(null)} className="border-zinc-200 dark:border-dark-border dark:hover:bg-dark-card">Cancel</Button>
                 <Button
                   onClick={async () => {
                     await data.prompts.update(editingPrompt.id, {
@@ -230,13 +230,13 @@ function PromptsPanel({ search }: { search: string }) {
 
       {/* ── View Preset Dialog ────────────────────────────────────────── */}
       <Dialog open={Boolean(viewingPrompt)} onOpenChange={(open) => !open && setViewingPrompt(null)}>
-        <DialogContent className="max-w-lg rounded-2xl bg-white dark:bg-zinc-950 max-h-[85vh] flex flex-col p-6 border border-zinc-200 dark:border-zinc-800">
-          <DialogHeader className="border-b border-zinc-100 dark:border-zinc-850 pb-3 flex flex-row items-center justify-between space-y-0 pr-6">
+        <DialogContent className="max-w-lg rounded-2xl bg-white dark:bg-dark-base max-h-[85vh] flex flex-col p-6 border border-zinc-200 dark:border-dark-border">
+          <DialogHeader className="border-b border-zinc-100 dark:border-dark-muted pb-3 flex flex-row items-center justify-between space-y-0 pr-6">
             <div className="flex flex-col gap-1 min-w-0 flex-1">
-              <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-50 truncate">{viewingPrompt?.title}</DialogTitle>
+              <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-dark-text truncate">{viewingPrompt?.title}</DialogTitle>
               {viewingPrompt?.category && (
                 <div>
-                  <span className="text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-300 px-2 py-0.5 rounded-full">
+                  <span className="text-xs font-semibold bg-zinc-100 dark:bg-dark-hover text-zinc-800 dark:text-dark-text-secondary px-2 py-0.5 rounded-full">
                     {viewingPrompt.category}
                   </span>
                 </div>
@@ -246,7 +246,7 @@ function PromptsPanel({ search }: { search: string }) {
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-xl flex items-center gap-1.5 shrink-0 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 ml-2 text-xs font-semibold px-3 h-9 dark:text-zinc-300 dark:hover:bg-zinc-850"
+                className="rounded-xl flex items-center gap-1.5 shrink-0 border-zinc-200 dark:border-dark-border bg-white dark:bg-dark-card/50 ml-2 text-xs font-semibold px-3 h-9 dark:text-dark-text-secondary dark:hover:bg-dark-hover"
                 onClick={() => handleCopy(viewingPrompt.id, viewingPrompt.content)}
               >
                 {copiedId === viewingPrompt.id ? (
@@ -256,17 +256,17 @@ function PromptsPanel({ search }: { search: string }) {
                   </>
                 ) : (
                   <>
-                    <Copy className="h-3.5 w-3.5 text-zinc-600 dark:text-zinc-400" />
+                    <Copy className="h-3.5 w-3.5 text-zinc-600 dark:text-dark-text-secondary" />
                     <span>Copy Content</span>
                   </>
                 )}
               </Button>
             )}
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto mt-4 pr-1 leading-relaxed text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap bg-zinc-50/50 dark:bg-zinc-900/30 p-4 rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 select-text">
+          <div className="flex-1 overflow-y-auto mt-4 pr-1 leading-relaxed text-sm text-zinc-700 dark:text-dark-text-secondary whitespace-pre-wrap bg-zinc-50/50 dark:bg-dark-card/30 p-4 rounded-xl border border-zinc-200/50 dark:border-dark-border/50 select-text">
             {viewingPrompt?.content || "No content."}
           </div>
-          <div className="flex justify-end mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-850">
+          <div className="flex justify-end mt-4 pt-3 border-t border-zinc-100 dark:border-dark-muted">
             <Button onClick={() => setViewingPrompt(null)} className="rounded-xl">Close</Button>
           </div>
         </DialogContent>
@@ -329,14 +329,14 @@ function IdeasPanel({ search }: { search: string }) {
         {ideas.map((item) => (
           <Card
             key={item.id}
-            className="bg-white dark:bg-zinc-900/50 flex flex-col justify-between group cursor-pointer hover:shadow-soft transition-shadow border border-zinc-200 dark:border-zinc-800"
+            className="bg-white dark:bg-dark-card/50 flex flex-col justify-between group cursor-pointer hover:shadow-soft transition-shadow border border-zinc-200 dark:border-dark-border"
             onClick={() => setViewingIdea(item)}
           >
             <CardHeader className="flex-row items-start justify-between gap-2 pb-2">
-              <CardTitle className="text-base font-bold text-zinc-800 dark:text-zinc-150">{item.title}</CardTitle>
+              <CardTitle className="text-base font-bold text-zinc-800 dark:text-dark-text">{item.title}</CardTitle>
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                 <Button
-                  variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
+                  variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-800 dark:hover:text-dark-text"
                   onClick={(e) => { e.stopPropagation(); setEditingIdea(item); }}
                   title="Edit Idea"
                 >
@@ -353,7 +353,7 @@ function IdeasPanel({ search }: { search: string }) {
             </CardHeader>
             <CardContent>
               <p className="whitespace-pre-wrap text-xs text-muted-foreground leading-relaxed line-clamp-4">{item.description}</p>
-              <p className="mt-3 text-[10px] text-zinc-400 dark:text-zinc-500 font-medium">{new Date(item.created_at).toLocaleDateString()}</p>
+              <p className="mt-3 text-[10px] text-zinc-400 dark:text-dark-text0 font-medium">{new Date(item.created_at).toLocaleDateString()}</p>
             </CardContent>
           </Card>
         ))}
@@ -365,17 +365,17 @@ function IdeasPanel({ search }: { search: string }) {
 
       {/* ── View Idea Dialog ─────────────────────────────────────────── */}
       <Dialog open={Boolean(viewingIdea)} onOpenChange={(open) => !open && setViewingIdea(null)}>
-        <DialogContent className="max-w-lg rounded-2xl bg-white dark:bg-zinc-950 max-h-[85vh] flex flex-col p-6 border border-zinc-200 dark:border-zinc-800">
-          <DialogHeader className="border-b border-zinc-100 dark:border-zinc-850 pb-3 flex flex-col gap-1 min-w-0 pr-6">
-            <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-50 truncate">{viewingIdea?.title}</DialogTitle>
-            <div className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium">
+        <DialogContent className="max-w-lg rounded-2xl bg-white dark:bg-dark-base max-h-[85vh] flex flex-col p-6 border border-zinc-200 dark:border-dark-border">
+          <DialogHeader className="border-b border-zinc-100 dark:border-dark-muted pb-3 flex flex-col gap-1 min-w-0 pr-6">
+            <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-dark-text truncate">{viewingIdea?.title}</DialogTitle>
+            <div className="text-[10px] text-zinc-400 dark:text-dark-text0 font-medium">
               Ideas • {viewingIdea && new Date(viewingIdea.created_at).toLocaleDateString()}
             </div>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto mt-4 pr-1 leading-relaxed text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap bg-zinc-50/50 dark:bg-zinc-900/30 p-4 rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 select-text">
+          <div className="flex-1 overflow-y-auto mt-4 pr-1 leading-relaxed text-sm text-zinc-700 dark:text-dark-text-secondary whitespace-pre-wrap bg-zinc-50/50 dark:bg-dark-card/30 p-4 rounded-xl border border-zinc-200/50 dark:border-dark-border/50 select-text">
             {viewingIdea?.description || <span className="italic text-zinc-400 dark:text-zinc-550">No details.</span>}
           </div>
-          <div className="flex justify-end mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-850">
+          <div className="flex justify-end mt-4 pt-3 border-t border-zinc-100 dark:border-dark-muted">
             <Button onClick={() => setViewingIdea(null)} className="rounded-xl">Close</Button>
           </div>
         </DialogContent>
@@ -383,7 +383,7 @@ function IdeasPanel({ search }: { search: string }) {
 
       {/* ── Create Idea Dialog ────────────────────────────────────────── */}
       <Dialog open={showCreate} onOpenChange={(open) => !open && setShowCreate(false)}>
-        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
+        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-dark-base border-zinc-200 dark:border-dark-border">
           <DialogHeader>
             <DialogTitle>New Startup Idea</DialogTitle>
           </DialogHeader>
@@ -394,7 +394,7 @@ function IdeasPanel({ search }: { search: string }) {
                 value={newIdea.title}
                 onChange={(e) => setNewIdea({ ...newIdea, title: e.target.value })}
                 onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-                className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
               />
             </Field>
             <Field label="Description">
@@ -403,11 +403,11 @@ function IdeasPanel({ search }: { search: string }) {
                 value={newIdea.description}
                 onChange={(e) => setNewIdea({ ...newIdea, description: e.target.value })}
                 rows={5}
-                className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 leading-relaxed text-sm"
+                className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text leading-relaxed text-sm"
               />
             </Field>
             <div className="flex gap-2 justify-end mt-2">
-              <Button variant="outline" onClick={() => setShowCreate(false)} className="border-zinc-200 dark:border-zinc-800 dark:hover:bg-zinc-900">Cancel</Button>
+              <Button variant="outline" onClick={() => setShowCreate(false)} className="border-zinc-200 dark:border-dark-border dark:hover:bg-dark-card">Cancel</Button>
               <Button onClick={handleCreate} disabled={!newIdea.title.trim()}>Create Idea</Button>
             </div>
           </div>
@@ -416,7 +416,7 @@ function IdeasPanel({ search }: { search: string }) {
 
       {/* ── Edit Idea Dialog ──────────────────────────────────────────── */}
       <Dialog open={Boolean(editingIdea)} onOpenChange={(open) => !open && setEditingIdea(null)}>
-        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
+        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-dark-base border-zinc-200 dark:border-dark-border">
           <DialogHeader>
             <DialogTitle>Edit Idea</DialogTitle>
           </DialogHeader>
@@ -426,7 +426,7 @@ function IdeasPanel({ search }: { search: string }) {
                 <Input
                   value={editingIdea.title}
                   onChange={(e) => setEditingIdea({ ...editingIdea, title: e.target.value })}
-                  className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                  className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
                 />
               </Field>
               <Field label="Description">
@@ -434,11 +434,11 @@ function IdeasPanel({ search }: { search: string }) {
                   value={editingIdea.description}
                   onChange={(e) => setEditingIdea({ ...editingIdea, description: e.target.value })}
                   rows={6}
-                  className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 leading-relaxed text-sm"
+                  className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text leading-relaxed text-sm"
                 />
               </Field>
               <div className="flex gap-2 justify-end mt-2">
-                <Button variant="outline" onClick={() => setEditingIdea(null)} className="border-zinc-200 dark:border-zinc-800 dark:hover:bg-zinc-900">Cancel</Button>
+                <Button variant="outline" onClick={() => setEditingIdea(null)} className="border-zinc-200 dark:border-dark-border dark:hover:bg-dark-card">Cancel</Button>
                 <Button
                   onClick={async () => {
                     await data.ideas.update(editingIdea.id, {
@@ -510,18 +510,18 @@ function ResourcesPanel({ search }: { search: string }) {
       {/* Resources Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {resources.map((item) => (
-          <div key={item.id} className="group relative rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors flex flex-col justify-between min-h-[110px]">
+          <div key={item.id} className="group relative rounded-xl border border-zinc-200 dark:border-dark-border bg-white dark:bg-dark-card/50 p-4 hover:bg-zinc-50 dark:hover:bg-dark-hover/30 transition-colors flex flex-col justify-between min-h-[110px]">
             <a href={item.url} target="_blank" rel="noreferrer" className="block min-w-0 flex-1">
               <div className="flex items-center justify-between gap-3 min-w-0">
-                <span className="font-semibold text-zinc-800 dark:text-zinc-200 text-sm truncate pr-4">{item.title}</span>
+                <span className="font-semibold text-zinc-800 dark:text-dark-text text-sm truncate pr-4">{item.title}</span>
                 <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               </div>
               <p className="mt-1 truncate text-xs text-muted-foreground">{item.category}</p>
             </a>
             
-            <div className="flex items-center justify-end gap-1 mt-3 pt-2 border-t border-zinc-100 dark:border-zinc-850 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center justify-end gap-1 mt-3 pt-2 border-t border-zinc-100 dark:border-dark-muted opacity-0 group-hover:opacity-100 transition-opacity">
               <Button
-                variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
+                variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-800 dark:hover:text-dark-text"
                 onClick={(e) => { e.preventDefault(); setEditingResource(item); }}
               >
                 <Pencil className="h-3.5 w-3.5" />
@@ -543,7 +543,7 @@ function ResourcesPanel({ search }: { search: string }) {
 
       {/* ── Create Resource Dialog ────────────────────────────────────── */}
       <Dialog open={showCreate} onOpenChange={(open) => !open && setShowCreate(false)}>
-        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
+        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-dark-base border-zinc-200 dark:border-dark-border">
           <DialogHeader>
             <DialogTitle>New Shared Resource</DialogTitle>
           </DialogHeader>
@@ -554,7 +554,7 @@ function ResourcesPanel({ search }: { search: string }) {
                 value={newResource.title}
                 onChange={(e) => setNewResource({ ...newResource, title: e.target.value })}
                 onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-                className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
               />
             </Field>
             <Field label="URL Link">
@@ -563,7 +563,7 @@ function ResourcesPanel({ search }: { search: string }) {
                 value={newResource.url}
                 onChange={(e) => setNewResource({ ...newResource, url: e.target.value })}
                 onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-                className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
               />
             </Field>
             <Field label="Category">
@@ -572,11 +572,11 @@ function ResourcesPanel({ search }: { search: string }) {
                 value={newResource.category}
                 onChange={(e) => setNewResource({ ...newResource, category: e.target.value })}
                 onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-                className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
               />
             </Field>
             <div className="flex gap-2 justify-end mt-2">
-              <Button variant="outline" onClick={() => setShowCreate(false)} className="border-zinc-200 dark:border-zinc-800 dark:hover:bg-zinc-900">Cancel</Button>
+              <Button variant="outline" onClick={() => setShowCreate(false)} className="border-zinc-200 dark:border-dark-border dark:hover:bg-dark-card">Cancel</Button>
               <Button onClick={handleCreate} disabled={!newResource.title.trim() || !newResource.url.trim()}>Create Resource</Button>
             </div>
           </div>
@@ -585,7 +585,7 @@ function ResourcesPanel({ search }: { search: string }) {
 
       {/* ── Edit Resource Dialog ──────────────────────────────────────── */}
       <Dialog open={Boolean(editingResource)} onOpenChange={(open) => !open && setEditingResource(null)}>
-        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
+        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-dark-base border-zinc-200 dark:border-dark-border">
           <DialogHeader>
             <DialogTitle>Edit Resource</DialogTitle>
           </DialogHeader>
@@ -595,25 +595,25 @@ function ResourcesPanel({ search }: { search: string }) {
                 <Input
                   value={editingResource.title}
                   onChange={(e) => setEditingResource({ ...editingResource, title: e.target.value })}
-                  className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                  className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
                 />
               </Field>
               <Field label="URL Link">
                 <Input
                   value={editingResource.url}
                   onChange={(e) => setEditingResource({ ...editingResource, url: e.target.value })}
-                  className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                  className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
                 />
               </Field>
               <Field label="Category">
                 <Input
                   value={editingResource.category}
                   onChange={(e) => setEditingResource({ ...editingResource, category: e.target.value })}
-                  className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                  className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
                 />
               </Field>
               <div className="flex gap-2 justify-end mt-2">
-                <Button variant="outline" onClick={() => setEditingResource(null)} className="border-zinc-200 dark:border-zinc-800 dark:hover:bg-zinc-900">Cancel</Button>
+                <Button variant="outline" onClick={() => setEditingResource(null)} className="border-zinc-200 dark:border-dark-border dark:hover:bg-dark-card">Cancel</Button>
                 <Button
                   onClick={async () => {
                     await data.resources.update(editingResource.id, {
@@ -713,7 +713,7 @@ function StickyNotesPanel({ search }: { search: string }) {
         {notes.map((item) => {
           const isCreator = item.author === activeUserName;
           return (
-            <div key={item.id} className={cn("relative min-h-48 rounded-xl border border-zinc-200 dark:border-zinc-800/80 p-4 shadow-soft", NOTE_COLORS[item.color as keyof typeof NOTE_COLORS] ?? "bg-white dark:bg-zinc-900/60")}>
+            <div key={item.id} className={cn("relative min-h-48 rounded-xl border border-zinc-200 dark:border-dark-border/80 p-4 shadow-soft", NOTE_COLORS[item.color as keyof typeof NOTE_COLORS] ?? "bg-white dark:bg-dark-card/60")}>
               {item.pinned && (
                 <div className="absolute -top-2 right-3 text-base" title="Pinned">📌</div>
               )}
@@ -727,7 +727,7 @@ function StickyNotesPanel({ search }: { search: string }) {
                 {isCreator && (
                   <div className="flex shrink-0 gap-1">
                     <Button
-                      variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
+                      variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-800 dark:hover:text-dark-text"
                       title={item.is_private ? "Make Public" : "Make Private"}
                       onClick={() => data.stickyNotes.update(item.id, { is_private: !item.is_private })}
                     >
@@ -756,7 +756,7 @@ function StickyNotesPanel({ search }: { search: string }) {
                 readOnly={!isCreator}
                 className="border-transparent dark:border-transparent bg-transparent dark:bg-transparent p-0 shadow-none focus-visible:ring-0 text-inherit dark:text-inherit resize-none w-full"
               />
-              <div className="mt-3 flex items-center justify-between text-xs text-black/60 dark:text-zinc-400">
+              <div className="mt-3 flex items-center justify-between text-xs text-black/60 dark:text-dark-text-secondary">
                 <span className="flex items-center gap-1.5 font-medium min-w-0 flex-1 truncate">
                   <span
                     className="h-2 w-2 rounded-full shrink-0"
@@ -788,7 +788,7 @@ function StickyNotesPanel({ search }: { search: string }) {
 
       {/* ── Create Sticky Note Dialog ─────────────────────────────────── */}
       <Dialog open={showCreate} onOpenChange={(open) => !open && setShowCreate(false)}>
-        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800">
+        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-dark-base border border-zinc-200 dark:border-dark-border">
           <DialogHeader>
             <DialogTitle>New Sticky Note</DialogTitle>
           </DialogHeader>
@@ -799,7 +799,7 @@ function StickyNotesPanel({ search }: { search: string }) {
                 value={newNote.title}
                 onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
                 onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-                className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 text-zinc-900 dark:text-zinc-100"
+                className="border-zinc-200 dark:border-dark-border bg-white dark:bg-dark-card/50 text-zinc-900 dark:text-dark-text"
               />
             </Field>
             <Field label="Body">
@@ -808,12 +808,12 @@ function StickyNotesPanel({ search }: { search: string }) {
                 value={newNote.body}
                 onChange={(e) => setNewNote({ ...newNote, body: e.target.value })}
                 rows={4}
-                className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 text-zinc-900 dark:text-zinc-100 leading-relaxed text-sm"
+                className="border-zinc-200 dark:border-dark-border bg-white dark:bg-dark-card/50 text-zinc-900 dark:text-dark-text leading-relaxed text-sm"
               />
             </Field>
             <Field label="Color">
               <Select value={newNote.color} onValueChange={(c) => setNewNote({ ...newNote, color: c as keyof typeof NOTE_COLORS })}>
-                <SelectTrigger className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 text-zinc-900 dark:text-zinc-100"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="border-zinc-200 dark:border-dark-border bg-white dark:bg-dark-card/50 text-zinc-900 dark:text-dark-text"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {Object.keys(NOTE_COLORS).map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
@@ -827,12 +827,12 @@ function StickyNotesPanel({ search }: { search: string }) {
                 onChange={(e) => setNewNote({ ...newNote, is_private: e.target.checked })}
                 className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
               />
-              <label htmlFor="create-note-is-private" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label htmlFor="create-note-is-private" className="text-sm font-medium text-zinc-700 dark:text-dark-text-secondary">
                 Keep this sticky note private (only visible to you)
               </label>
             </div>
             <div className="flex gap-2 justify-end mt-2">
-              <Button variant="outline" onClick={() => setShowCreate(false)} className="border-zinc-200 dark:border-zinc-800 dark:hover:bg-zinc-900">Cancel</Button>
+              <Button variant="outline" onClick={() => setShowCreate(false)} className="border-zinc-200 dark:border-dark-border dark:hover:bg-dark-card">Cancel</Button>
               <Button onClick={handleCreate} disabled={!newNote.title.trim()}>Create Note</Button>
             </div>
           </div>
@@ -975,18 +975,18 @@ function DeliverablesPanel({ search }: { search: string }) {
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 shadow-sm">
+        <Card className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border shadow-sm">
           <CardContent className="p-4 flex flex-col justify-between">
             <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Total Deliverables</span>
-            <span className="text-2xl font-extrabold text-zinc-800 dark:text-zinc-100 mt-1">{stats.totalCount}</span>
+            <span className="text-2xl font-extrabold text-zinc-800 dark:text-dark-text mt-1">{stats.totalCount}</span>
             <span className="text-[10px] text-zinc-400 mt-1">Items successfully delivered</span>
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 shadow-sm">
+        <Card className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border shadow-sm">
           <CardContent className="p-4 flex flex-col justify-between">
             <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Total Earnings Logged</span>
-            <span className="text-2xl font-extrabold text-zinc-800 dark:text-zinc-100 mt-1">₹{stats.totalAmount.toLocaleString()}</span>
+            <span className="text-2xl font-extrabold text-zinc-800 dark:text-dark-text mt-1">₹{stats.totalAmount.toLocaleString()}</span>
             <span className="text-[10px] text-zinc-400 mt-1">Claimable value of all items</span>
           </CardContent>
         </Card>
@@ -1009,12 +1009,12 @@ function DeliverablesPanel({ search }: { search: string }) {
       </div>
 
       <div className="flex justify-between items-center gap-4">
-        <Button onClick={() => setShowCreate(true)} className="rounded-xl bg-zinc-950 dark:bg-zinc-100 hover:bg-zinc-850 dark:hover:bg-zinc-205 text-white dark:text-zinc-950">
+        <Button onClick={() => setShowCreate(true)} className="rounded-xl bg-zinc-950 dark:bg-dark-text hover:bg-zinc-850 dark:hover:bg-zinc-205 text-white dark:text-dark-base">
           <Plus className="h-4 w-4 mr-1.5" /> Log Deliverable
         </Button>
       </div>
 
-      <div className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 rounded-2xl overflow-hidden shadow-soft">
+      <div className="border border-zinc-200 dark:border-dark-border bg-white dark:bg-dark-card/50 rounded-2xl overflow-hidden shadow-soft">
         {deliverables.length === 0 ? (
           <div className="p-10 text-center">
             <EmptyState title="No deliverables logged yet." />
@@ -1023,7 +1023,7 @@ function DeliverablesPanel({ search }: { search: string }) {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left text-xs">
-              <thead className="bg-zinc-50 dark:bg-zinc-900/80 border-b border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 font-semibold uppercase tracking-wider">
+              <thead className="bg-zinc-50 dark:bg-dark-card/80 border-b border-zinc-200 dark:border-dark-border text-zinc-500 dark:text-dark-text-secondary font-semibold uppercase tracking-wider">
                 <tr>
                   <th className="p-4">Deliverable Title</th>
                   <th className="p-4">Client</th>
@@ -1033,11 +1033,11 @@ function DeliverablesPanel({ search }: { search: string }) {
                   <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+              <tbody className="divide-y divide-zinc-100 dark:divide-dark-border/50">
                 {deliverables.map((item) => (
-                  <tr key={item.id} className="hover:bg-zinc-50/30 dark:hover:bg-zinc-800/30 transition-colors">
+                  <tr key={item.id} className="hover:bg-zinc-50/30 dark:hover:bg-dark-hover/30 transition-colors">
                     <td className="p-4">
-                      <div className="font-bold text-zinc-800 dark:text-zinc-200">{item.title}</div>
+                      <div className="font-bold text-zinc-800 dark:text-dark-text">{item.title}</div>
                       {item.description && (
                         <div className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
                           {item.description}
@@ -1045,7 +1045,7 @@ function DeliverablesPanel({ search }: { search: string }) {
                       )}
                     </td>
                     <td className="p-4 font-semibold text-zinc-600 dark:text-zinc-350">{item.client_name || "N/A"}</td>
-                    <td className="p-4 text-zinc-500 dark:text-zinc-400">{item.delivery_date}</td>
+                    <td className="p-4 text-zinc-500 dark:text-dark-text-secondary">{item.delivery_date}</td>
                     <td className="p-4 font-bold text-zinc-700 dark:text-zinc-250">₹{item.amount.toLocaleString()}</td>
                     <td className="p-4">
                       <span className={cn(
@@ -1060,7 +1060,7 @@ function DeliverablesPanel({ search }: { search: string }) {
                     <td className="p-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <Button
-                          variant="ghost" size="icon" className="h-8 w-8 text-zinc-500 dark:text-zinc-450 hover:text-zinc-950 dark:hover:text-zinc-200"
+                          variant="ghost" size="icon" className="h-8 w-8 text-zinc-500 dark:text-zinc-450 hover:text-zinc-950 dark:hover:text-dark-text"
                           onClick={() => setEditingItem(item)}
                           title="Edit"
                         >
@@ -1084,7 +1084,7 @@ function DeliverablesPanel({ search }: { search: string }) {
       </div>
 
       <Dialog open={showCreate} onOpenChange={(open) => !open && setShowCreate(false)}>
-        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800">
+        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-dark-base border border-zinc-200 dark:border-dark-border">
           <DialogHeader><DialogTitle>Log Work Deliverable</DialogTitle></DialogHeader>
           <div className="grid gap-3.5 pt-2 text-xs">
             <Field label="Deliverable Title">
@@ -1092,7 +1092,7 @@ function DeliverablesPanel({ search }: { search: string }) {
                 placeholder="e.g. Auth flow login page, Homepage banner design..."
                 value={newDeliverable.title}
                 onChange={(e) => setNewDeliverable({ ...newDeliverable, title: e.target.value })}
-                className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
               />
             </Field>
 
@@ -1102,7 +1102,7 @@ function DeliverablesPanel({ search }: { search: string }) {
                   placeholder="e.g. Acme Corp, Germany Client..."
                   value={newDeliverable.client_name}
                   onChange={(e) => setNewDeliverable({ ...newDeliverable, client_name: e.target.value })}
-                  className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                  className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
                 />
               </Field>
               <Field label="Delivery Date">
@@ -1110,7 +1110,7 @@ function DeliverablesPanel({ search }: { search: string }) {
                   type="date"
                   value={newDeliverable.delivery_date}
                   onChange={(e) => setNewDeliverable({ ...newDeliverable, delivery_date: e.target.value })}
-                  className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                  className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
                 />
               </Field>
             </div>
@@ -1122,7 +1122,7 @@ function DeliverablesPanel({ search }: { search: string }) {
                   placeholder="e.g. 5000, 15000..."
                   value={newDeliverable.amount === 0 ? "" : newDeliverable.amount}
                   onChange={(e) => setNewDeliverable({ ...newDeliverable, amount: Number(e.target.value) || 0 })}
-                  className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                  className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
                 />
               </Field>
               <Field label="Payment Status">
@@ -1130,10 +1130,10 @@ function DeliverablesPanel({ search }: { search: string }) {
                   value={newDeliverable.status}
                   onValueChange={(val) => setNewDeliverable({ ...newDeliverable, status: val })}
                 >
-                  <SelectTrigger className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100">
+                  <SelectTrigger className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-zinc-950 dark:border-zinc-800">
+                  <SelectContent className="bg-white dark:bg-dark-base dark:border-dark-border">
                     <SelectItem value="delivered">Delivered / Invoice Sent</SelectItem>
                     <SelectItem value="pending">Review Pending</SelectItem>
                     <SelectItem value="paid">Paid & Cleared</SelectItem>
@@ -1148,13 +1148,13 @@ function DeliverablesPanel({ search }: { search: string }) {
                 value={newDeliverable.description}
                 onChange={(e) => setNewDeliverable({ ...newDeliverable, description: e.target.value })}
                 rows={3}
-                className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 resize-none"
+                className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text resize-none"
               />
             </Field>
 
             <div className="flex justify-end gap-2 mt-2">
-              <Button variant="outline" onClick={() => setShowCreate(false)} className="rounded-xl border-zinc-250 dark:border-zinc-800 dark:hover:bg-zinc-900">Cancel</Button>
-              <Button onClick={handleCreate} className="rounded-xl bg-zinc-950 dark:bg-zinc-100 hover:bg-zinc-850 dark:hover:bg-zinc-200 text-white dark:text-zinc-950">Log Deliverable</Button>
+              <Button variant="outline" onClick={() => setShowCreate(false)} className="rounded-xl border-zinc-250 dark:border-dark-border dark:hover:bg-dark-card">Cancel</Button>
+              <Button onClick={handleCreate} className="rounded-xl bg-zinc-950 dark:bg-dark-text hover:bg-zinc-850 dark:hover:bg-zinc-200 text-white dark:text-dark-base">Log Deliverable</Button>
             </div>
           </div>
         </DialogContent>
@@ -1162,14 +1162,14 @@ function DeliverablesPanel({ search }: { search: string }) {
 
       <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
         {editingItem && (
-          <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800">
+          <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-dark-base border border-zinc-200 dark:border-dark-border">
             <DialogHeader><DialogTitle>Edit Logged Deliverable</DialogTitle></DialogHeader>
             <div className="grid gap-3.5 pt-2 text-xs">
               <Field label="Deliverable Title">
                 <Input
                   value={editingItem.title}
                   onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
-                  className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                  className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
                 />
               </Field>
 
@@ -1178,7 +1178,7 @@ function DeliverablesPanel({ search }: { search: string }) {
                   <Input
                     value={editingItem.client_name}
                     onChange={(e) => setEditingItem({ ...editingItem, client_name: e.target.value })}
-                    className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                    className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
                   />
                 </Field>
                 <Field label="Delivery Date">
@@ -1186,7 +1186,7 @@ function DeliverablesPanel({ search }: { search: string }) {
                     type="date"
                     value={editingItem.delivery_date}
                     onChange={(e) => setEditingItem({ ...editingItem, delivery_date: e.target.value })}
-                    className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                    className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
                   />
                 </Field>
               </div>
@@ -1197,7 +1197,7 @@ function DeliverablesPanel({ search }: { search: string }) {
                     type="number"
                     value={editingItem.amount}
                     onChange={(e) => setEditingItem({ ...editingItem, amount: Number(e.target.value) || 0 })}
-                    className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                    className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
                   />
                 </Field>
                 <Field label="Payment Status">
@@ -1205,10 +1205,10 @@ function DeliverablesPanel({ search }: { search: string }) {
                     value={editingItem.status}
                     onValueChange={(val) => setEditingItem({ ...editingItem, status: val })}
                   >
-                    <SelectTrigger className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100">
+                    <SelectTrigger className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-zinc-950 dark:border-zinc-800">
+                    <SelectContent className="bg-white dark:bg-dark-base dark:border-dark-border">
                       <SelectItem value="delivered">Delivered / Invoice Sent</SelectItem>
                       <SelectItem value="pending">Review Pending</SelectItem>
                       <SelectItem value="paid">Paid & Cleared</SelectItem>
@@ -1222,13 +1222,13 @@ function DeliverablesPanel({ search }: { search: string }) {
                   value={editingItem.description}
                   onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
                   rows={3}
-                  className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 resize-none"
+                  className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text resize-none"
                 />
               </Field>
 
               <div className="flex justify-end gap-2 mt-2">
-                <Button variant="outline" onClick={() => setEditingItem(null)} className="rounded-xl border-zinc-250 dark:border-zinc-850 dark:hover:bg-zinc-900">Cancel</Button>
-                <Button onClick={handleUpdate} className="rounded-xl bg-zinc-950 dark:bg-zinc-100 hover:bg-zinc-850 dark:hover:bg-zinc-200 text-white dark:text-zinc-950">Save Changes</Button>
+                <Button variant="outline" onClick={() => setEditingItem(null)} className="rounded-xl border-zinc-250 dark:border-dark-muted dark:hover:bg-dark-card">Cancel</Button>
+                <Button onClick={handleUpdate} className="rounded-xl bg-zinc-950 dark:bg-dark-text hover:bg-zinc-850 dark:hover:bg-zinc-200 text-white dark:text-dark-base">Save Changes</Button>
               </div>
             </div>
           </DialogContent>
@@ -1297,20 +1297,20 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
         {items.map((item) => (
           <div
             key={item.id}
-            className="group bg-white dark:bg-zinc-900/50 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 flex flex-col justify-between min-h-[160px] relative hover:shadow-soft transition-shadow cursor-pointer"
+            className="group bg-white dark:bg-dark-card/50 p-4 rounded-xl border border-zinc-200 dark:border-dark-border flex flex-col justify-between min-h-[160px] relative hover:shadow-soft transition-shadow cursor-pointer"
             onClick={() => setViewingItem(item)}
           >
             <div>
               <div className="flex items-start justify-between gap-3 mb-2">
-                <div className="font-bold text-zinc-900 dark:text-zinc-100 text-sm truncate flex-1">{item.title}</div>
+                <div className="font-bold text-zinc-900 dark:text-dark-text text-sm truncate flex-1">{item.title}</div>
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-8 w-8 rounded-lg shrink-0 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  className="h-8 w-8 rounded-lg shrink-0 border border-zinc-200 dark:border-dark-border bg-white dark:bg-dark-card/50 dark:text-dark-text-secondary dark:hover:bg-dark-hover"
                   onClick={(e) => { e.stopPropagation(); handleCopy(item.id, item.body); }}
                   title="Copy Content"
                 >
-                  {copiedId === item.id ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />}
+                  {copiedId === item.id ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4 text-zinc-600 dark:text-dark-text-secondary" />}
                 </Button>
               </div>
               {item.body ? (
@@ -1322,11 +1322,11 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
               )}
             </div>
 
-            <div className="flex items-center justify-between mt-4 pt-2 border-t border-zinc-100 dark:border-zinc-850">
-              <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium">{new Date(item.created_at).toLocaleDateString()}</p>
+            <div className="flex items-center justify-between mt-4 pt-2 border-t border-zinc-100 dark:border-dark-muted">
+              <p className="text-[10px] text-zinc-400 dark:text-dark-text0 font-medium">{new Date(item.created_at).toLocaleDateString()}</p>
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button
-                  variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
+                  variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-800 dark:hover:text-dark-text"
                   onClick={(e) => { e.stopPropagation(); setEditing(item); }}
                   title="Edit Entry"
                 >
@@ -1351,11 +1351,11 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
 
       {/* ── View Custom Entry Dialog ──────────────────────────────────── */}
       <Dialog open={Boolean(viewingItem)} onOpenChange={(open) => !open && setViewingItem(null)}>
-        <DialogContent className="max-w-lg rounded-2xl bg-white dark:bg-zinc-950 max-h-[85vh] flex flex-col p-6 border border-zinc-200 dark:border-zinc-800">
-          <DialogHeader className="border-b border-zinc-100 dark:border-zinc-850 pb-3 flex flex-row items-center justify-between space-y-0 pr-6">
+        <DialogContent className="max-w-lg rounded-2xl bg-white dark:bg-dark-base max-h-[85vh] flex flex-col p-6 border border-zinc-200 dark:border-dark-border">
+          <DialogHeader className="border-b border-zinc-100 dark:border-dark-muted pb-3 flex flex-row items-center justify-between space-y-0 pr-6">
             <div className="flex flex-col gap-1 min-w-0 flex-1">
-              <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-50 truncate">{viewingItem?.title}</DialogTitle>
-              <div className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium">
+              <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-dark-text truncate">{viewingItem?.title}</DialogTitle>
+              <div className="text-[10px] text-zinc-400 dark:text-dark-text0 font-medium">
                 {vault.name} • {viewingItem && new Date(viewingItem.created_at).toLocaleDateString()}
               </div>
             </div>
@@ -1363,7 +1363,7 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-xl flex items-center gap-1.5 shrink-0 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 ml-2 text-xs font-semibold px-3 h-9 dark:text-zinc-300 dark:hover:bg-zinc-850"
+                className="rounded-xl flex items-center gap-1.5 shrink-0 border border-zinc-200 dark:border-dark-border bg-white dark:bg-dark-card/50 ml-2 text-xs font-semibold px-3 h-9 dark:text-dark-text-secondary dark:hover:bg-dark-hover"
                 onClick={() => handleCopy(viewingItem.id, viewingItem.body)}
               >
                 {copiedId === viewingItem.id ? (
@@ -1373,17 +1373,17 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
                   </>
                 ) : (
                   <>
-                    <Copy className="h-3.5 w-3.5 text-zinc-600 dark:text-zinc-400" />
+                    <Copy className="h-3.5 w-3.5 text-zinc-600 dark:text-dark-text-secondary" />
                     <span>Copy Content</span>
                   </>
                 )}
               </Button>
             )}
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto mt-4 pr-1 leading-relaxed text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap bg-zinc-50/50 dark:bg-zinc-900/30 p-4 rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 select-text">
+          <div className="flex-1 overflow-y-auto mt-4 pr-1 leading-relaxed text-sm text-zinc-700 dark:text-dark-text-secondary whitespace-pre-wrap bg-zinc-50/50 dark:bg-dark-card/30 p-4 rounded-xl border border-zinc-200/50 dark:border-dark-border/50 select-text">
             {viewingItem?.body || <span className="italic text-zinc-400 dark:text-zinc-550">No content.</span>}
           </div>
-          <div className="flex justify-end mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-850">
+          <div className="flex justify-end mt-4 pt-3 border-t border-zinc-100 dark:border-dark-muted">
             <Button onClick={() => setViewingItem(null)} className="rounded-xl">Close</Button>
           </div>
         </DialogContent>
@@ -1391,7 +1391,7 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
 
       {/* ── Create Custom Entry Dialog ────────────────────────────────── */}
       <Dialog open={showCreate} onOpenChange={(open) => !open && setShowCreate(false)}>
-        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800">
+        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-dark-base border border-zinc-200 dark:border-dark-border">
           <DialogHeader>
             <DialogTitle>New Entry — {vault.name}</DialogTitle>
           </DialogHeader>
@@ -1402,7 +1402,7 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
                 value={newEntry.title}
                 onChange={(e) => setNewEntry({ ...newEntry, title: e.target.value })}
                 onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-                className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
               />
             </Field>
             <Field label="Body (Optional)">
@@ -1411,11 +1411,11 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
                 value={newEntry.body}
                 onChange={(e) => setNewEntry({ ...newEntry, body: e.target.value })}
                 rows={5}
-                className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 leading-relaxed text-sm"
+                className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text leading-relaxed text-sm"
               />
             </Field>
             <div className="flex gap-2 justify-end mt-2">
-              <Button variant="outline" onClick={() => setShowCreate(false)} className="border-zinc-200 dark:border-zinc-800 dark:hover:bg-zinc-900">Cancel</Button>
+              <Button variant="outline" onClick={() => setShowCreate(false)} className="border-zinc-200 dark:border-dark-border dark:hover:bg-dark-card">Cancel</Button>
               <Button onClick={handleCreate} disabled={!newEntry.title.trim()}>Create Entry</Button>
             </div>
           </div>
@@ -1424,7 +1424,7 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
 
       {/* ── Edit Custom Entry Dialog ──────────────────────────────────── */}
       <Dialog open={Boolean(editing)} onOpenChange={(open) => !open && setEditing(null)}>
-        <DialogContent className="max-w-md bg-white dark:bg-zinc-950 rounded-2xl border border-zinc-200 dark:border-zinc-800">
+        <DialogContent className="max-w-md bg-white dark:bg-dark-base rounded-2xl border border-zinc-200 dark:border-dark-border">
           <DialogHeader><DialogTitle>Edit entry</DialogTitle></DialogHeader>
           {editing && (
             <div className="grid gap-3.5 pt-2">
@@ -1432,7 +1432,7 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
                 <Input
                   value={editing.title}
                   onChange={(e) => setEditing({ ...editing, title: e.target.value })}
-                  className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                  className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
                 />
               </Field>
               <Field label="Body">
@@ -1440,11 +1440,11 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
                   value={editing.body || ""}
                   onChange={(e) => setEditing({ ...editing, body: e.target.value })}
                   rows={6}
-                  className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                  className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
                 />
               </Field>
               <div className="flex gap-2 justify-end mt-2">
-                <Button variant="outline" onClick={() => setEditing(null)} className="border-zinc-200 dark:border-zinc-800 dark:hover:bg-zinc-900">Cancel</Button>
+                <Button variant="outline" onClick={() => setEditing(null)} className="border-zinc-200 dark:border-dark-border dark:hover:bg-dark-card">Cancel</Button>
                 <Button onClick={async () => {
                   await data.vaultItems.update(editing.id, { title: editing.title, body: editing.body });
                   setEditing(null);
@@ -1537,14 +1537,14 @@ export default function VaultPage() {
   return (
     <div className="grid gap-6">
       <div className="flex flex-col gap-1.5">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Vault</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-dark-text">Vault</h1>
         <p className="text-sm text-muted-foreground">Prompts, ideas, resources, and notes — all in one place.</p>
       </div>
 
-      <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search vault…" className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 max-w-md" />
+      <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search vault…" className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text max-w-md" />
 
       {/* ── Top Navbar Tabs ────────────────────────────────────────────── */}
-      <div className="border-b border-zinc-200 dark:border-zinc-800 pb-2">
+      <div className="border-b border-zinc-200 dark:border-dark-border pb-2">
         <div className="flex flex-wrap items-center gap-2">
           {vaults.map((vault) => (
             <button
@@ -1553,8 +1553,8 @@ export default function VaultPage() {
               className={cn(
                 "flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors border",
                 activeVaultId === vault.id
-                  ? "bg-zinc-900 dark:bg-zinc-100 border-zinc-900 dark:border-zinc-100 text-white dark:text-zinc-950"
-                  : "bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-muted-foreground hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:text-zinc-700 dark:hover:text-zinc-200"
+                  ? "bg-zinc-900 dark:bg-dark-text border-zinc-900 dark:border-dark-text text-white dark:text-dark-base"
+                  : "bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-muted-foreground hover:bg-zinc-50 dark:hover:bg-dark-hover/50 hover:text-zinc-700 dark:hover:text-dark-text"
               )}
             >
               <span className="shrink-0">
@@ -1568,7 +1568,7 @@ export default function VaultPage() {
           <Button
             variant="outline"
             onClick={() => setShowCreate(true)}
-            className="rounded-xl border-dashed border-zinc-300 dark:border-zinc-700 text-muted-foreground hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 bg-white dark:bg-zinc-900/30"
+            className="rounded-xl border-dashed border-zinc-300 dark:border-dark-muted text-muted-foreground hover:text-zinc-700 dark:hover:text-dark-text hover:bg-zinc-50 dark:hover:bg-dark-hover/50 bg-white dark:bg-dark-card/30"
           >
             <Plus className="h-4 w-4 mr-1.5" />
             New Vault
@@ -1578,12 +1578,12 @@ export default function VaultPage() {
 
       {/* ── Active Vault Header & Controls ────────────────────────────── */}
       {activeVault && (
-        <div className="flex flex-wrap items-center justify-between gap-4 bg-zinc-50/50 dark:bg-zinc-900/30 p-4 rounded-xl border border-zinc-200/60 dark:border-zinc-800/60">
+        <div className="flex flex-wrap items-center justify-between gap-4 bg-zinc-50/50 dark:bg-dark-card/30 p-4 rounded-xl border border-zinc-200/60 dark:border-dark-border/60">
           <div className="flex items-center gap-3">
-            <span className="text-zinc-800 dark:text-zinc-100 font-bold text-lg">{activeVault.name}</span>
+            <span className="text-zinc-800 dark:text-dark-text font-bold text-lg">{activeVault.name}</span>
             <div className="flex gap-1">
               <Button
-                variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-950 dark:hover:text-dark-text hover:bg-zinc-100 dark:hover:bg-dark-hover"
                 onClick={() => { setRenaming(activeVault); setRenameValue(activeVault.name); }}
                 title="Rename Vault"
               >
@@ -1624,7 +1624,7 @@ export default function VaultPage() {
 
       {/* ── Create vault dialog ────────────────────────────────────────── */}
       <Dialog open={showCreate} onOpenChange={(open) => { if (!open) { setShowCreate(false); setNewVaultName(""); } }}>
-        <DialogContent className="bg-white dark:bg-zinc-950 rounded-2xl max-w-sm border border-zinc-200 dark:border-zinc-800">
+        <DialogContent className="bg-white dark:bg-dark-base rounded-2xl max-w-sm border border-zinc-200 dark:border-dark-border">
           <DialogHeader><DialogTitle>New Vault</DialogTitle></DialogHeader>
           <div className="grid gap-3.5 pt-2">
             <Input
@@ -1633,10 +1633,10 @@ export default function VaultPage() {
               onChange={(e) => setNewVaultName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && createVault()}
               autoFocus
-              className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 text-zinc-900 dark:text-zinc-100"
+              className="border-zinc-200 dark:border-dark-border bg-white dark:bg-dark-card/50 text-zinc-900 dark:text-dark-text"
             />
             <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setShowCreate(false)} className="border-zinc-200 dark:border-zinc-800 dark:hover:bg-zinc-900">Cancel</Button>
+              <Button variant="outline" onClick={() => setShowCreate(false)} className="border-zinc-200 dark:border-dark-border dark:hover:bg-dark-card">Cancel</Button>
               <Button onClick={createVault} disabled={!newVaultName.trim()}>Create Vault</Button>
             </div>
           </div>
@@ -1645,7 +1645,7 @@ export default function VaultPage() {
 
       {/* ── Rename vault dialog ───────────────────────────────────────── */}
       <Dialog open={Boolean(renaming)} onOpenChange={(open) => !open && setRenaming(null)}>
-        <DialogContent className="bg-white dark:bg-zinc-950 rounded-2xl max-w-sm border border-zinc-200 dark:border-zinc-800">
+        <DialogContent className="bg-white dark:bg-dark-base rounded-2xl max-w-sm border border-zinc-200 dark:border-dark-border">
           <DialogHeader><DialogTitle>Rename vault</DialogTitle></DialogHeader>
           <div className="grid gap-3.5 pt-2">
             <Input
@@ -1653,10 +1653,10 @@ export default function VaultPage() {
               onChange={(e) => setRenameValue(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && confirmRename()}
               autoFocus
-              className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 text-zinc-900 dark:text-zinc-100"
+              className="border-zinc-200 dark:border-dark-border bg-white dark:bg-dark-card/50 text-zinc-900 dark:text-dark-text"
             />
             <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setRenaming(null)} className="border-zinc-200 dark:border-zinc-800 dark:hover:bg-zinc-900">Cancel</Button>
+              <Button variant="outline" onClick={() => setRenaming(null)} className="border-zinc-200 dark:border-dark-border dark:hover:bg-dark-card">Cancel</Button>
               <Button onClick={confirmRename} disabled={!renameValue.trim()}>Save</Button>
             </div>
           </div>
@@ -1665,13 +1665,13 @@ export default function VaultPage() {
 
       {/* ── Delete vault dialog ───────────────────────────────────────── */}
       <Dialog open={Boolean(deletingVault)} onOpenChange={(open) => !open && setDeletingVault(null)}>
-        <DialogContent className="bg-white dark:bg-zinc-950 rounded-2xl max-w-sm border border-zinc-200 dark:border-zinc-800">
+        <DialogContent className="bg-white dark:bg-dark-base rounded-2xl max-w-sm border border-zinc-200 dark:border-dark-border">
           <DialogHeader><DialogTitle>Delete &ldquo;{deletingVault?.name}&rdquo;?</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground leading-relaxed">
             This will permanently delete this vault and all its entries. This cannot be undone.
           </p>
           <div className="flex gap-2 mt-2">
-            <Button variant="outline" onClick={() => setDeletingVault(null)} className="flex-1 border-zinc-200 dark:border-zinc-800 dark:hover:bg-zinc-900">Cancel</Button>
+            <Button variant="outline" onClick={() => setDeletingVault(null)} className="flex-1 border-zinc-200 dark:border-dark-border dark:hover:bg-dark-card">Cancel</Button>
             <Button variant="destructive" onClick={confirmDeleteVault} className="flex-1">Delete vault</Button>
           </div>
         </DialogContent>

@@ -174,13 +174,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const isFirstTime = selectedProfile ? !isPasswordSet(selectedProfile) : false;
 
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f5f5f7]/60 dark:bg-black/60 backdrop-blur-2xl px-4 transition-colors duration-300">
-        <div className="w-full max-w-[320px] flex flex-col items-center gap-5 p-6 rounded-3xl bg-white/70 dark:bg-zinc-900/60 border border-zinc-200/50 dark:border-zinc-800/50 shadow-2xl backdrop-blur-md transition-all duration-300 relative z-10">
+      <div className="flex min-h-screen items-center justify-center bg-[#f5f5f7]/60 dark:bg-dark-base/60 backdrop-blur-2xl px-4 transition-colors duration-300">
+        <div className="w-full max-w-[320px] flex flex-col items-center gap-5 p-6 rounded-3xl bg-white/70 dark:bg-dark-card/60 border border-zinc-200/50 dark:border-dark-border/50 shadow-2xl backdrop-blur-md transition-all duration-300 relative z-10">
           <div className="text-center w-full">
-            <h2 className="text-xl font-light tracking-widest text-zinc-900 dark:text-zinc-100 uppercase">
+            <h2 className="text-xl font-light tracking-widest text-zinc-900 dark:text-dark-text uppercase">
               MISSION CONTROL
             </h2>
-            <p className="mt-1 text-[10px] text-zinc-500 dark:text-zinc-400">
+            <p className="mt-1 text-[10px] text-zinc-500 dark:text-dark-text-secondary">
               {selectedProfile
                 ? isFirstTime
                   ? `Set a password for ${uName}`
@@ -193,7 +193,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <div className="flex flex-col gap-3">
                 <Button
                   variant="outline"
-                  className="h-14 justify-start gap-4 rounded-2xl text-xs font-semibold border-zinc-200/50 dark:border-zinc-800 bg-white/50 dark:bg-zinc-950/50 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-900 dark:text-zinc-100 transition-all duration-200"
+                  className="h-14 justify-start gap-4 rounded-2xl text-xs font-semibold border-zinc-200/50 dark:border-dark-border bg-white/50 dark:bg-dark-base/50 hover:bg-zinc-100 dark:hover:bg-dark-card text-zinc-900 dark:text-dark-text transition-all duration-200"
                   onClick={() => setSelectedProfile("user1")}
                 >
                   <div
@@ -206,7 +206,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </Button>
                 <Button
                   variant="outline"
-                  className="h-14 justify-start gap-4 rounded-2xl text-xs font-semibold border-zinc-200/50 dark:border-zinc-800 bg-white/50 dark:bg-zinc-950/50 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-900 dark:text-zinc-100 transition-all duration-200"
+                  className="h-14 justify-start gap-4 rounded-2xl text-xs font-semibold border-zinc-200/50 dark:border-dark-border bg-white/50 dark:bg-dark-base/50 hover:bg-zinc-100 dark:hover:bg-dark-card text-zinc-900 dark:text-dark-text transition-all duration-200"
                   onClick={() => setSelectedProfile("user2")}
                 >
                   <div
@@ -226,14 +226,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoFocus
-                  className="h-9 text-xs text-center rounded-xl bg-zinc-100/50 dark:bg-zinc-950/50 border-zinc-200/40 dark:border-zinc-800 text-zinc-900 dark:text-white placeholder-zinc-400 focus-visible:ring-1 focus-visible:ring-zinc-400 focus-visible:border-zinc-400"
+                  className="h-9 text-xs text-center rounded-xl bg-zinc-100/50 dark:bg-dark-base/50 border-zinc-200/40 dark:border-dark-border text-zinc-900 dark:text-dark-text placeholder-zinc-400 focus-visible:ring-1 focus-visible:ring-dark-border focus-visible:border-dark-border"
                 />
                 {authError && <p className="text-[10px] text-destructive text-center font-bold animate-pulse">{authError}</p>}
                 <div className="flex gap-2 mt-1">
                   <Button
                     type="button"
                     variant="ghost"
-                    className="flex-1 rounded-xl h-9 text-xs text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                    className="flex-1 rounded-xl h-9 text-xs text-zinc-500 dark:text-dark-text-secondary hover:bg-zinc-100 dark:hover:bg-dark-card"
                     onClick={() => {
                       setSelectedProfile(null);
                       setPassword("");
@@ -242,7 +242,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   >
                     Back
                   </Button>
-                  <Button type="submit" className="flex-1 rounded-xl h-9 text-xs bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 font-bold shadow transition-all active:scale-[0.98]">
+                  <Button type="submit" className="flex-1 rounded-xl h-9 text-xs bg-zinc-900 dark:bg-dark-text hover:bg-zinc-800 dark:hover:bg-dark-text/90 text-white dark:text-dark-base font-bold shadow transition-all active:scale-[0.98]">
                     {isFirstTime ? "Set" : "Unlock"}
                   </Button>
                 </div>
@@ -257,10 +257,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   if (isLocked) {
     const color = activeUser === "user1" ? userColors.user1 : userColors.user2;
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#f5f5f7]/60 dark:bg-black/60 backdrop-blur-2xl px-4 transition-all duration-500">
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#f5f5f7]/60 dark:bg-dark-base/60 backdrop-blur-2xl px-4 transition-all duration-500">
         {/* iOS/macOS styled Large clock */}
-        <div className="flex flex-col items-center gap-1 mb-8 select-none animate-in fade-in slide-in-from-top-4 duration-500 text-zinc-800 dark:text-zinc-200">
-          <span className="text-[10px] uppercase tracking-widest font-extrabold text-zinc-500 dark:text-zinc-400">
+        <div className="flex flex-col items-center gap-1 mb-8 select-none animate-in fade-in slide-in-from-top-4 duration-500 text-zinc-800 dark:text-dark-text">
+          <span className="text-[10px] uppercase tracking-widest font-extrabold text-zinc-500 dark:text-dark-text-secondary">
             {dateStr}
           </span>
           <h1 className="text-6xl font-light tracking-tighter font-sans">
@@ -269,7 +269,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className={cn(
-          "w-full max-w-[280px] flex flex-col items-center gap-5 p-6 rounded-3xl bg-white/70 dark:bg-zinc-900/60 border border-zinc-200/50 dark:border-zinc-800/50 shadow-2xl backdrop-blur-md transition-all duration-300 relative z-10",
+          "w-full max-w-[280px] flex flex-col items-center gap-5 p-6 rounded-3xl bg-white/70 dark:bg-dark-card/60 border border-zinc-200/50 dark:border-dark-border/50 shadow-2xl backdrop-blur-md transition-all duration-300 relative z-10",
           shake && "animate-shake"
         )}>
           {/* Avatar */}
@@ -281,10 +281,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="text-center">
-            <span className="text-xs font-extrabold text-zinc-900 dark:text-zinc-100">
+            <span className="text-xs font-extrabold text-zinc-900 dark:text-dark-text">
               {activeUserName}
             </span>
-            <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-0.5">
+            <p className="text-[9px] font-bold text-zinc-500 dark:text-dark-text-secondary uppercase tracking-widest mt-0.5">
               Locked
             </p>
           </div>
@@ -297,7 +297,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoFocus
-              className="h-9 text-xs text-center rounded-xl bg-zinc-100/50 dark:bg-zinc-950/50 border-zinc-200/40 dark:border-zinc-800 text-zinc-900 dark:text-white placeholder-zinc-400 focus-visible:ring-1 focus-visible:ring-zinc-400 focus-visible:border-zinc-400"
+              className="h-9 text-xs text-center rounded-xl bg-zinc-100/50 dark:bg-dark-base/50 border-zinc-200/40 dark:border-dark-border text-zinc-900 dark:text-dark-text placeholder-zinc-400 focus-visible:ring-1 focus-visible:ring-dark-border focus-visible:border-dark-border"
             />
             {unlockError && (
               <p className="text-[10px] text-red-500 text-center font-bold animate-pulse">
@@ -307,7 +307,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             
             <Button 
               type="submit" 
-              className="h-9 rounded-xl bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 font-bold text-xs transition-all active:scale-[0.98] mt-1 shadow"
+              className="h-9 rounded-xl bg-zinc-900 dark:bg-dark-text hover:bg-zinc-800 dark:hover:bg-dark-text/90 text-white dark:text-dark-base font-bold text-xs transition-all active:scale-[0.98] mt-1 shadow"
             >
               Unlock
             </Button>
@@ -320,7 +320,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 setPassword("");
                 setUnlockError(null);
               }}
-              className="text-[9px] text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors py-1 font-bold uppercase tracking-wider mt-1 text-center"
+              className="text-[9px] text-zinc-500 hover:text-zinc-700 dark:text-dark-text-secondary dark:hover:text-dark-text transition-colors py-1 font-bold uppercase tracking-wider mt-1 text-center"
             >
               Switch Profile
             </button>
@@ -331,7 +331,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] dark:bg-black text-zinc-900 dark:text-zinc-100 transition-colors duration-300">
+    <div className="min-h-screen bg-[#f5f5f7] dark:bg-dark-surface text-zinc-900 dark:text-dark-text transition-colors duration-300">
       {/* Mobile backdrop shadow */}
       {isSidebarOpen && (
         <div
@@ -342,13 +342,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-30 w-64 border-r border-zinc-200/40 dark:border-zinc-800/40 bg-white/70 dark:bg-black/60 backdrop-blur-lg px-4 py-5 transition-all duration-300 ease-in-out transform",
+          "fixed inset-y-0 left-0 z-30 w-64 border-r border-zinc-200/40 dark:border-dark-border/40 bg-white/70 dark:bg-dark-base/60 backdrop-blur-lg px-4 py-5 transition-all duration-300 ease-in-out transform",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <Link href="/" className="mb-8 block px-2">
-          <div className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Mission Control</div>
-          <div className="text-xs text-zinc-500 dark:text-zinc-400">Private two-person OS</div>
+          <div className="text-xl font-bold tracking-tight text-zinc-900 dark:text-dark-text">Mission Control</div>
+          <div className="text-xs text-zinc-500 dark:text-dark-text-secondary">Private two-person OS</div>
         </Link>
         <nav className="grid gap-1">
           {nav.map((item) => (
@@ -356,8 +356,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]",
-                pathname === item.href && "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-sm hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-zinc-900 scale-100 hover:scale-100"
+                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-500 dark:text-dark-text-secondary hover:bg-zinc-200/50 dark:hover:bg-dark-hover hover:text-zinc-900 dark:hover:text-dark-text transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]",
+                pathname === item.href && "bg-zinc-900 dark:bg-dark-text text-white dark:text-dark-base shadow-sm hover:bg-zinc-900 dark:hover:bg-dark-text hover:text-white dark:hover:text-dark-base scale-100 hover:scale-100"
               )}
               onClick={() => {
                 // Auto close on navigation if on mobile
@@ -378,14 +378,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           isSidebarOpen ? "lg:pl-64" : "lg:pl-0"
         )}
       >
-        <header className="sticky top-0 z-20 border-b border-zinc-200/40 dark:border-zinc-800/40 bg-[#f5f5f7]/85 dark:bg-zinc-950/85 backdrop-blur-md px-4 py-3 sm:px-6">
+        <header className="sticky top-0 z-20 border-b border-zinc-200/40 dark:border-dark-border/40 bg-[#f5f5f7]/85 dark:bg-dark-base/85 backdrop-blur-md px-4 py-3 sm:px-6">
           <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="h-9 w-9 rounded-xl text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 transition-all duration-200 hover:scale-105 active:scale-95 shrink-0"
+                className="h-9 w-9 rounded-xl text-zinc-500 hover:text-zinc-900 dark:text-dark-text-secondary dark:hover:text-dark-text hover:bg-zinc-200/50 dark:hover:bg-dark-hover transition-all duration-200 hover:scale-105 active:scale-95 shrink-0"
                 title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
               >
                 {isSidebarOpen ? (
@@ -401,8 +401,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "rounded-xl border border-zinc-200/50 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 backdrop-blur-md transition-all duration-200",
-                      pathname === item.href && "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-zinc-900 hover:text-white dark:hover:bg-white dark:hover:text-zinc-900 shadow-md"
+                      "rounded-xl border border-zinc-200/50 dark:border-dark-border bg-white/70 dark:bg-dark-card/60 p-2 text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-900 dark:hover:text-dark-text backdrop-blur-md transition-all duration-200",
+                      pathname === item.href && "bg-zinc-900 dark:bg-dark-text text-white dark:text-dark-base hover:bg-zinc-900 hover:text-white dark:hover:bg-dark-text dark:hover:text-dark-base shadow-md"
                     )}
                   >
                     <item.icon className="h-4 w-4" />
@@ -412,9 +412,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
             <div className="ml-auto flex items-center gap-3">
               <GlobalSearch />
-              <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800" />
+              <div className="h-4 w-px bg-zinc-200 dark:bg-dark-border" />
               <NotificationsMenu />
-              <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800" />
+              <div className="h-4 w-px bg-zinc-200 dark:bg-dark-border" />
               <div className="flex items-center gap-2">
                 <div
                   className="flex h-7 w-7 items-center justify-center rounded-full text-white text-xs font-bold shrink-0"
@@ -422,12 +422,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 >
                   {(activeUserName ? activeUserName[0] : "").toUpperCase()}
                 </div>
-                <span className="hidden text-sm font-medium sm:inline text-zinc-700 dark:text-zinc-300">{activeUserName}</span>
+                <span className="hidden text-sm font-medium sm:inline text-zinc-700 dark:text-dark-text-secondary">{activeUserName}</span>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={toggleTheme}
-                  className="h-9 w-9 rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-zinc-800/50 transition-all duration-200"
+                  className="h-9 w-9 rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50 dark:text-dark-text-secondary dark:hover:text-dark-text dark:hover:bg-dark-hover transition-all duration-200"
                   title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
                 >
                   {theme === "light" ? (
@@ -440,7 +440,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   variant="ghost"
                   size="icon"
                   onClick={lock}
-                  className="h-9 w-9 rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-zinc-800/50 transition-all duration-200"
+                  className="h-9 w-9 rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50 dark:text-dark-text-secondary dark:hover:text-dark-text dark:hover:bg-dark-hover transition-all duration-200"
                   title="Lock Workspace"
                 >
                   <Lock className="h-4 w-4" />
@@ -459,7 +459,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
         {!isSupabaseConfigured ? (
-          <div className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-4 py-3 text-sm text-muted-foreground sm:px-6">
+          <div className="border-b border-zinc-200 dark:border-dark-border bg-white dark:bg-dark-base px-4 py-3 text-sm text-muted-foreground sm:px-6">
             Add Supabase environment variables from <code>.env.example</code> to connect live data.
           </div>
         ) : null}
@@ -729,16 +729,16 @@ function FloatingPomodoro() {
         touchAction: "none"
       }}
       className={cn(
-        "fixed z-50 w-[220px] rounded-2xl bg-zinc-900/90 text-white border border-zinc-800 p-3 shadow-2xl backdrop-blur-md select-none transition-shadow",
-        isDragging ? "shadow-zinc-950/80 cursor-grabbing ring-1 ring-zinc-700" : "cursor-grab hover:shadow-zinc-950/50"
+        "fixed z-50 w-[220px] rounded-2xl bg-dark-card/90 text-white border border-dark-border p-3 shadow-2xl backdrop-blur-md select-none transition-shadow",
+        isDragging ? "shadow-dark-base/80 cursor-grabbing ring-1 ring-dark-muted" : "cursor-grab hover:shadow-dark-base/50"
       )}
     >
       {/* Top Drag bar / controls */}
-      <div className="flex items-center justify-between gap-2 mb-1.5 text-zinc-500">
-        <GripHorizontal className="h-3.5 w-3.5 opacity-50 text-zinc-400 shrink-0" />
+      <div className="flex items-center justify-between gap-2 mb-1.5 text-dark-text-secondary">
+        <GripHorizontal className="h-3.5 w-3.5 opacity-50 text-dark-text-secondary/60 shrink-0" />
         
         {/* Simple inline progress bar */}
-        <div className="flex-1 h-1 bg-zinc-800 rounded-full overflow-hidden">
+        <div className="flex-1 h-1 bg-dark-hover rounded-full overflow-hidden">
           <div
             className={cn(
               "h-full rounded-full transition-all duration-300",
@@ -750,7 +750,7 @@ function FloatingPomodoro() {
 
         <button
           onClick={() => setIsDismissed(true)}
-          className="h-4 w-4 text-zinc-400 hover:text-white transition-colors flex items-center justify-center rounded hover:bg-zinc-800"
+          className="h-4 w-4 text-dark-text-secondary hover:text-white transition-colors flex items-center justify-center rounded hover:bg-dark-hover"
           title="Dismiss Widget"
         >
           <X className="h-2.5 w-2.5" />
@@ -763,7 +763,7 @@ function FloatingPomodoro() {
         className="cursor-pointer group flex flex-col items-center py-1"
         title="Open Pomodoro Settings"
       >
-        <span className="font-mono text-3xl font-bold tracking-tight group-hover:text-zinc-200 transition-colors">
+        <span className="font-mono text-3xl font-bold tracking-tight group-hover:text-dark-text transition-colors">
           {minutes}:{seconds}
         </span>
         <div className="flex items-center gap-1.5 mt-0.5">
@@ -774,24 +774,24 @@ function FloatingPomodoro() {
               mode === "work" ? "bg-indigo-500" : "bg-emerald-500"
             )}
           />
-          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 group-hover:text-zinc-300">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-dark-text-secondary group-hover:text-dark-text">
             {mode === "work" ? "Focus" : "Break"}
           </span>
         </div>
-        <p className="text-[9px] text-zinc-500 text-center truncate max-w-full px-2 mt-1 leading-normal font-medium group-hover:text-zinc-400">
+        <p className="text-[9px] text-dark-text-secondary/80 text-center truncate max-w-full px-2 mt-1 leading-normal font-medium group-hover:text-dark-text-secondary">
           {focusTitle}
         </p>
       </div>
 
       {/* Bottom Button Row */}
-      <div className="flex items-center justify-center gap-2 mt-2 pt-2 border-t border-zinc-800/80">
+      <div className="flex items-center justify-center gap-2 mt-2 pt-2 border-t border-dark-border/80">
         <button
           onClick={() => { getAudioContext(); setIsPlaying(!isPlaying); }}
           className={cn(
             "h-7 w-7 rounded-lg flex items-center justify-center transition-colors border",
             isPlaying 
-              ? "bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700" 
-              : "bg-zinc-100 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-800"
+              ? "bg-dark-hover border-dark-muted text-white hover:bg-dark-muted" 
+              : "bg-zinc-100 dark:bg-dark-card border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text-secondary hover:bg-white dark:hover:bg-dark-hover"
           )}
           title={isPlaying ? "Pause Timer" : "Start Timer"}
         >
@@ -800,7 +800,7 @@ function FloatingPomodoro() {
 
         <button
           onClick={handleSkipMode}
-          className="h-7 w-7 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white flex items-center justify-center transition-colors"
+          className="h-7 w-7 rounded-lg bg-dark-hover border border-dark-muted text-dark-text-secondary hover:text-white flex items-center justify-center transition-colors"
           title="Skip Cycle"
         >
           <SkipForward className="h-3 w-3" />
@@ -813,7 +813,7 @@ function FloatingPomodoro() {
               "h-7 w-7 rounded-lg border flex items-center justify-center transition-colors",
               isPiPActive
                 ? "bg-indigo-950 border-indigo-800 text-indigo-400"
-                : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:text-white"
+                : "bg-dark-hover border-dark-muted text-dark-text-secondary hover:text-white"
             )}
             title={isPiPActive ? "Close Floating Timer (PiP)" : "Float Timer (PiP)"}
           >

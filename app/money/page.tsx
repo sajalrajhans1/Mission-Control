@@ -443,27 +443,27 @@ export default function MoneyPage() {
       {/* ── Two Columns: Wallets ────────────────────────────────────────────── */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* User 1 Wallet */}
-        <Card className="relative overflow-hidden dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="relative overflow-hidden dark:border-dark-border dark:bg-dark-card">
           <CardHeader>
-            <CardTitle className="text-base text-zinc-900 dark:text-zinc-50">
+            <CardTitle className="text-base text-zinc-900 dark:text-dark-text">
               {names.user1}&apos;s Wallet {myKey === "user1" && <span className="text-xs font-normal text-green-600">(You)</span>}
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
             {myKey === "user1" ? (
               <>
-                <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
+                <div className="text-3xl font-bold text-zinc-900 dark:text-dark-text">
                   {formatVal(myWalletTotal)}
                 </div>
                 <div className="max-h-[300px] overflow-y-auto grid gap-2 pr-1">
                   {myTransactions.map((e) => (
-                    <div key={e.id} className="flex justify-between items-center p-2 rounded-lg border bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/50 text-sm">
+                    <div key={e.id} className="flex justify-between items-center p-2 rounded-lg border bg-zinc-50/50 dark:border-dark-border dark:bg-dark-card/50 text-sm">
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold truncate text-zinc-800 dark:text-zinc-200">{e.description}</p>
+                        <p className="font-semibold truncate text-zinc-800 dark:text-dark-text">{e.description}</p>
                         <p className="text-xs text-muted-foreground">{e.category} • {e.entry_date}</p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className={cn("font-bold", e.type === "Income" ? "text-green-600" : "text-zinc-900 dark:text-zinc-50")}>
+                        <span className={cn("font-bold", e.type === "Income" ? "text-green-600" : "text-zinc-900 dark:text-dark-text")}>
                           {e.type === "Income" ? "+" : "-"}{formatVal(Number(e.amount))}
                         </span>
                         <Button
@@ -483,9 +483,9 @@ export default function MoneyPage() {
                 </div>
               </>
             ) : (
-              <div className="flex flex-col items-center justify-center py-10 bg-zinc-50/50 dark:bg-zinc-900/50 rounded-xl border border-dashed dark:border-zinc-800">
+              <div className="flex flex-col items-center justify-center py-10 bg-zinc-50/50 dark:bg-dark-card/50 rounded-xl border border-dashed dark:border-dark-border">
                 <div className="text-2xl text-muted-foreground">🔒</div>
-                <p className="mt-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">Balance &amp; History Private</p>
+                <p className="mt-2 text-sm font-semibold text-zinc-800 dark:text-dark-text">Balance &amp; History Private</p>
                 <p className="text-xs text-muted-foreground mt-0.5">Visible only to {names.user1}</p>
               </div>
             )}
@@ -493,27 +493,27 @@ export default function MoneyPage() {
         </Card>
 
         {/* User 2 Wallet */}
-        <Card className="relative overflow-hidden dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="relative overflow-hidden dark:border-dark-border dark:bg-dark-card">
           <CardHeader>
-            <CardTitle className="text-base text-zinc-900 dark:text-zinc-50">
+            <CardTitle className="text-base text-zinc-900 dark:text-dark-text">
               {names.user2}&apos;s Wallet {myKey === "user2" && <span className="text-xs font-normal text-green-600">(You)</span>}
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
             {myKey === "user2" ? (
               <>
-                <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
+                <div className="text-3xl font-bold text-zinc-900 dark:text-dark-text">
                   {formatVal(myWalletTotal)}
                 </div>
                 <div className="max-h-[300px] overflow-y-auto grid gap-2 pr-1">
                   {myTransactions.map((e) => (
-                    <div key={e.id} className="flex justify-between items-center p-2 rounded-lg border bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/50 text-sm">
+                    <div key={e.id} className="flex justify-between items-center p-2 rounded-lg border bg-zinc-50/50 dark:border-dark-border dark:bg-dark-card/50 text-sm">
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold truncate text-zinc-800 dark:text-zinc-200">{e.description}</p>
+                        <p className="font-semibold truncate text-zinc-800 dark:text-dark-text">{e.description}</p>
                         <p className="text-xs text-muted-foreground">{e.category} • {e.entry_date}</p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className={cn("font-bold", e.type === "Income" ? "text-green-600" : "text-zinc-900 dark:text-zinc-50")}>
+                        <span className={cn("font-bold", e.type === "Income" ? "text-green-600" : "text-zinc-900 dark:text-dark-text")}>
                           {e.type === "Income" ? "+" : "-"}{formatVal(Number(e.amount))}
                         </span>
                         <Button
@@ -533,9 +533,9 @@ export default function MoneyPage() {
                 </div>
               </>
             ) : (
-              <div className="flex flex-col items-center justify-center py-10 bg-zinc-50/50 dark:bg-zinc-900/50 rounded-xl border border-dashed dark:border-zinc-800">
+              <div className="flex flex-col items-center justify-center py-10 bg-zinc-50/50 dark:bg-dark-card/50 rounded-xl border border-dashed dark:border-dark-border">
                 <div className="text-2xl text-muted-foreground">🔒</div>
-                <p className="mt-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">Balance &amp; History Private</p>
+                <p className="mt-2 text-sm font-semibold text-zinc-800 dark:text-dark-text">Balance &amp; History Private</p>
                 <p className="text-xs text-muted-foreground mt-0.5">Visible only to {names.user2}</p>
               </div>
             )}
@@ -544,10 +544,10 @@ export default function MoneyPage() {
       </div>
 
       {/* ── Savings Goals ─────────────────────────────────────────────────── */}
-      <Card className="dark:border-zinc-800 dark:bg-zinc-900">
+      <Card className="dark:border-dark-border dark:bg-dark-card">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-zinc-900 dark:text-zinc-50">Savings Goals</CardTitle>
+            <CardTitle className="text-zinc-900 dark:text-dark-text">Savings Goals</CardTitle>
             <p className="text-xs text-muted-foreground mt-0.5">Put money aside for long-term targets.</p>
           </div>
           <Button onClick={() => setShowCreateGoal(true)} className="rounded-xl">
@@ -559,18 +559,18 @@ export default function MoneyPage() {
             {savingsGoals.rows.filter((g) => g.created_by === myKey).map((goal) => {
               const percent = Math.min(100, Math.max(0, goal.target_amount ? (goal.current_amount / goal.target_amount) * 100 : 0));
               return (
-                <Card key={goal.id} className="relative overflow-hidden bg-zinc-50/50 dark:bg-zinc-900/50 border dark:border-zinc-800">
+                <Card key={goal.id} className="relative overflow-hidden bg-zinc-50/50 dark:bg-dark-card/50 border dark:border-dark-border">
                   <CardContent className="pt-6 grid gap-4">
                     <div>
                       <div className="flex justify-between items-start gap-2 mb-1">
-                        <h4 className="font-bold text-sm text-zinc-800 dark:text-zinc-200 truncate">{goal.title}</h4>
-                        <span className="text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-1.5 py-0.5 rounded font-medium shrink-0">
+                        <h4 className="font-bold text-sm text-zinc-800 dark:text-dark-text truncate">{goal.title}</h4>
+                        <span className="text-[10px] bg-zinc-100 dark:bg-dark-hover text-zinc-700 dark:text-dark-text-secondary px-1.5 py-0.5 rounded font-medium shrink-0">
                           by {goal.created_by === "user1" ? names.user1 : names.user2}
                         </span>
                       </div>
                       <div className="flex justify-between items-baseline mt-2 text-xs">
                         <span className="text-zinc-500">Progress</span>
-                        <span className="font-bold text-zinc-900 dark:text-zinc-50">
+                        <span className="font-bold text-zinc-900 dark:text-dark-text">
                           {formatVal(goal.current_amount)} / {formatVal(goal.target_amount)}
                         </span>
                       </div>
@@ -581,7 +581,7 @@ export default function MoneyPage() {
                       <div className="text-[10px] text-right text-muted-foreground font-medium">{percent.toFixed(0)}% Complete</div>
                     </div>
                     
-                    <div className="flex gap-2 justify-end mt-1 pt-3 border-t dark:border-zinc-800">
+                    <div className="flex gap-2 justify-end mt-1 pt-3 border-t dark:border-dark-border">
                       <Button
                         size="sm"
                         variant="outline"
@@ -624,9 +624,9 @@ export default function MoneyPage() {
       {/* ── Split Requests Dashboard ────────────────────────────────────────── */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Split Approvals Panel */}
-        <Card className="dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="dark:border-dark-border dark:bg-dark-card">
           <CardHeader>
-            <CardTitle className="text-base text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+            <CardTitle className="text-base text-zinc-900 dark:text-dark-text flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-amber-500" />
               Split Approvals
             </CardTitle>
@@ -703,9 +703,9 @@ export default function MoneyPage() {
         </Card>
 
         {/* Cash Settlements Panel */}
-        <Card className="dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="dark:border-dark-border dark:bg-dark-card">
           <CardHeader>
-            <CardTitle className="text-base text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+            <CardTitle className="text-base text-zinc-900 dark:text-dark-text flex items-center gap-2">
               <CircleDollarSign className="h-4 w-4 text-emerald-500" />
               Cash Settlements
             </CardTitle>
@@ -933,9 +933,9 @@ export default function MoneyPage() {
       </div>
 
       {/* ── Send Money ────────────────────────────────────────────────────── */}
-      <Card className="dark:border-zinc-800 dark:bg-zinc-900">
+      <Card className="dark:border-dark-border dark:bg-dark-card">
         <CardHeader>
-          <CardTitle className="text-base text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+          <CardTitle className="text-base text-zinc-900 dark:text-dark-text flex items-center gap-2">
             <Send className="h-4 w-4 text-violet-500" />
             Send Money to {otherKey === "user1" ? names.user1 : names.user2}
           </CardTitle>
@@ -1012,9 +1012,9 @@ export default function MoneyPage() {
       {/* ── Add Entry & Spending Charts ──────────────────────────────────────── */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* New Transaction Form */}
-        <Card className="dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="dark:border-dark-border dark:bg-dark-card">
           <CardHeader>
-            <CardTitle className="text-zinc-900 dark:text-zinc-50">New Entry</CardTitle>
+            <CardTitle className="text-zinc-900 dark:text-dark-text">New Entry</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -1100,9 +1100,9 @@ export default function MoneyPage() {
         </Card>
 
         {/* Charts & Spending Pie Chart */}
-        <Card className="dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="dark:border-dark-border dark:bg-dark-card">
           <CardHeader>
-            <CardTitle className="text-zinc-900 dark:text-zinc-50">Spending Insights</CardTitle>
+            <CardTitle className="text-zinc-900 dark:text-dark-text">Spending Insights</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-6 sm:grid-cols-[auto_1fr] items-center">
             {pieData.sum > 0 ? (
@@ -1126,18 +1126,18 @@ export default function MoneyPage() {
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                   <span className="text-xs text-muted-foreground">Total Spend</span>
-                  <span className="text-sm font-bold text-zinc-900 dark:text-zinc-50">{formatVal(pieData.sum)}</span>
+                  <span className="text-sm font-bold text-zinc-900 dark:text-dark-text">{formatVal(pieData.sum)}</span>
                 </div>
               </div>
             ) : (
-              <div className="h-[160px] w-[160px] mx-auto rounded-full border-4 border-dashed dark:border-zinc-800 flex items-center justify-center text-xs text-muted-foreground text-center p-3">
+              <div className="h-[160px] w-[160px] mx-auto rounded-full border-4 border-dashed dark:border-dark-border flex items-center justify-center text-xs text-muted-foreground text-center p-3">
                 No spending data this month
               </div>
             )}
             <div className="grid gap-2">
               {pieData.sum > 0 ? (
                 svgCircles.map((c) => (
-                  <div key={c.name} className="flex items-center gap-2 text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                  <div key={c.name} className="flex items-center gap-2 text-xs font-semibold text-zinc-800 dark:text-dark-text">
                     <span className="h-3 w-3 rounded-full shrink-0" style={{ background: CATEGORY_COLORS[c.name] }} />
                     <span className="flex-1 truncate">{c.name}</span>
                     <span className="text-muted-foreground">{c.percentage.toFixed(0)}% ({formatVal(c.value)})</span>
@@ -1152,16 +1152,16 @@ export default function MoneyPage() {
       </div>
 
       {/* ── Weekly Insights Card ────────────────────────────────────────────── */}
-      <Card className="dark:border-zinc-800 dark:bg-zinc-900">
+      <Card className="dark:border-dark-border dark:bg-dark-card">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
+          <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-dark-text">
             <Sparkles className="h-4 w-4 text-yellow-500" />
             Weekly Wallet Insights
           </CardTitle>
         </CardHeader>
-        <CardContent className="text-sm text-zinc-700 dark:text-zinc-300 grid gap-3">
+        <CardContent className="text-sm text-zinc-700 dark:text-dark-text-secondary grid gap-3">
           <p>
-            This week you spent <strong className="text-zinc-900 dark:text-zinc-50">{formatVal(weeklyInsights.currentTotal)}</strong>
+            This week you spent <strong className="text-zinc-900 dark:text-dark-text">{formatVal(weeklyInsights.currentTotal)}</strong>
             {weeklyInsights.prevTotal > 0 ? (
               <span>
                 , which is{" "}
@@ -1176,10 +1176,10 @@ export default function MoneyPage() {
             )}
           </p>
           {weeklyInsights.topCategoryName ? (
-            <div className="p-3 bg-zinc-50 dark:bg-zinc-800/40 rounded-xl border dark:border-zinc-800 flex gap-3 items-start">
+            <div className="p-3 bg-zinc-50 dark:bg-dark-hover/40 rounded-xl border dark:border-dark-border flex gap-3 items-start">
               <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-zinc-900 dark:text-zinc-50">Top category spend: {weeklyInsights.topCategoryName}</p>
+                <p className="font-semibold text-zinc-900 dark:text-dark-text">Top category spend: {weeklyInsights.topCategoryName}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   You spent {formatVal(weeklyInsights.topCategoryValue)} on {weeklyInsights.topCategoryName} this week.
                   {weeklyInsights.topCategoryName === "Tea" && " That’s a lot of cups! Try setting a small daily tea budget to lock-in."}
@@ -1206,7 +1206,7 @@ export default function MoneyPage() {
 
       {/* ── Create Goal Dialog ────────────────────────────────────────── */}
       <Dialog open={showCreateGoal} onOpenChange={(open) => !open && setShowCreateGoal(false)}>
-        <DialogContent className="max-w-md bg-white dark:bg-zinc-900 border dark:border-zinc-800">
+        <DialogContent className="max-w-md bg-white dark:bg-dark-card border dark:border-dark-border">
           <DialogHeader>
             <DialogTitle>New Savings Goal</DialogTitle>
           </DialogHeader>
@@ -1238,7 +1238,7 @@ export default function MoneyPage() {
 
       {/* ── Deposit/Withdraw Dialog ────────────────────────────────────── */}
       <Dialog open={Boolean(adjustingGoal)} onOpenChange={(open) => !open && setAdjustingGoal(null)}>
-        <DialogContent className="max-w-md bg-white dark:bg-zinc-900 border dark:border-zinc-800">
+        <DialogContent className="max-w-md bg-white dark:bg-dark-card border dark:border-dark-border">
           <DialogHeader>
             <DialogTitle>
               {adjustMode === "deposit" ? "Deposit to" : "Withdraw from"} {adjustingGoal?.title}
@@ -1246,7 +1246,7 @@ export default function MoneyPage() {
           </DialogHeader>
           <div className="grid gap-4 pt-2">
             <div className="text-xs text-muted-foreground">
-              Current Balance: <span className="font-bold text-zinc-900 dark:text-zinc-50">{adjustingGoal ? formatVal(adjustingGoal.current_amount) : ""}</span>
+              Current Balance: <span className="font-bold text-zinc-900 dark:text-dark-text">{adjustingGoal ? formatVal(adjustingGoal.current_amount) : ""}</span>
             </div>
             <Field label={`Amount to ${adjustMode === "deposit" ? "deposit" : "withdraw"} (${currencySymbol})`}>
               <Input

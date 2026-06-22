@@ -21,21 +21,22 @@
 }
 
 .dark {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  --card: 240 10% 4.9%;
-  --card-foreground: 0 0% 98%;
-  --primary: 0 0% 98%;
-  --primary-foreground: 240 10% 3.9%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  --accent: 240 3.7% 15.9%;
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 3.7% 17.9%;
-  --input: 240 3.7% 17.9%;
-  --ring: 240 4.9% 83.9%;
+  /* Discord-inspired warm dark palette — softer contrast, easier on the eyes */
+  --background: 220 8% 20%;       /* #313338 — main content background */
+  --foreground: 210 9% 87%;       /* #dbdee1 — primary text (soft off-white) */
+  --card: 220 7% 22%;             /* #373a3f — card surfaces, slightly elevated */
+  --card-foreground: 210 9% 87%;  /* #dbdee1 — card text */
+  --primary: 210 9% 87%;          /* #dbdee1 — primary buttons / accents */
+  --primary-foreground: 220 8% 15%; /* dark text on primary */
+  --muted: 220 7% 25%;            /* #3f4147 — muted backgrounds */
+  --muted-foreground: 215 7% 61%; /* #949ba4 — secondary/muted text */
+  --accent: 220 7% 25%;           /* #3f4147 — accent surfaces */
+  --accent-foreground: 210 9% 87%;
+  --destructive: 0 62.8% 40%;
+  --destructive-foreground: 0 0% 95%;
+  --border: 220 6% 27%;           /* #42454a — borders */
+  --input: 220 6% 27%;            /* #42454a — input borders */
+  --ring: 215 7% 55%;             /* focus ring — muted blue-gray */
 }
 
 * {
@@ -61,6 +62,11 @@ select {
 
 ::selection {
   background: #111;
+  color: #fff;
+}
+
+.dark ::selection {
+  background: #5865f2;
   color: #fff;
 }
 
@@ -135,6 +141,18 @@ select {
 
 .scrollbar-sleek::-webkit-scrollbar-corner {
   background: transparent;
+}
+
+.dark .scrollbar-sleek {
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.dark .scrollbar-sleek::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.dark .scrollbar-sleek::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 /* Shake animation for password failures */

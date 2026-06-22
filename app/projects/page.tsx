@@ -130,17 +130,17 @@ export default function ProjectsPage() {
     <div className="grid gap-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Projects</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-dark-text">Projects</h1>
           <p className="mt-1 text-sm text-muted-foreground">Operational workspace &amp; collaborative project boards.</p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => setShowArchived((v) => !v)} className="dark:border-zinc-800">
+        <Button variant="outline" size="sm" onClick={() => setShowArchived((v) => !v)} className="dark:border-dark-border">
           {showArchived ? "Hide archived" : "Show archived"}
         </Button>
       </div>
 
-      <Card className="dark:border-zinc-800 dark:bg-zinc-900">
+      <Card className="dark:border-dark-border dark:bg-dark-card">
         <CardHeader className="pb-3">
-          <CardTitle className="text-zinc-900 dark:text-zinc-50">New Project</CardTitle>
+          <CardTitle className="text-zinc-900 dark:text-dark-text">New Project</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="flex gap-2">
@@ -149,7 +149,7 @@ export default function ProjectsPage() {
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && createProject()}
               placeholder="Startup idea / Business lane / Client name..."
-              className="flex-1 dark:border-zinc-800 dark:bg-zinc-950"
+              className="flex-1 dark:border-dark-border dark:bg-dark-base"
             />
             <Button onClick={createProject}>
               <Plus className="h-4 w-4 mr-2" />
@@ -160,16 +160,16 @@ export default function ProjectsPage() {
           <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 items-end">
             {/* Project Type Selection */}
             <div className="grid gap-1.5">
-              <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Project Type</label>
-              <div className="flex rounded-lg border dark:border-zinc-800 p-0.5 bg-zinc-100/50 dark:bg-zinc-950">
+              <label className="text-xs font-semibold text-zinc-500 dark:text-dark-text-secondary">Project Type</label>
+              <div className="flex rounded-lg border dark:border-dark-border p-0.5 bg-zinc-100/50 dark:bg-dark-base">
                 <button
                   type="button"
                   onClick={() => setProjectType("normal")}
                   className={cn(
                     "flex-1 py-1.5 text-xs font-medium rounded-md transition-all",
                     projectType === "normal"
-                      ? "bg-white dark:bg-zinc-900 shadow-sm text-zinc-900 dark:text-zinc-50"
-                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                      ? "bg-white dark:bg-dark-card shadow-sm text-zinc-900 dark:text-dark-text"
+                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-dark-text-secondary"
                   )}
                 >
                   Normal Project
@@ -180,8 +180,8 @@ export default function ProjectsPage() {
                   className={cn(
                     "flex-1 py-1.5 text-xs font-medium rounded-md transition-all",
                     projectType === "client"
-                      ? "bg-white dark:bg-zinc-900 shadow-sm text-zinc-900 dark:text-zinc-50"
-                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                      ? "bg-white dark:bg-dark-card shadow-sm text-zinc-900 dark:text-dark-text"
+                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-dark-text-secondary"
                   )}
                 >
                   Client Project
@@ -191,16 +191,16 @@ export default function ProjectsPage() {
 
             {/* Visibility / Privacy Selection */}
             <div className="grid gap-1.5">
-              <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Visibility</label>
-              <div className="flex rounded-lg border dark:border-zinc-800 p-0.5 bg-zinc-100/50 dark:bg-zinc-950">
+              <label className="text-xs font-semibold text-zinc-500 dark:text-dark-text-secondary">Visibility</label>
+              <div className="flex rounded-lg border dark:border-dark-border p-0.5 bg-zinc-100/50 dark:bg-dark-base">
                 <button
                   type="button"
                   onClick={() => setIsPrivate(false)}
                   className={cn(
                     "flex-1 py-1.5 text-xs font-medium rounded-md transition-all",
                     !isPrivate
-                      ? "bg-white dark:bg-zinc-900 shadow-sm text-zinc-900 dark:text-zinc-50"
-                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                      ? "bg-white dark:bg-dark-card shadow-sm text-zinc-900 dark:text-dark-text"
+                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-dark-text-secondary"
                   )}
                 >
                   👥 Collab
@@ -211,8 +211,8 @@ export default function ProjectsPage() {
                   className={cn(
                     "flex-1 py-1.5 text-xs font-medium rounded-md transition-all",
                     isPrivate
-                      ? "bg-white dark:bg-zinc-900 shadow-sm text-zinc-900 dark:text-zinc-50"
-                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                      ? "bg-white dark:bg-dark-card shadow-sm text-zinc-900 dark:text-dark-text"
+                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-dark-text-secondary"
                   )}
                 >
                   🔒 Private
@@ -223,17 +223,17 @@ export default function ProjectsPage() {
             {/* Client Deadline (Visible only if Client Project is active) */}
             {projectType === "client" ? (
               <div className="grid gap-1.5 animate-in fade-in slide-in-from-top-1 duration-250">
-                <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Client Deadline</label>
+                <label className="text-xs font-semibold text-zinc-500 dark:text-dark-text-secondary">Client Deadline</label>
                 <Input
                   type="datetime-local"
                   value={clientDeadline}
                   onChange={(e) => setClientDeadline(e.target.value)}
-                  className="h-9.5 text-xs py-1 dark:border-zinc-800 dark:bg-zinc-950 border-zinc-200"
+                  className="h-9.5 text-xs py-1 dark:border-dark-border dark:bg-dark-base border-zinc-200"
                 />
               </div>
             ) : (
               <div className="flex items-center gap-2 pb-1.5">
-                <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 mr-2">Color Tag:</label>
+                <label className="text-xs font-semibold text-zinc-500 dark:text-dark-text-secondary mr-2">Color Tag:</label>
                 <div className="flex flex-wrap gap-1.5">
                   {PROJECT_COLORS.map((c) => (
                     <button
@@ -254,8 +254,8 @@ export default function ProjectsPage() {
 
           {/* Color tag selector in case of Client Project */}
           {projectType === "client" && (
-            <div className="flex items-center gap-2 border-t dark:border-zinc-800 pt-2 animate-in fade-in duration-200">
-              <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 mr-2">Color Tag:</label>
+            <div className="flex items-center gap-2 border-t dark:border-dark-border pt-2 animate-in fade-in duration-200">
+              <label className="text-xs font-semibold text-zinc-500 dark:text-dark-text-secondary mr-2">Color Tag:</label>
               <div className="flex flex-wrap gap-1.5">
                 {PROJECT_COLORS.map((c) => (
                   <button
@@ -284,7 +284,7 @@ export default function ProjectsPage() {
             >
               <Card
                 className={cn(
-                  "transition-shadow hover:shadow-soft dark:border-zinc-800 dark:bg-zinc-900 h-full flex flex-col justify-between",
+                  "transition-shadow hover:shadow-soft dark:border-dark-border dark:bg-dark-card h-full flex flex-col justify-between",
                   project.archived ? "opacity-60" : ""
                 )}
                 style={project.color ? { borderLeftColor: project.color, borderLeftWidth: 4 } : undefined}
@@ -298,7 +298,7 @@ export default function ProjectsPage() {
                         Client
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-zinc-50 text-zinc-650 border border-zinc-200 dark:bg-zinc-900 dark:text-zinc-400 dark:border-zinc-800">
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-zinc-50 text-zinc-650 border border-zinc-200 dark:bg-dark-card dark:text-dark-text-secondary dark:border-dark-border">
                         Normal
                       </span>
                     )}
@@ -315,7 +315,7 @@ export default function ProjectsPage() {
                       </span>
                     )}
                   </div>
-                  <CardTitle className="text-base text-zinc-900 dark:text-zinc-50 font-bold truncate">
+                  <CardTitle className="text-base text-zinc-900 dark:text-dark-text font-bold truncate">
                     {project.name}
                   </CardTitle>
                 </CardHeader>
@@ -339,7 +339,7 @@ export default function ProjectsPage() {
 
                   {/* Deadline text */}
                   {project.project_type === "client" && project.client_deadline && (
-                    <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-semibold border-t dark:border-zinc-800 pt-2 mt-1">
+                    <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-semibold border-t dark:border-dark-border pt-2 mt-1">
                       <Clock className="h-3 w-3 text-zinc-400 shrink-0" />
                       <span className="truncate">Due: {formatDeadline(project.client_deadline)}</span>
                     </div>
@@ -349,19 +349,19 @@ export default function ProjectsPage() {
             </button>
             <div className="absolute right-2 top-2 hidden gap-1 group-hover:flex">
               <Button
-                variant="ghost" size="icon" className="h-7 w-7 bg-white/80 backdrop-blur dark:bg-zinc-950/80"
+                variant="ghost" size="icon" className="h-7 w-7 bg-white/80 backdrop-blur dark:bg-dark-base/80"
                 onClick={(e) => { e.stopPropagation(); setRenaming(project); setRenameValue(project.name); }}
               >
                 <Pencil className="h-3 w-3" />
               </Button>
               <Button
-                variant="ghost" size="icon" className="h-7 w-7 bg-white/80 backdrop-blur dark:bg-zinc-950/80"
+                variant="ghost" size="icon" className="h-7 w-7 bg-white/80 backdrop-blur dark:bg-dark-base/80"
                 onClick={(e) => { e.stopPropagation(); projects.update(project.id, { archived: !project.archived }); }}
               >
                 {project.archived ? <ArchiveRestore className="h-3 w-3" /> : <Archive className="h-3 w-3" />}
               </Button>
               <Button
-                variant="ghost" size="icon" className="h-7 w-7 bg-white/80 backdrop-blur dark:bg-zinc-950/80 text-destructive"
+                variant="ghost" size="icon" className="h-7 w-7 bg-white/80 backdrop-blur dark:bg-dark-base/80 text-destructive"
                 onClick={(e) => { e.stopPropagation(); setDeleting(project); setDeleteMode("move"); }}
               >
                 <Trash2 className="h-3 w-3" />
@@ -387,7 +387,7 @@ export default function ProjectsPage() {
             onChange={(e) => setRenameValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && confirmRename()}
             autoFocus
-            className="dark:border-zinc-800 dark:bg-zinc-950"
+            className="dark:border-dark-border dark:bg-dark-base"
           />
           <Button onClick={confirmRename}>Save</Button>
         </DialogContent>
@@ -404,7 +404,7 @@ export default function ProjectsPage() {
             <button
               onClick={() => setDeleteMode("move")}
               className={cn(
-                "rounded-xl border p-3 text-left text-sm transition-colors hover:bg-accent dark:border-zinc-800 dark:hover:bg-zinc-800",
+                "rounded-xl border p-3 text-left text-sm transition-colors hover:bg-accent dark:border-dark-border dark:hover:bg-dark-hover",
                 deleteMode === "move" ? "border-black dark:border-zinc-300 font-medium" : ""
               )}
             >
@@ -413,7 +413,7 @@ export default function ProjectsPage() {
             <button
               onClick={() => setDeleteMode("tasks")}
               className={cn(
-                "rounded-xl border p-3 text-left text-sm transition-colors hover:bg-accent dark:border-zinc-800 dark:hover:bg-zinc-800",
+                "rounded-xl border p-3 text-left text-sm transition-colors hover:bg-accent dark:border-dark-border dark:hover:bg-dark-hover",
                 deleteMode === "tasks" ? "border-black dark:border-zinc-300 font-medium" : ""
               )}
             >
@@ -421,7 +421,7 @@ export default function ProjectsPage() {
             </button>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setDeleting(null)} className="flex-1 dark:border-zinc-800">
+            <Button variant="outline" onClick={() => setDeleting(null)} className="flex-1 dark:border-dark-border">
               Cancel
             </Button>
             <Button variant="destructive" onClick={confirmDelete} className="flex-1">

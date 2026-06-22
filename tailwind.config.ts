@@ -35,6 +35,17 @@ const config: Config = {
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))"
+        },
+        /* Discord-inspired dark palette tokens */
+        dark: {
+          base:    "#2b2d31",  /* sidebar / deepest background */
+          surface: "#313338",  /* main content background */
+          card:    "#383a40",  /* card / elevated surface */
+          hover:   "#404249",  /* hover states */
+          border:  "#42454a",  /* borders */
+          muted:   "#4e5058",  /* muted elements */
+          text:    "#dbdee1",  /* primary text */
+          "text-secondary": "#949ba4", /* muted text */
         }
       },
       borderRadius: {
@@ -51,3 +62,4 @@ const config: Config = {
 };
 
 export default config;
+

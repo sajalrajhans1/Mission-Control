@@ -146,21 +146,21 @@ export default function TasksPage() {
     <div className="grid gap-6">
       {/* Header */}
       <div className="flex flex-col gap-1.5">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Tasks</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-dark-text">Tasks</h1>
         <p className="text-sm text-muted-foreground">
           Assign, approve, and track work between {user1} and {user2}.
         </p>
       </div>
 
       {/* Main Spaces Navigation Tabs */}
-      <div className="flex border-b border-zinc-200 dark:border-zinc-800">
+      <div className="flex border-b border-zinc-200 dark:border-dark-border">
         <button
           onClick={() => handleSpaceChange("user1")}
           className={cn(
             "py-3.5 px-6 font-semibold text-sm border-b-2 transition-colors",
             activeSpace === "user1"
               ? "border-zinc-900 dark:border-white text-zinc-900 dark:text-white"
-              : "border-transparent text-muted-foreground hover:text-zinc-700 dark:hover:text-zinc-200"
+              : "border-transparent text-muted-foreground hover:text-zinc-700 dark:hover:text-dark-text"
           )}
         >
           {user1}&apos;s Tasks
@@ -171,7 +171,7 @@ export default function TasksPage() {
             "py-3.5 px-6 font-semibold text-sm border-b-2 transition-colors",
             activeSpace === "user2"
               ? "border-zinc-900 dark:border-white text-zinc-900 dark:text-white"
-              : "border-transparent text-muted-foreground hover:text-zinc-700 dark:hover:text-zinc-200"
+              : "border-transparent text-muted-foreground hover:text-zinc-700 dark:hover:text-dark-text"
           )}
         >
           {user2}&apos;s Tasks
@@ -182,7 +182,7 @@ export default function TasksPage() {
             "py-3.5 px-6 font-semibold text-sm border-b-2 transition-colors",
             activeSpace === "collab"
               ? "border-zinc-900 dark:border-white text-zinc-900 dark:text-white"
-              : "border-transparent text-muted-foreground hover:text-zinc-700 dark:hover:text-zinc-200"
+              : "border-transparent text-muted-foreground hover:text-zinc-700 dark:hover:text-dark-text"
           )}
         >
           Collaborative Tasks
@@ -190,9 +190,9 @@ export default function TasksPage() {
       </div>
 
       {/* Task Creation Form */}
-      <Card className="dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800">
+      <Card className="dark:bg-dark-card/40 border border-zinc-200 dark:border-dark-border">
         <CardHeader className="pb-3">
-          <CardTitle className="text-zinc-900 dark:text-zinc-100 text-lg">Create New Task</CardTitle>
+          <CardTitle className="text-zinc-900 dark:text-dark-text text-lg">Create New Task</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 xl:grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_auto] xl:items-end">
           <Field label="Task Title">
@@ -201,7 +201,7 @@ export default function TasksPage() {
               onChange={(e) => setTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && createTask()}
               placeholder="What needs doing?"
-              className="bg-white dark:bg-zinc-950 border-zinc-200"
+              className="bg-white dark:bg-dark-base border-zinc-200"
             />
           </Field>
           <Field label="Task Note (Important details)">
@@ -210,12 +210,12 @@ export default function TasksPage() {
               onChange={(e) => setNote(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && createTask()}
               placeholder="Details or comments..."
-              className="bg-white dark:bg-zinc-950 border-zinc-200"
+              className="bg-white dark:bg-dark-base border-zinc-200"
             />
           </Field>
           <Field label="Assigned To">
             <Select value={assignedTo} onValueChange={setAssignedTo}>
-              <SelectTrigger className="bg-white dark:bg-zinc-950 border-zinc-200">
+              <SelectTrigger className="bg-white dark:bg-dark-base border-zinc-200">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -227,7 +227,7 @@ export default function TasksPage() {
           </Field>
           <Field label="Priority">
             <Select value={priority} onValueChange={(value) => setPriority(value as typeof priority)}>
-              <SelectTrigger className="bg-white dark:bg-zinc-950 border-zinc-200">
+              <SelectTrigger className="bg-white dark:bg-dark-base border-zinc-200">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -239,7 +239,7 @@ export default function TasksPage() {
           </Field>
           <Field label="Project">
             <Select value={projectId} onValueChange={setProjectId}>
-              <SelectTrigger className="bg-white dark:bg-zinc-950 border-zinc-200">
+              <SelectTrigger className="bg-white dark:bg-dark-base border-zinc-200">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -257,7 +257,7 @@ export default function TasksPage() {
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="bg-white dark:bg-zinc-950 border-zinc-200"
+              className="bg-white dark:bg-dark-base border-zinc-200"
             />
           </Field>
           <Button onClick={createTask} className="w-full mt-2 xl:mt-0">
@@ -283,13 +283,13 @@ export default function TasksPage() {
             {incomingRequests.map((task) => (
               <div
                 key={task.id}
-                className="flex items-center justify-between gap-4 p-3 rounded-xl border border-amber-200 dark:border-amber-900/40 bg-white dark:bg-zinc-900/60 shadow-sm"
+                className="flex items-center justify-between gap-4 p-3 rounded-xl border border-amber-200 dark:border-amber-900/40 bg-white dark:bg-dark-card/60 shadow-sm"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 truncate">{task.title}</p>
+                  <p className="font-semibold text-sm text-zinc-900 dark:text-dark-text truncate">{task.title}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Created by: <span className="font-medium text-zinc-700 dark:text-zinc-300">{task.created_by}</span>
-                    {task.note && <span className="italic ml-2 text-zinc-550 dark:text-zinc-400">• Note: {task.note}</span>}
+                    Created by: <span className="font-medium text-zinc-700 dark:text-dark-text-secondary">{task.created_by}</span>
+                    {task.note && <span className="italic ml-2 text-zinc-550 dark:text-dark-text-secondary">• Note: {task.note}</span>}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -324,21 +324,21 @@ export default function TasksPage() {
       )}
 
       {pendingRequests.length > 0 && (
-        <Card className="border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/30">
+        <Card className="border border-zinc-200 dark:border-dark-border bg-zinc-50/50 dark:bg-dark-base/30">
           <CardHeader className="pb-2">
-            <CardTitle className="text-zinc-700 dark:text-zinc-300 text-sm font-semibold flex items-center gap-2">
+            <CardTitle className="text-zinc-700 dark:text-dark-text-secondary text-sm font-semibold flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-zinc-500" />
               Sent Tasks Awaiting Approval ({pendingRequests.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2">
             {pendingRequests.map((task) => (
-              <div key={task.id} className="flex items-center justify-between p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 text-xs">
+              <div key={task.id} className="flex items-center justify-between p-2.5 rounded-lg border border-zinc-200 dark:border-dark-border bg-white dark:bg-dark-card/60 text-xs">
                 <div className="min-w-0">
-                  <span className="font-medium text-zinc-800 dark:text-zinc-200">{task.title}</span>
+                  <span className="font-medium text-zinc-800 dark:text-dark-text">{task.title}</span>
                   {task.note && <span className="italic text-muted-foreground ml-2">• Note: {task.note}</span>}
                 </div>
-                <span className="text-zinc-500 dark:text-zinc-400 italic font-medium">Awaiting {activeSpace === "user1" ? user2 : user1}&apos;s approval</span>
+                <span className="text-zinc-500 dark:text-dark-text-secondary italic font-medium">Awaiting {activeSpace === "user1" ? user2 : user1}&apos;s approval</span>
               </div>
             ))}
           </CardContent>

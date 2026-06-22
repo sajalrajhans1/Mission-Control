@@ -65,7 +65,7 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
   const canDelete = isCreator || isBoth;
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="flex items-center gap-3 rounded-xl border bg-white p-3 dark:border-dark-border dark:bg-dark-card">
       {isBoth ? (
         <div className="flex gap-1.5 shrink-0">
           {/* User 1 Circle */}
@@ -188,7 +188,7 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
       <div className="min-w-0 flex-1">
         <div
           className={cn(
-            "truncate font-medium text-zinc-900 dark:text-zinc-50",
+            "truncate font-medium text-zinc-900 dark:text-dark-text",
             task.completed && "text-muted-foreground line-through opacity-70"
           )}
         >
@@ -239,7 +239,7 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
             className={cn(
               "flex items-center gap-1 px-2 py-0.5 font-medium text-xs rounded-md border shadow-none",
               task.completed
-                ? "bg-zinc-50 text-zinc-400 border-zinc-200 dark:bg-zinc-900 dark:text-zinc-600 dark:border-zinc-800"
+                ? "bg-zinc-50 text-zinc-400 border-zinc-200 dark:bg-dark-card dark:text-dark-text-secondary dark:border-dark-border"
                 : (() => {
                     const info = getDueDateLabel(task.due_date!);
                     if (info.variant === "overdue") {
@@ -254,7 +254,7 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
                     if (info.variant === "upcoming") {
                       return "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/20 dark:text-sky-400 dark:border-sky-900";
                     }
-                    return "bg-zinc-50 text-zinc-700 border-zinc-200 dark:bg-zinc-900 dark:text-zinc-400 dark:border-zinc-800";
+                    return "bg-zinc-50 text-zinc-700 border-zinc-200 dark:bg-dark-card dark:text-dark-text-secondary dark:border-dark-border";
                   })()
             )}
           >
@@ -269,7 +269,7 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
                 ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900"
                 : task.priority === "Medium"
                 ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900"
-                : "bg-zinc-50 text-zinc-700 border-zinc-200 dark:bg-zinc-900 dark:text-zinc-400 dark:border-zinc-800"
+                : "bg-zinc-50 text-zinc-700 border-zinc-200 dark:bg-dark-card dark:text-dark-text-secondary dark:border-dark-border"
             )}
           >
             {task.priority}

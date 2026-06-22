@@ -82,15 +82,15 @@ export function RichTextEditor({
   };
 
   return (
-    <div className={cn("flex flex-col border rounded-xl overflow-hidden bg-white dark:bg-zinc-950 dark:border-zinc-800 shadow-sm transition-all focus-within:ring-1 focus-within:ring-zinc-900 focus-within:border-zinc-900", className)}>
+    <div className={cn("flex flex-col border rounded-xl overflow-hidden bg-white dark:bg-dark-base dark:border-dark-border shadow-sm transition-all focus-within:ring-1 focus-within:ring-zinc-900 dark:focus-within:ring-dark-border focus-within:border-zinc-900 dark:focus-within:border-dark-border", className)}>
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-1 p-2 border-b bg-zinc-50/50 dark:bg-zinc-900/50 dark:border-zinc-800 shrink-0 select-none">
+      <div className="flex flex-wrap items-center gap-1 p-2 border-b bg-zinc-50/50 dark:bg-dark-card/50 dark:border-dark-border shrink-0 select-none">
         {/* Bold */}
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="h-8 w-8 rounded-lg text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+          className="h-8 w-8 rounded-lg text-zinc-600 hover:text-zinc-950 dark:text-dark-text-secondary dark:hover:text-dark-text"
           onClick={() => executeCommand("bold")}
           title="Bold"
         >
@@ -102,7 +102,7 @@ export function RichTextEditor({
           type="button"
           variant="ghost"
           size="icon"
-          className="h-8 w-8 rounded-lg text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+          className="h-8 w-8 rounded-lg text-zinc-600 hover:text-zinc-950 dark:text-dark-text-secondary dark:hover:text-dark-text"
           onClick={() => executeCommand("backColor", "#fef08a")}
           title="Highlight Yellow"
         >
@@ -115,7 +115,7 @@ export function RichTextEditor({
             type="button"
             variant="ghost"
             size="icon"
-            className="h-8 w-8 rounded-lg text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+            className="h-8 w-8 rounded-lg text-zinc-600 hover:text-zinc-950 dark:text-dark-text-secondary dark:hover:text-dark-text"
             onClick={() => {
               setShowHeadingMenu(!showHeadingMenu);
               setShowColorMenu(false);
@@ -125,14 +125,14 @@ export function RichTextEditor({
             <Heading className="h-4 w-4" />
           </Button>
           {showHeadingMenu && (
-            <div className="absolute left-0 mt-1 z-50 min-w-[120px] rounded-lg border bg-white dark:bg-zinc-900 p-1 shadow-md dark:border-zinc-800 flex flex-col gap-0.5">
+            <div className="absolute left-0 mt-1 z-50 min-w-[120px] rounded-lg border bg-white dark:bg-dark-card p-1 shadow-md dark:border-dark-border flex flex-col gap-0.5">
               <button
                 type="button"
                 onClick={() => {
                   executeCommand("formatBlock", "<p>");
                   setShowHeadingMenu(false);
                 }}
-                className="w-full px-2 py-1.5 text-left text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200"
+                className="w-full px-2 py-1.5 text-left text-xs rounded hover:bg-zinc-100 dark:hover:bg-dark-hover text-zinc-800 dark:text-dark-text"
               >
                 Normal
               </button>
@@ -142,7 +142,7 @@ export function RichTextEditor({
                   executeCommand("formatBlock", "<h1>");
                   setShowHeadingMenu(false);
                 }}
-                className="w-full px-2 py-1.5 text-left text-xs font-bold rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-850 dark:text-zinc-105"
+                className="w-full px-2 py-1.5 text-left text-xs font-bold rounded hover:bg-zinc-100 dark:hover:bg-dark-hover text-zinc-850 dark:text-dark-text"
               >
                 Heading 1
               </button>
@@ -152,7 +152,7 @@ export function RichTextEditor({
                   executeCommand("formatBlock", "<h2>");
                   setShowHeadingMenu(false);
                 }}
-                className="w-full px-2 py-1.5 text-left text-xs font-semibold rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200"
+                className="w-full px-2 py-1.5 text-left text-xs font-semibold rounded hover:bg-zinc-100 dark:hover:bg-dark-hover text-zinc-800 dark:text-dark-text"
               >
                 Heading 2
               </button>
@@ -162,7 +162,7 @@ export function RichTextEditor({
                   executeCommand("formatBlock", "<h3>");
                   setShowHeadingMenu(false);
                 }}
-                className="w-full px-2 py-1.5 text-left text-xs font-medium rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
+                className="w-full px-2 py-1.5 text-left text-xs font-medium rounded hover:bg-zinc-100 dark:hover:bg-dark-hover text-zinc-700 dark:text-dark-text-secondary"
               >
                 Heading 3
               </button>
@@ -176,7 +176,7 @@ export function RichTextEditor({
             type="button"
             variant="ghost"
             size="icon"
-            className="h-8 w-8 rounded-lg text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+            className="h-8 w-8 rounded-lg text-zinc-600 hover:text-zinc-950 dark:text-dark-text-secondary dark:hover:text-dark-text"
             onClick={() => {
               setShowColorMenu(!showColorMenu);
               setShowHeadingMenu(false);
@@ -186,7 +186,7 @@ export function RichTextEditor({
             <Palette className="h-4 w-4" />
           </Button>
           {showColorMenu && (
-            <div className="absolute left-0 mt-1 z-50 min-w-[140px] rounded-lg border bg-white dark:bg-zinc-900 p-2 shadow-md dark:border-zinc-800 grid grid-cols-3 gap-1">
+            <div className="absolute left-0 mt-1 z-50 min-w-[140px] rounded-lg border bg-white dark:bg-dark-card p-2 shadow-md dark:border-dark-border grid grid-cols-3 gap-1">
               {COLORS.map((c) => (
                 <button
                   key={c.name}
@@ -199,21 +199,21 @@ export function RichTextEditor({
                   style={{ backgroundColor: c.value === "#18181b" ? undefined : c.value }}
                   title={c.name}
                 >
-                  {c.value === "#18181b" && <Type className="h-3.5 w-3.5 text-zinc-900 dark:text-zinc-100" />}
+                  {c.value === "#18181b" && <Type className="h-3.5 w-3.5 text-zinc-900 dark:text-dark-text" />}
                 </button>
               ))}
             </div>
           )}
         </div>
 
-        <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800 mx-1 shrink-0" />
+        <div className="h-4 w-px bg-zinc-200 dark:bg-dark-border mx-1 shrink-0" />
 
         {/* Bullet List */}
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="h-8 w-8 rounded-lg text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+          className="h-8 w-8 rounded-lg text-zinc-600 hover:text-zinc-950 dark:text-dark-text-secondary dark:hover:text-dark-text"
           onClick={() => executeCommand("insertUnorderedList")}
           title="Bullet List"
         >
@@ -225,21 +225,21 @@ export function RichTextEditor({
           type="button"
           variant="ghost"
           size="icon"
-          className="h-8 w-8 rounded-lg text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+          className="h-8 w-8 rounded-lg text-zinc-600 hover:text-zinc-950 dark:text-dark-text-secondary dark:hover:text-dark-text"
           onClick={() => executeCommand("insertOrderedList")}
           title="Numbered List"
         >
           <ListOrdered className="h-4 w-4" />
         </Button>
 
-        <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800 mx-1 shrink-0" />
+        <div className="h-4 w-px bg-zinc-200 dark:bg-dark-border mx-1 shrink-0" />
 
         {/* Clear Formatting */}
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="h-8 w-8 rounded-lg text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50 text-destructive hover:bg-destructive/10"
+          className="h-8 w-8 rounded-lg text-zinc-600 hover:text-zinc-950 dark:text-dark-text-secondary dark:hover:text-dark-text text-destructive hover:bg-destructive/10"
           onClick={() => {
             // Remove highlighting manually since removeFormat doesn't clean backColor in some browsers
             executeCommand("backColor", "rgba(0,0,0,0)");
@@ -258,7 +258,7 @@ export function RichTextEditor({
         onBlur={handleBlur}
         onFocus={handleFocus}
         data-placeholder={placeholder}
-        className="flex-1 p-4 outline-none overflow-y-auto leading-7 text-sm font-sans rich-editor-content dark:bg-zinc-950/20 text-zinc-800 dark:text-zinc-200"
+        className="flex-1 p-4 outline-none overflow-y-auto leading-7 text-sm font-sans rich-editor-content dark:bg-dark-base/20 text-zinc-800 dark:text-dark-text"
       />
     </div>
   );

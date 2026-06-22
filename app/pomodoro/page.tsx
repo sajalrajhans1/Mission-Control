@@ -401,9 +401,9 @@ export default function PomodoroPage() {
       )}
 
       {/* Main Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-4 border-zinc-100 dark:border-zinc-800">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-4 border-zinc-100 dark:border-dark-border">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Pomodoro Focus Room</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-dark-text">Pomodoro Focus Room</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Customize your sessions, play ambient soundscapes, and align with your task checklist.</p>
         </div>
 
@@ -427,7 +427,7 @@ export default function PomodoroPage() {
           </Button>
           <Button
             onClick={() => setIsZenMode(true)}
-            className="h-9 px-3 rounded-xl font-semibold gap-1.5 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900"
+            className="h-9 px-3 rounded-xl font-semibold gap-1.5 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-dark-text dark:hover:bg-zinc-200 dark:text-dark-base"
           >
             <Maximize2 className="h-4 w-4" />
             Zen Mode
@@ -439,12 +439,12 @@ export default function PomodoroPage() {
       {shortcutsOpen && (
         <div className="mt-4 p-4 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 rounded-2xl flex flex-wrap gap-4 items-center justify-between animate-fade-in text-xs text-indigo-955 dark:text-indigo-200 font-medium">
           <div className="flex flex-wrap gap-x-5 gap-y-2">
-            <span>⌨️ <kbd className="px-1.5 py-0.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-zinc-200">Space</kbd> Play / Pause</span>
-            <span>🔄 <kbd className="px-1.5 py-0.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-zinc-200">R</kbd> Reset Timer</span>
-            <span>🔴 <kbd className="px-1.5 py-0.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-zinc-200">W</kbd> Work Mode</span>
-            <span>🟢 <kbd className="px-1.5 py-0.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-zinc-200">S</kbd> Short Break</span>
-            <span>🔵 <kbd className="px-1.5 py-0.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-zinc-200">L</kbd> Long Break</span>
-            <span>🧘 <kbd className="px-1.5 py-0.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-zinc-200">F</kbd> Zen Focus Mode</span>
+            <span>⌨️ <kbd className="px-1.5 py-0.5 bg-white dark:bg-dark-hover border border-zinc-200 dark:border-dark-muted rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-dark-text">Space</kbd> Play / Pause</span>
+            <span>🔄 <kbd className="px-1.5 py-0.5 bg-white dark:bg-dark-hover border border-zinc-200 dark:border-dark-muted rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-dark-text">R</kbd> Reset Timer</span>
+            <span>🔴 <kbd className="px-1.5 py-0.5 bg-white dark:bg-dark-hover border border-zinc-200 dark:border-dark-muted rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-dark-text">W</kbd> Work Mode</span>
+            <span>🟢 <kbd className="px-1.5 py-0.5 bg-white dark:bg-dark-hover border border-zinc-200 dark:border-dark-muted rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-dark-text">S</kbd> Short Break</span>
+            <span>🔵 <kbd className="px-1.5 py-0.5 bg-white dark:bg-dark-hover border border-zinc-200 dark:border-dark-muted rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-dark-text">L</kbd> Long Break</span>
+            <span>🧘 <kbd className="px-1.5 py-0.5 bg-white dark:bg-dark-hover border border-zinc-200 dark:border-dark-muted rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-dark-text">F</kbd> Zen Focus Mode</span>
           </div>
           <button onClick={() => setShortcutsOpen(false)} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Dismiss</button>
         </div>
@@ -455,7 +455,7 @@ export default function PomodoroPage() {
         
         {/* Left Side: Timer and Controls (7 Columns) */}
         <div className="lg:col-span-7 flex flex-col gap-6">
-          <div className="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/60 backdrop-blur-md rounded-3xl p-6 lg:p-10 shadow-soft dark:shadow-2xl flex flex-col items-center relative overflow-hidden">
+          <div className="border border-zinc-200/80 dark:border-dark-border/80 bg-white dark:bg-dark-card/60 backdrop-blur-md rounded-3xl p-6 lg:p-10 shadow-soft dark:shadow-2xl flex flex-col items-center relative overflow-hidden">
             {/* Background Glow accent */}
             <div className={cn(
               "absolute -right-20 -top-20 w-48 h-48 rounded-full blur-3xl opacity-20 transition-all duration-1000",
@@ -463,14 +463,14 @@ export default function PomodoroPage() {
             )} />
 
             {/* Mode Selectors */}
-            <div className="flex bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-1 rounded-2xl w-full max-w-sm mb-8 z-10 relative">
+            <div className="flex bg-zinc-50 dark:bg-dark-base border border-zinc-200 dark:border-dark-border p-1 rounded-2xl w-full max-w-sm mb-8 z-10 relative">
               <button
                 onClick={() => handleSelectMode("work")}
                 className={cn(
                   "flex-1 py-2 rounded-xl text-xs font-bold transition-all",
                   mode === "work"
-                    ? "bg-white dark:bg-zinc-900 text-rose-600 dark:text-rose-405 shadow-sm border border-rose-100 dark:border-rose-950/50"
-                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                    ? "bg-white dark:bg-dark-card text-rose-600 dark:text-rose-405 shadow-sm border border-rose-100 dark:border-rose-950/50"
+                    : "text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-900 dark:hover:text-dark-text"
                 )}
               >
                 Work Focus
@@ -480,8 +480,8 @@ export default function PomodoroPage() {
                 className={cn(
                   "flex-1 py-2 rounded-xl text-xs font-bold transition-all",
                   mode === "shortBreak"
-                    ? "bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-405 shadow-sm border border-emerald-100 dark:border-emerald-950/50"
-                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                    ? "bg-white dark:bg-dark-card text-emerald-600 dark:text-emerald-405 shadow-sm border border-emerald-100 dark:border-emerald-950/50"
+                    : "text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-900 dark:hover:text-dark-text"
                 )}
               >
                 Short Break
@@ -491,8 +491,8 @@ export default function PomodoroPage() {
                 className={cn(
                   "flex-1 py-2 rounded-xl text-xs font-bold transition-all",
                   mode === "longBreak"
-                    ? "bg-white dark:bg-zinc-900 text-sky-600 dark:text-sky-405 shadow-sm border border-sky-100 dark:border-sky-950/50"
-                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                    ? "bg-white dark:bg-dark-card text-sky-600 dark:text-sky-405 shadow-sm border border-sky-100 dark:border-sky-950/50"
+                    : "text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-900 dark:hover:text-dark-text"
                 )}
               >
                 Long Break
@@ -500,7 +500,7 @@ export default function PomodoroPage() {
             </div>
 
             {/* Circular Countdown Progress ring */}
-            <div className="relative flex items-center justify-center w-[280px] h-[280px] rounded-full border border-zinc-100 dark:border-zinc-800 shadow-inner z-10 bg-zinc-50/10">
+            <div className="relative flex items-center justify-center w-[280px] h-[280px] rounded-full border border-zinc-100 dark:border-dark-border shadow-inner z-10 bg-zinc-50/10">
               <svg className="absolute w-[280px] h-[280px] -rotate-90 transform">
                 <circle
                   cx="140"
@@ -525,7 +525,7 @@ export default function PomodoroPage() {
 
               {/* Countdown Digits */}
               <div className="flex flex-col items-center">
-                <span className="text-6xl font-extrabold text-zinc-800 dark:text-zinc-100 tracking-tighter tabular-nums">
+                <span className="text-6xl font-extrabold text-zinc-800 dark:text-dark-text tracking-tighter tabular-nums">
                   {displayMin}:{displaySec}
                 </span>
                 <span className="text-[10px] font-bold text-zinc-400 tracking-widest uppercase mt-1">
@@ -540,7 +540,7 @@ export default function PomodoroPage() {
                 variant="outline"
                 size="icon"
                 onClick={handleResetTimer}
-                className="h-11 w-11 rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-500 dark:text-zinc-400 hover:text-zinc-955 dark:hover:text-zinc-100 shadow-sm"
+                className="h-11 w-11 rounded-2xl hover:bg-zinc-50 dark:hover:bg-dark-card text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-955 dark:hover:text-dark-text shadow-sm"
                 title="Reset Timer"
               >
                 <RotateCcw className="h-4 w-4" />
@@ -556,7 +556,7 @@ export default function PomodoroPage() {
                 variant="outline"
                 size="icon"
                 onClick={handleSkipMode}
-                className="h-11 w-11 rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-500 dark:text-zinc-400 hover:text-zinc-955 dark:hover:text-zinc-100 shadow-sm"
+                className="h-11 w-11 rounded-2xl hover:bg-zinc-50 dark:hover:bg-dark-card text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-955 dark:hover:text-dark-text shadow-sm"
                 title="Skip Session"
               >
                 <ChevronRight className="h-5 w-5" />
@@ -565,7 +565,7 @@ export default function PomodoroPage() {
 
              {/* Active focus target linking card */}
             {mode === "work" && (
-              <div className="w-full max-w-md border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 mt-8 bg-zinc-50/50 dark:bg-zinc-950/30 flex items-center justify-between gap-4 z-10">
+              <div className="w-full max-w-md border border-zinc-200 dark:border-dark-border rounded-2xl p-4 mt-8 bg-zinc-50/50 dark:bg-dark-base/30 flex items-center justify-between gap-4 z-10">
                 <div className="flex items-center gap-3 min-w-0">
                   <ListTodo className="h-5 w-5 text-indigo-500 shrink-0" />
                   <div className="min-w-0">
@@ -574,7 +574,7 @@ export default function PomodoroPage() {
                     </p>
                     {focusType === "task" ? (
                       activeFocusTask ? (
-                        <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate block mt-0.5">
+                        <span className="text-xs font-bold text-zinc-800 dark:text-dark-text truncate block mt-0.5">
                           {activeFocusTask.title}
                         </span>
                       ) : (
@@ -582,7 +582,7 @@ export default function PomodoroPage() {
                       )
                     ) : (
                       activeFocusBlock ? (
-                        <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate block mt-0.5">
+                        <span className="text-xs font-bold text-zinc-800 dark:text-dark-text truncate block mt-0.5">
                           {activeFocusBlock.title} ({activeFocusBlock.block_date} {activeFocusBlock.start_time} - {activeFocusBlock.end_time})
                         </span>
                       ) : (
@@ -597,7 +597,7 @@ export default function PomodoroPage() {
                     onClick={handleCompleteActiveTask}
                     variant="outline"
                     size="sm"
-                    className="h-7 text-[10px] px-2.5 rounded-lg border-zinc-200 dark:border-zinc-800 text-zinc-650 dark:text-zinc-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:text-emerald-700 dark:hover:text-emerald-300 hover:border-emerald-200 dark:hover:border-emerald-800 font-bold shrink-0 shadow-sm"
+                    className="h-7 text-[10px] px-2.5 rounded-lg border-zinc-200 dark:border-dark-border text-zinc-650 dark:text-dark-text-secondary hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:text-emerald-700 dark:hover:text-emerald-300 hover:border-emerald-200 dark:hover:border-emerald-800 font-bold shrink-0 shadow-sm"
                   >
                     Done
                   </Button>
@@ -611,9 +611,9 @@ export default function PomodoroPage() {
           </div>
 
           {/* Web Audio Synthesizer Panel */}
-          <div className="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/60 backdrop-blur-md rounded-3xl p-6 shadow-soft dark:shadow-2xl flex flex-col gap-5">
+          <div className="border border-zinc-200/80 dark:border-dark-border/80 bg-white dark:bg-dark-card/60 backdrop-blur-md rounded-3xl p-6 shadow-soft dark:shadow-2xl flex flex-col gap-5">
             <div>
-              <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Soundscape Generator</h3>
+              <h3 className="text-sm font-bold text-zinc-800 dark:text-dark-text">Soundscape Generator</h3>
               <p className="text-[10px] text-muted-foreground mt-0.5">Native Web Audio ambient noise synthesis (zero delay, distraction-free).</p>
             </div>
 
@@ -636,8 +636,8 @@ export default function PomodoroPage() {
                   className={cn(
                     "py-2 px-3 border rounded-xl text-xs font-bold transition-all shadow-sm",
                     ambientSoundType === s.type
-                      ? "bg-zinc-900 dark:bg-zinc-100 border-zinc-950 dark:border-zinc-55 text-white dark:text-zinc-900"
-                      : "bg-white dark:bg-zinc-950 hover:bg-zinc-50 dark:hover:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400"
+                      ? "bg-zinc-900 dark:bg-dark-text border-zinc-950 dark:border-zinc-55 text-white dark:text-dark-base"
+                      : "bg-white dark:bg-dark-base hover:bg-zinc-50 dark:hover:bg-dark-card border-zinc-200 dark:border-dark-border text-zinc-600 dark:text-dark-text-secondary"
                   )}
                 >
                   {s.label}
@@ -646,7 +646,7 @@ export default function PomodoroPage() {
             </div>
 
             {/* Volume slider & mute */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t pt-4 border-zinc-100 dark:border-zinc-800/60">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t pt-4 border-zinc-100 dark:border-dark-border/60">
               <div className="flex items-center gap-3">
                 <Button
                   variant="ghost"
@@ -670,7 +670,7 @@ export default function PomodoroPage() {
                   step="0.05"
                   value={ambientVolume}
                   onChange={(e) => setAmbientVolume(Number(e.target.value))}
-                  className="h-1.5 w-full bg-zinc-100 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-zinc-800 dark:accent-zinc-300"
+                  className="h-1.5 w-full bg-zinc-100 dark:bg-dark-hover rounded-lg appearance-none cursor-pointer accent-zinc-800 dark:accent-dark-text-secondary"
                   disabled={isMuted}
                 />
                 <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-350 min-w-[28px] text-right">
@@ -680,7 +680,7 @@ export default function PomodoroPage() {
             </div>
 
             {/* Metronome Metronome click oscillator */}
-            <div className="flex items-center justify-between gap-4 border-t pt-4 border-zinc-100 dark:border-zinc-800/60">
+            <div className="flex items-center justify-between gap-4 border-t pt-4 border-zinc-100 dark:border-dark-border/60">
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -690,9 +690,9 @@ export default function PomodoroPage() {
                     getAudioContext();
                     setIsTicking(e.target.checked);
                   }}
-                  className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-700 text-zinc-850 dark:text-zinc-150 focus:ring-zinc-800 dark:bg-zinc-900 cursor-pointer"
+                  className="h-4 w-4 rounded border-zinc-300 dark:border-dark-muted text-zinc-850 dark:text-dark-text focus:ring-zinc-800 dark:bg-dark-card cursor-pointer"
                 />
-                <label htmlFor="ticking-chk" className="text-xs font-bold text-zinc-700 dark:text-zinc-300 cursor-pointer">
+                <label htmlFor="ticking-chk" className="text-xs font-bold text-zinc-700 dark:text-dark-text-secondary cursor-pointer">
                   Concentration Metronome Ticking
                 </label>
               </div>
@@ -706,8 +706,8 @@ export default function PomodoroPage() {
           
           {/* Settings Section (Accordion-like drop) */}
           {settingsOpen && (
-            <div className="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/60 backdrop-blur-md rounded-3xl p-6 shadow-soft dark:shadow-2xl animate-fade-in">
-              <div className="border-b pb-3 mb-4 border-zinc-100 dark:border-zinc-800/60 flex justify-between items-center">
+            <div className="border border-zinc-200/80 dark:border-dark-border/80 bg-white dark:bg-dark-card/60 backdrop-blur-md rounded-3xl p-6 shadow-soft dark:shadow-2xl animate-fade-in">
+              <div className="border-b pb-3 mb-4 border-zinc-100 dark:border-dark-border/60 flex justify-between items-center">
                 <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-250">Timer Settings</h3>
                 <button onClick={() => setSettingsOpen(false)} className="text-xs text-zinc-400 hover:text-zinc-650">Close</button>
               </div>
@@ -774,7 +774,7 @@ export default function PomodoroPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2 border-t pt-3 border-zinc-100 dark:border-zinc-800/60">
+                <div className="space-y-2 border-t pt-3 border-zinc-100 dark:border-dark-border/60">
                   <label className="text-[10px] font-bold text-zinc-500 uppercase block">Chime Alarm Sound</label>
                   <div className="flex gap-2">
                     {(
@@ -801,8 +801,8 @@ export default function PomodoroPage() {
                         className={cn(
                           "flex-1 py-1.5 border rounded-xl text-xs font-bold transition-all",
                           alarmSound === s.key
-                            ? "bg-zinc-800 dark:bg-zinc-100 border-zinc-900 dark:border-zinc-50 text-white dark:text-zinc-900"
-                            : "bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-650 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                            ? "bg-zinc-800 dark:bg-dark-text border-zinc-900 dark:border-zinc-50 text-white dark:text-dark-base"
+                            : "bg-white dark:bg-dark-base border-zinc-200 dark:border-dark-border text-zinc-650 dark:text-dark-text-secondary hover:bg-zinc-50 dark:hover:bg-dark-card"
                         )}
                       >
                         {s.name}
@@ -811,7 +811,7 @@ export default function PomodoroPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2 border-t pt-3 border-zinc-100 dark:border-zinc-800/60">
+                <div className="space-y-2 border-t pt-3 border-zinc-100 dark:border-dark-border/60">
                   <div className="flex items-center justify-between text-xs">
                     <label htmlFor="chk-break" className="font-bold text-zinc-650 dark:text-zinc-350 cursor-pointer">Auto Start Breaks</label>
                     <input
@@ -819,7 +819,7 @@ export default function PomodoroPage() {
                       id="chk-break"
                       checked={settings.autoStartBreaks}
                       onChange={(e) => setSettings({ ...settings, autoStartBreaks: e.target.checked })}
-                      className="h-4 w-4 rounded border-zinc-305 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 bg-white dark:bg-zinc-900 focus:ring-zinc-800"
+                      className="h-4 w-4 rounded border-zinc-305 dark:border-dark-muted text-zinc-900 dark:text-dark-text bg-white dark:bg-dark-card focus:ring-zinc-800"
                     />
                   </div>
                   <div className="flex items-center justify-between text-xs">
@@ -829,7 +829,7 @@ export default function PomodoroPage() {
                       id="chk-work"
                       checked={settings.autoStartWork}
                       onChange={(e) => setSettings({ ...settings, autoStartWork: e.target.checked })}
-                      className="h-4 w-4 rounded border-zinc-305 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 bg-white dark:bg-zinc-900 focus:ring-zinc-800"
+                      className="h-4 w-4 rounded border-zinc-305 dark:border-dark-muted text-zinc-900 dark:text-dark-text bg-white dark:bg-dark-card focus:ring-zinc-800"
                     />
                   </div>
                 </div>
@@ -842,22 +842,22 @@ export default function PomodoroPage() {
           )}
 
           {/* Focus Target Dropdown Selection */}
-          <div className="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/60 backdrop-blur-md rounded-3xl p-6 shadow-soft dark:shadow-2xl flex flex-col gap-4">
+          <div className="border border-zinc-200/80 dark:border-dark-border/80 bg-white dark:bg-dark-card/60 backdrop-blur-md rounded-3xl p-6 shadow-soft dark:shadow-2xl flex flex-col gap-4">
             <div>
-              <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Focus Integrations</h3>
+              <h3 className="text-sm font-bold text-zinc-800 dark:text-dark-text">Focus Integrations</h3>
               <p className="text-[10px] text-muted-foreground mt-0.5">Focus on an uncompleted task or a scheduled timetable block.</p>
             </div>
 
             {/* Segmented tab controls */}
-            <div className="flex bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-1 rounded-2xl w-full">
+            <div className="flex bg-zinc-50 dark:bg-dark-base border border-zinc-200 dark:border-dark-border p-1 rounded-2xl w-full">
               <button
                 type="button"
                 onClick={() => setFocusType("task")}
                 className={cn(
                   "flex-1 py-1.5 rounded-xl text-xs font-bold transition-all",
                   focusType === "task"
-                    ? "bg-white dark:bg-zinc-900 text-indigo-600 dark:text-indigo-405 shadow-sm border border-indigo-100 dark:border-indigo-955/50"
-                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                    ? "bg-white dark:bg-dark-card text-indigo-600 dark:text-indigo-405 shadow-sm border border-indigo-100 dark:border-indigo-955/50"
+                    : "text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-900 dark:hover:text-dark-text"
                 )}
               >
                 Task Checklist
@@ -868,8 +868,8 @@ export default function PomodoroPage() {
                 className={cn(
                   "flex-1 py-1.5 rounded-xl text-xs font-bold transition-all",
                   focusType === "block"
-                    ? "bg-white dark:bg-zinc-900 text-indigo-600 dark:text-indigo-405 shadow-sm border border-indigo-100 dark:border-indigo-955/50"
-                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                    ? "bg-white dark:bg-dark-card text-indigo-600 dark:text-indigo-405 shadow-sm border border-indigo-100 dark:border-indigo-955/50"
+                    : "text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-900 dark:hover:text-dark-text"
                 )}
               >
                 Timetable Blocks
@@ -880,7 +880,7 @@ export default function PomodoroPage() {
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-zinc-500 uppercase">Select Target Task</label>
                 {myPendingTasks.length === 0 ? (
-                  <div className="p-3 bg-zinc-50/50 dark:bg-zinc-955/30 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs text-muted-foreground italic text-center">
+                  <div className="p-3 bg-zinc-50/50 dark:bg-dark-base/30 border border-zinc-200 dark:border-dark-border rounded-xl text-xs text-muted-foreground italic text-center">
                     No pending tasks in your checklist.
                   </div>
                 ) : (
@@ -890,7 +890,7 @@ export default function PomodoroPage() {
                       setSelectedTaskId(e.target.value);
                       setSelectedBlockId("");
                     }}
-                    className="w-full text-xs font-semibold rounded-xl border border-zinc-200 dark:border-zinc-805 bg-white dark:bg-zinc-950 p-2.5 text-zinc-800 dark:text-zinc-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full text-xs font-semibold rounded-xl border border-zinc-200 dark:border-zinc-805 bg-white dark:bg-dark-base p-2.5 text-zinc-800 dark:text-dark-text shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="">-- Choose a task to track --</option>
                     {myPendingTasks.map((t) => (
@@ -905,7 +905,7 @@ export default function PomodoroPage() {
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-zinc-500 uppercase">Select Target Block</label>
                 {myTimetableBlocksSorted.length === 0 ? (
-                  <div className="p-3 bg-zinc-50/50 dark:bg-zinc-955/30 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs text-muted-foreground italic text-center">
+                  <div className="p-3 bg-zinc-50/50 dark:bg-dark-base/30 border border-zinc-200 dark:border-dark-border rounded-xl text-xs text-muted-foreground italic text-center">
                     No scheduled timetable blocks found.
                   </div>
                 ) : (
@@ -915,7 +915,7 @@ export default function PomodoroPage() {
                       setSelectedBlockId(e.target.value);
                       setSelectedTaskId("");
                     }}
-                    className="w-full text-xs font-semibold rounded-xl border border-zinc-200 dark:border-zinc-805 bg-white dark:bg-zinc-950 p-2.5 text-zinc-850 dark:text-zinc-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full text-xs font-semibold rounded-xl border border-zinc-200 dark:border-zinc-805 bg-white dark:bg-dark-base p-2.5 text-zinc-850 dark:text-dark-text shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="">-- Choose a block to track --</option>
                     {myTimetableBlocksSorted.map((b) => (
@@ -930,7 +930,7 @@ export default function PomodoroPage() {
           </div>
 
           {/* Session Statistics Dashboard */}
-          <div className="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/60 backdrop-blur-md rounded-3xl p-6 shadow-soft dark:shadow-2xl flex flex-col gap-5">
+          <div className="border border-zinc-200/80 dark:border-dark-border/80 bg-white dark:bg-dark-card/60 backdrop-blur-md rounded-3xl p-6 shadow-soft dark:shadow-2xl flex flex-col gap-5">
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-250">Focus Performance</h3>
@@ -947,9 +947,9 @@ export default function PomodoroPage() {
 
             {/* Metrics Grid */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-zinc-50/50 dark:bg-zinc-950/20 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4 flex flex-col">
+              <div className="bg-zinc-50/50 dark:bg-dark-base/20 border border-zinc-100 dark:border-dark-border rounded-2xl p-4 flex flex-col">
                 <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wide">Total Focus Time</span>
-                <span className="text-2xl font-extrabold text-zinc-800 dark:text-zinc-200 mt-1">
+                <span className="text-2xl font-extrabold text-zinc-800 dark:text-dark-text mt-1">
                   {completedSessionsCount * settings.work} <span className="text-xs font-bold text-zinc-400">mins</span>
                 </span>
                 <div className="flex items-center gap-1 text-[9px] text-emerald-600 font-semibold mt-1">
@@ -958,9 +958,9 @@ export default function PomodoroPage() {
                 </div>
               </div>
 
-              <div className="bg-zinc-50/50 dark:bg-zinc-950/20 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4 flex flex-col">
+              <div className="bg-zinc-50/50 dark:bg-dark-base/20 border border-zinc-100 dark:border-dark-border rounded-2xl p-4 flex flex-col">
                 <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wide">Daily Sessions Completed</span>
-                <span className="text-2xl font-extrabold text-zinc-800 dark:text-zinc-200 mt-1">
+                <span className="text-2xl font-extrabold text-zinc-800 dark:text-dark-text mt-1">
                   {completedSessionsCount} <span className="text-xs font-bold text-zinc-400">/ {settings.targetSessions}</span>
                 </span>
                 <div className="flex items-center gap-1 text-[9px] text-zinc-400 mt-1">
@@ -971,7 +971,7 @@ export default function PomodoroPage() {
             </div>
 
             {/* Visual SVG Progress ring for daily target */}
-            <div className="flex items-center gap-4 bg-zinc-50/30 dark:bg-zinc-950/10 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4">
+            <div className="flex items-center gap-4 bg-zinc-50/30 dark:bg-dark-base/10 border border-zinc-100 dark:border-dark-border rounded-2xl p-4">
               <div className="relative w-14 h-14 shrink-0 flex items-center justify-center">
                 <svg className="w-14 h-14 -rotate-90 transform">
                   <circle
@@ -999,7 +999,7 @@ export default function PomodoroPage() {
                 </span>
               </div>
               <div className="flex-1">
-                <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200 block">Daily Focus Target</span>
+                <span className="text-xs font-bold text-zinc-800 dark:text-dark-text block">Daily Focus Target</span>
                 <span className="text-[10px] text-muted-foreground mt-0.5 block">
                   {completedSessionsCount >= settings.targetSessions 
                     ? "✨ Target fully achieved today! Excellent work."
@@ -1009,14 +1009,14 @@ export default function PomodoroPage() {
             </div>
 
             {/* Session Logs list */}
-            <div className="border-t pt-4 border-zinc-100 dark:border-zinc-800/60">
+            <div className="border-t pt-4 border-zinc-100 dark:border-dark-border/60">
               <div className="flex items-center gap-1.5 mb-2.5">
                 <History className="h-4 w-4 text-zinc-500" />
                 <span className="text-xs font-bold text-zinc-700 dark:text-zinc-350 font-bold">{"Today's Focus Log"}</span>
               </div>
 
               {focusLogs.length === 0 ? (
-                <div className="p-3 bg-zinc-50/55 dark:bg-zinc-950/30 border border-dashed rounded-2xl text-[10px] text-muted-foreground italic text-center">
+                <div className="p-3 bg-zinc-50/55 dark:bg-dark-base/30 border border-dashed rounded-2xl text-[10px] text-muted-foreground italic text-center">
                   No focus cycles logged yet today. Focus session will record here.
                 </div>
               ) : (
@@ -1024,14 +1024,14 @@ export default function PomodoroPage() {
                   {focusLogs.map((log) => (
                     <div
                       key={log.id}
-                      className="flex items-center justify-between p-2 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/20 text-[10px] font-medium"
+                      className="flex items-center justify-between p-2 rounded-xl border border-zinc-100 dark:border-dark-border bg-zinc-50/50 dark:bg-dark-base/20 text-[10px] font-medium"
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <span className={cn(
                           "w-2 h-2 rounded-full shrink-0",
                           log.mode === "work" ? "bg-rose-500" : log.mode === "shortBreak" ? "bg-emerald-500" : "bg-sky-500"
                         )} />
-                        <span className="font-bold text-zinc-700 dark:text-zinc-300 truncate">{log.taskTitle}</span>
+                        <span className="font-bold text-zinc-700 dark:text-dark-text-secondary truncate">{log.taskTitle}</span>
                       </div>
                       <div className="flex items-center gap-2 text-zinc-400 shrink-0">
                         <span>{log.duration}m</span>
