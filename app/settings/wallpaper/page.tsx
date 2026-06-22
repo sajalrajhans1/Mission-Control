@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, Tv, Image as ImageIcon } from "lucide-react";
-import { WALLPAPERS, WallpaperVideoPreview } from "@/components/app-shell";
+import { ArrowLeft, Check, Tv } from "lucide-react";
+import { WALLPAPERS } from "@/components/app-shell";
 import { cn } from "@/lib/utils";
 
 export default function WallpaperSettingsPage() {
@@ -22,99 +22,123 @@ export default function WallpaperSettingsPage() {
     window.dispatchEvent(new Event("mc_wallpaper_changed"));
   };
 
+  const staticWallpapers = WALLPAPERS.filter(wp => wp.path.endsWith(".png") || wp.path.endsWith(".jpg"));
+  const liveWallpapers = WALLPAPERS.filter(wp => !wp.path.endsWith(".png") && !wp.path.endsWith(".jpg"));
+
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="max-w-5xl mx-auto px-6 py-10 animate-in fade-in slide-in-from-bottom-4 duration-500 select-none">
       
-      {/* Header and Back Button */}
-      <div className="flex items-center gap-4 mb-8">
+      {/* Header macOS Style */}
+      <div className="flex items-center gap-4 mb-10 pb-4 border-b border-white/10">
         <Link 
           href="/settings"
-          className="p-2.5 rounded-xl bg-white/10 dark:bg-black/35 border border-white/20 dark:border-white/10 text-white hover:bg-white/20 dark:hover:bg-white/10 transition-all shadow-lg backdrop-blur-md"
+          className="p-2 rounded-xl bg-white/10 dark:bg-black/35 border border-white/20 dark:border-white/10 text-white hover:bg-white/20 dark:hover:bg-white/10 transition-all shadow-md backdrop-blur-md"
         >
-          <ArrowLeft className="h-5 w-5 text-wallpaper-safe" />
+          <ArrowLeft className="h-4 w-4 text-wallpaper-safe" />
         </Link>
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white text-wallpaper-safe">
-            Desktop Background
-          </h1>
-          <p className="text-sm text-white/80 text-wallpaper-safe mt-1 font-medium">
-            Customize the look and feel of your collaborative desktop environment.
-          </p>
-        </div>
+        <h1 className="text-2xl font-bold tracking-tight text-white text-wallpaper-safe">
+          Wallpaper
+        </h1>
       </div>
 
-      {/* Grid of Wallpapers */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {WALLPAPERS.map((wp) => {
-          const isVideo = wp.path.endsWith(".mp4") || wp.path.includes(".m3u8");
-          const isActive = activeWallpaper === wp.path;
-
-          return (
-            <div 
-              key={wp.name}
-              onClick={() => handleSelectWallpaper(wp.path)}
-              className={cn(
-                "group relative aspect-video rounded-2xl overflow-hidden border bg-slate-950/20 backdrop-blur-md cursor-pointer shadow-xl transition-all duration-300 hover:scale-103 hover:shadow-2xl",
-                isActive 
-                  ? "border-indigo-400 ring-2 ring-indigo-400/50 shadow-indigo-500/20" 
-                  : "border-white/15 dark:border-white/5 hover:border-white/30 dark:hover:border-white/15"
-              )}
-            >
-              {/* Media Preview Container */}
-              <div className="absolute inset-0 w-full h-full z-0">
-                {isVideo ? (
-                  <WallpaperVideoPreview path={wp.path} />
-                ) : (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img 
-                    src={wp.path} 
-                    alt={wp.name} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                  />
-                )}
-              </div>
-
-              {/* Shading/Vignette Overlay for visual contrast */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent opacity-75 group-hover:opacity-60 transition-opacity z-1" />
-
-              {/* Tag Badges (Video vs. Static) */}
-              <div className="absolute top-3 left-3 flex gap-1.5 z-10">
-                <div className="bg-black/55 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/15 flex items-center gap-1 text-[9px] text-white/90 font-bold uppercase tracking-wider">
-                  {isVideo ? (
-                    <>
-                      <Tv className="h-3 w-3 text-indigo-400" />
-                      <span>Video</span>
-                    </>
-                  ) : (
-                    <>
-                      <ImageIcon className="h-3 w-3 text-emerald-400" />
-                      <span>Static</span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Checkmark Badge on Active selection */}
-              {isActive && (
-                <div className="absolute top-3 right-3 h-6 w-6 rounded-full bg-indigo-500 border border-white/20 flex items-center justify-center text-white shadow-lg animate-in zoom-in-50 duration-200 z-10">
-                  <Check className="h-3.5 w-3.5 stroke-[3]" />
-                </div>
-              )}
-
-              {/* Footer info panel */}
-              <div className="absolute inset-x-0 bottom-0 p-4 flex flex-col justify-end z-10">
-                <span className="text-sm font-bold text-white tracking-wide truncate drop-shadow">
-                  {wp.name}
-                </span>
-                {isActive && (
-                  <span className="text-[10px] text-indigo-300 font-bold mt-0.5 tracking-wider uppercase">
-                    Active Background
+      {/* Sections Wrapper */}
+      <div className="flex flex-col gap-10">
+        
+        {/* Section 1: Static Wallpapers */}
+        <div className="flex flex-col gap-4">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-white/50 text-wallpaper-safe">
+            Desktop Pictures
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+            {staticWallpapers.map((wp) => {
+              const isActive = activeWallpaper === wp.path;
+              return (
+                <div 
+                  key={wp.name} 
+                  className="flex flex-col gap-2 group cursor-pointer"
+                  onClick={() => handleSelectWallpaper(wp.path)}
+                >
+                  <div 
+                    className={cn(
+                      "relative aspect-[16/10] rounded-xl overflow-hidden border bg-white/5 transition-all duration-300",
+                      isActive 
+                        ? "border-indigo-500 ring-2 ring-indigo-500 ring-offset-2 dark:ring-offset-black" 
+                        : "border-white/10 group-hover:border-white/30"
+                    )}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img 
+                      src={wp.path} 
+                      alt={wp.name} 
+                      className="w-full h-full object-cover" 
+                    />
+                    {isActive && (
+                      <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-indigo-500 border border-white/20 flex items-center justify-center text-white shadow-lg">
+                        <Check className="h-3 w-3 stroke-[3]" />
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-xs text-center text-white/70 group-hover:text-white transition-colors truncate px-1 text-wallpaper-safe">
+                    {wp.name}
                   </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Section 2: Live Wallpapers */}
+        <div className="flex flex-col gap-4">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-white/50 text-wallpaper-safe">
+            Dynamic Wallpapers
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+            {liveWallpapers.map((wp) => {
+              const isActive = activeWallpaper === wp.path;
+              const isStream = wp.path.includes(".m3u8");
+
+              return (
+                <div 
+                  key={wp.name} 
+                  className="flex flex-col gap-2 group cursor-pointer"
+                  onClick={() => handleSelectWallpaper(wp.path)}
+                >
+                  <div 
+                    className={cn(
+                      "relative aspect-[16/10] rounded-xl overflow-hidden border bg-black/45 transition-all duration-300",
+                      isActive 
+                        ? "border-indigo-500 ring-2 ring-indigo-500 ring-offset-2 dark:ring-offset-black" 
+                        : "border-white/10 group-hover:border-white/30"
+                    )}
+                  >
+                    {isStream ? (
+                      /* Live stream static representation */
+                      <div className="w-full h-full bg-gradient-to-br from-indigo-950/40 to-slate-900/60 flex items-center justify-center">
+                        <Tv className="h-5 w-5 text-white/30" />
+                      </div>
+                    ) : (
+                      /* Render video statically (preload metadata, no autoplay) */
+                      <video 
+                        src={wp.path} 
+                        className="w-full h-full object-cover pointer-events-none" 
+                        preload="metadata"
+                      />
+                    )}
+                    {isActive && (
+                      <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-indigo-500 border border-white/20 flex items-center justify-center text-white shadow-lg">
+                        <Check className="h-3 w-3 stroke-[3]" />
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-xs text-center text-white/70 group-hover:text-white transition-colors truncate px-1 text-wallpaper-safe">
+                    {wp.name}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
       </div>
 
     </div>
