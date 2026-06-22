@@ -18,6 +18,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
+interface HlsInstance {
+  loadSource(src: string): void;
+  attachMedia(media: HTMLVideoElement): void;
+}
+
+interface HlsConstructor {
+  new (): HlsInstance;
+  isSupported(): boolean;
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -31,7 +41,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     { name: "Aurora Nordic", path: "/wallpapers/aurora_nordic.png" },
     { name: "Minimalist Silk", path: "/wallpapers/minimalist_silk.png" },
     { name: "Obsidian Gold", path: "/wallpapers/obsidian_gold.png" },
-    { name: "Misty Mountains", path: "/wallpapers/misty_mountains.png" }
+    { name: "Misty Mountains", path: "/wallpapers/misty_mountains.png" },
+    { name: "Cyberpunk Grid", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260424_064411_9e9d7f84-9277-41f4-ab10-59172d89e6be.mp4" },
+    { name: "Abstract Flow", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260419_065931_e3ca7b53-d32e-4ad5-81de-dc9d6fcfda6d.mp4" },
+    { name: "Deep Space", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260411_104032_69319010-2458-492b-b04d-b40a5dfa4482.mp4" },
+    { name: "Techno Rings", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260403_050628_c4e32401-fab4-4a27-b7a8-6e9291cd5959.mp4" },
+    { name: "Digital Wave", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260324_151826_c7218672-6e92-402c-9e45-f1e0f454bdc4.mp4" },
+    { name: "Abstract Neon", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260611_183632_c311af08-e4b7-458f-81e7-79847a49b3d3.mp4" },
+    { name: "Fluid Dynamic", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260319_055001_8e16d972-3b2b-441c-86ad-2901a54682f9.mp4" },
+    { name: "Golden Horizon", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260302_085844_21a8f4b3-dea5-4ede-be16-d53f6973bb14.mp4" },
+    { name: "Live Stream", path: "https://stream.mux.com/Aa02T7oM1wH5Mk5EEVDYhbZ1ChcdhRsS2m1NYyx4Ua1g.m3u8" }
   ], []);
 
   const [activeWallpaper, setActiveWallpaper] = useState("/wallpapers/aurora_nordic.png");
@@ -166,6 +185,46 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [isLocked, setIsLocked] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
   const [shake, setShake] = useState(false);
+
+  const shellVideoRef = useRef<HTMLVideoElement>(null);
+  const lockVideoRef = useRef<HTMLVideoElement>(null);
+
+  // Handle HLS live stream wallpaper binding (using hls.js)
+  useEffect(() => {
+    const isVideo = activeWallpaper.endsWith(".mp4") || activeWallpaper.includes(".m3u8");
+    if (!isVideo || !activeWallpaper.includes(".m3u8")) return;
+
+    const video = lockVideoRef.current || shellVideoRef.current;
+    if (!video) return;
+
+    if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = activeWallpaper;
+    } else {
+      const Hls = (window as unknown as { Hls?: HlsConstructor }).Hls;
+      if (Hls && Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(activeWallpaper);
+        hls.attachMedia(video);
+      } else {
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/hls.js@1.4.12/dist/hls.min.js";
+        script.onload = () => {
+          const LoadedHls = (window as unknown as { Hls?: HlsConstructor }).Hls;
+          if (LoadedHls && LoadedHls.isSupported()) {
+            const hls = new LoadedHls();
+            hls.loadSource(activeWallpaper);
+            hls.attachMedia(video);
+          }
+        };
+        document.body.appendChild(script);
+        return () => {
+          if (document.body.contains(script)) {
+            document.body.removeChild(script);
+          }
+        };
+      }
+    }
+  }, [activeWallpaper, isLocked]);
 
   // Initialize lock state from sessionStorage
   useEffect(() => {
@@ -441,13 +500,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   if (isLocked) {
     const color = activeUser === "user1" ? userColors.user1 : userColors.user2;
+    const isVideo = activeWallpaper.endsWith(".mp4") || activeWallpaper.includes(".m3u8");
     return (
       <div 
         className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-cover bg-center px-4 transition-all duration-500"
-        style={{
+        style={!isVideo ? {
           backgroundImage: `url(${activeWallpaper})`,
-        }}
+        } : undefined}
       >
+        {isVideo && (
+          <video 
+            ref={lockVideoRef}
+            key={activeWallpaper}
+            className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+            autoPlay
+            muted
+            loop
+            playsInline
+          >
+            <source src={activeWallpaper} type={activeWallpaper.includes(".m3u8") ? "application/x-mpegURL" : "video/mp4"} />
+          </video>
+        )}
         {/* Dark glassmorphic mask */}
         <div className="absolute inset-0 bg-slate-900/40 dark:bg-black/50 backdrop-blur-2xl z-0" />
 
@@ -510,14 +583,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
+  const isVideo = activeWallpaper.endsWith(".mp4") || activeWallpaper.includes(".m3u8");
+
   return (
     <div 
-      className="min-h-screen relative flex flex-col justify-between overflow-hidden bg-cover bg-center transition-all duration-500 ease-in-out"
-      style={{
+      className="min-h-screen relative flex flex-col justify-between overflow-hidden bg-cover bg-center transition-colors duration-500 ease-in-out"
+      style={!isVideo ? {
         backgroundImage: `url(${activeWallpaper})`,
         backgroundAttachment: "fixed",
-      }}
+      } : undefined}
     >
+      {isVideo && (
+        <video 
+          ref={shellVideoRef}
+          key={activeWallpaper}
+          className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+          autoPlay
+          muted
+          loop
+          playsInline
+        >
+          <source src={activeWallpaper} type={activeWallpaper.includes(".m3u8") ? "application/x-mpegURL" : "video/mp4"} />
+        </video>
+      )}
       {/* Translucent overlay for better contrast */}
       <div className="absolute inset-0 bg-slate-900/5 dark:bg-black/20 backdrop-blur-[0.5px] pointer-events-none z-0" />
 
@@ -845,24 +933,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="absolute -top-9 bg-black/75 text-[9px] text-white px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider pointer-events-none shadow">Wallpaper</span>
 
             {showWallpaperPicker && (
-              <div className="absolute bottom-14 left-1/2 -translate-x-1/2 w-48 rounded-2xl border border-white/20 bg-slate-900/90 dark:bg-black/90 backdrop-blur-2xl p-3 shadow-2xl flex flex-col gap-2 z-50 animate-in slide-in-from-bottom-2 duration-150">
+              <div className="absolute bottom-14 left-1/2 -translate-x-1/2 w-80 rounded-2xl border border-white/20 bg-slate-900/90 dark:bg-black/90 backdrop-blur-2xl p-3 shadow-2xl flex flex-col gap-2 z-50 animate-in slide-in-from-bottom-2 duration-150">
                 <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest text-center">Change Background</span>
-                <div className="grid grid-cols-2 gap-2">
-                  {WALLPAPERS.map((wp) => (
-                    <button
-                      key={wp.name}
-                      onClick={() => handleSelectWallpaper(wp.path)}
-                      className={cn(
-                        "group/wp relative aspect-video rounded-lg overflow-hidden border transition-all hover:scale-105",
-                        activeWallpaper === wp.path ? "border-indigo-400 scale-102 ring-1 ring-indigo-400" : "border-white/10 hover:border-white/30"
-                      )}
-                      title={wp.name}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={wp.path} alt={wp.name} className="w-full h-full object-cover" />
-                      <span className="absolute inset-x-0 bottom-0 bg-black/60 text-[8px] text-white py-0.5 truncate text-center opacity-0 group-hover/wp:opacity-100 transition-opacity">{wp.name}</span>
-                    </button>
-                  ))}
+                <div className="grid grid-cols-3 gap-2 max-h-[320px] overflow-y-auto pr-1">
+                  {WALLPAPERS.map((wp) => {
+                    const isVideo = wp.path.endsWith(".mp4") || wp.path.includes(".m3u8");
+                    return (
+                      <button
+                        key={wp.name}
+                        onClick={() => handleSelectWallpaper(wp.path)}
+                        className={cn(
+                          "group/wp relative aspect-video rounded-lg overflow-hidden border transition-all hover:scale-105",
+                          activeWallpaper === wp.path ? "border-indigo-400 scale-102 ring-1 ring-indigo-400" : "border-white/10 hover:border-white/30"
+                        )}
+                        title={wp.name}
+                      >
+                        {isVideo ? (
+                          <WallpaperVideoPreview path={wp.path} />
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={wp.path} alt={wp.name} className="w-full h-full object-cover" />
+                        )}
+                        <span className="absolute inset-x-0 bottom-0 bg-black/60 text-[8px] text-white py-0.5 truncate text-center opacity-0 group-hover/wp:opacity-100 transition-opacity">{wp.name}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -1306,5 +1401,64 @@ function FloatingPomodoro() {
         )}
       </div>
     </div>
+  );
+}
+
+function WallpaperVideoPreview({ path }: { path: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !path.includes(".m3u8")) return;
+
+    if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = path;
+    } else {
+      const Hls = (window as unknown as { Hls?: HlsConstructor }).Hls;
+      if (Hls && Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(path);
+        hls.attachMedia(video);
+      } else {
+        const scriptId = "hls-js-cdn-script";
+        let script = document.getElementById(scriptId) as HTMLScriptElement;
+        if (!script) {
+          script = document.createElement("script");
+          script.id = scriptId;
+          script.src = "https://cdn.jsdelivr.net/npm/hls.js@1.4.12/dist/hls.min.js";
+          document.body.appendChild(script);
+        }
+
+        const handleLoad = () => {
+          const LoadedHls = (window as unknown as { Hls?: HlsConstructor }).Hls;
+          if (LoadedHls && LoadedHls.isSupported()) {
+            const hls = new LoadedHls();
+            hls.loadSource(path);
+            hls.attachMedia(video);
+          }
+        };
+
+        if ((window as unknown as { Hls?: HlsConstructor }).Hls) {
+          handleLoad();
+        } else {
+          script.addEventListener("load", handleLoad);
+          return () => {
+            script.removeEventListener("load", handleLoad);
+          };
+        }
+      }
+    }
+  }, [path]);
+
+  return (
+    <video
+      ref={videoRef}
+      src={path.includes(".m3u8") ? undefined : path}
+      className="w-full h-full object-cover"
+      muted
+      autoPlay
+      loop
+      playsInline
+    />
   );
 }
