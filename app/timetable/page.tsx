@@ -569,10 +569,10 @@ export default function TimetablePage() {
   return (
     <div className="flex h-[calc(100vh-64px)] flex-col bg-transparent p-4 lg:p-8">
       {/* Title & Navigation Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-4 border-zinc-100">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-4 border-white/20 dark:border-white/10">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Weekly Timetable</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Time-block your schedule privately and sync with your tasks.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-white text-wallpaper-safe">Weekly Timetable</h1>
+          <p className="text-xs text-white/90 text-wallpaper-safe mt-0.5">Time-block your schedule privately and sync with your tasks.</p>
         </div>
 
         <div className="flex items-center gap-3">

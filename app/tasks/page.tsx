@@ -146,8 +146,8 @@ export default function TasksPage() {
     <div className="grid gap-6">
       {/* Header */}
       <div className="flex flex-col gap-1.5">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-dark-text">Tasks</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-3xl font-bold tracking-tight text-white text-wallpaper-safe">Tasks</h1>
+        <p className="text-sm text-white/90 text-wallpaper-safe">
           Assign, approve, and track work between {user1} and {user2}.
         </p>
       </div>

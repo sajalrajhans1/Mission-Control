@@ -175,6 +175,35 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Enforce fullscreen when locked
+  useEffect(() => {
+    if (!isLocked) return;
+
+    const enterFullscreen = () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch((err) => {
+          console.warn("Fullscreen request rejected/deferred:", err);
+        });
+      }
+    };
+
+    // Attempt immediate fullscreen
+    enterFullscreen();
+
+    // Re-request on any user click or key press while locked
+    const handleInteraction = () => {
+      enterFullscreen();
+    };
+
+    document.addEventListener("click", handleInteraction);
+    document.addEventListener("keydown", handleInteraction);
+
+    return () => {
+      document.removeEventListener("click", handleInteraction);
+      document.removeEventListener("keydown", handleInteraction);
+    };
+  }, [isLocked]);
+
   // --- Top Status Bar Interactive Menu Dropdowns ---
   const [activeMenu, setActiveMenu] = useState<"File" | "Edit" | "View" | "Go" | "Help" | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -403,10 +432,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   if (isLocked) {
     const color = activeUser === "user1" ? userColors.user1 : userColors.user2;
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#f5f5f7]/60 dark:bg-dark-base/60 backdrop-blur-2xl px-4 transition-all duration-500">
+      <div 
+        className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-cover bg-center px-4 transition-all duration-500"
+        style={{
+          backgroundImage: `url(${activeWallpaper})`,
+        }}
+      >
+        {/* Dark glassmorphic mask */}
+        <div className="absolute inset-0 bg-slate-900/40 dark:bg-black/50 backdrop-blur-2xl z-0" />
+
         {/* iOS/macOS styled Large clock */}
-        <div className="flex flex-col items-center gap-1 mb-8 select-none animate-in fade-in slide-in-from-top-4 duration-500 text-zinc-800 dark:text-dark-text">
-          <span className="text-[10px] uppercase tracking-widest font-extrabold text-zinc-500 dark:text-dark-text-secondary">
+        <div className="flex flex-col items-center gap-1 mb-8 select-none animate-in fade-in slide-in-from-top-4 duration-500 text-white text-wallpaper-safe relative z-10">
+          <span className="text-[10px] uppercase tracking-widest font-extrabold text-zinc-200/90">
             {dateStr}
           </span>
           <h1 className="text-6xl font-light tracking-tighter font-sans">
@@ -415,7 +452,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className={cn(
-          "w-full max-w-[280px] flex flex-col items-center gap-5 p-6 rounded-3xl bg-white/70 dark:bg-dark-card/60 border border-zinc-200/50 dark:border-dark-border/50 shadow-2xl backdrop-blur-md transition-all duration-300 relative z-10",
+          "w-full max-w-[280px] flex flex-col items-center gap-5 p-6 rounded-3xl bg-white/20 dark:bg-black/25 border border-white/20 shadow-2xl backdrop-blur-xl transition-all duration-300 relative z-10",
           shake && "animate-shake"
         )}>
           {/* Avatar */}
@@ -427,10 +464,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="text-center">
-            <span className="text-xs font-extrabold text-zinc-900 dark:text-dark-text">
+            <span className="text-xs font-extrabold text-white text-wallpaper-safe">
               {activeUserName}
             </span>
-            <p className="text-[9px] font-bold text-zinc-500 dark:text-dark-text-secondary uppercase tracking-widest mt-0.5">
+            <p className="text-[9px] font-bold text-white/70 uppercase tracking-widest mt-0.5">
               Locked
             </p>
           </div>
@@ -443,33 +480,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoFocus
-              className="h-9 text-xs text-center rounded-xl bg-zinc-100/50 dark:bg-dark-base/50 border-zinc-200/40 dark:border-dark-border text-zinc-900 dark:text-dark-text placeholder-zinc-400 focus-visible:ring-1 focus-visible:ring-dark-border focus-visible:border-dark-border"
+              className="h-9 text-xs text-center rounded-xl bg-white/10 dark:bg-black/20 border-white/20 text-white placeholder-white/50 focus-visible:ring-1 focus-visible:ring-white/40 focus-visible:border-white/40"
             />
             {unlockError && (
-              <p className="text-[10px] text-red-500 text-center font-bold animate-pulse">
+              <p className="text-[10px] text-red-400 text-center font-bold animate-pulse">
                 {unlockError}
               </p>
             )}
             
             <Button 
               type="submit" 
-              className="h-9 rounded-xl bg-zinc-900 dark:bg-dark-text hover:bg-zinc-800 dark:hover:bg-dark-text/90 text-white dark:text-dark-base font-bold text-xs transition-all active:scale-[0.98] mt-1 shadow"
+              className="h-9 rounded-xl bg-white hover:bg-white/90 text-slate-900 dark:bg-white dark:hover:bg-white/90 dark:text-black font-bold text-xs transition-all active:scale-[0.98] mt-1 shadow"
             >
               Unlock
             </Button>
-            <button
-              type="button"
-              onClick={() => {
-                logout();
-                setIsLocked(false);
-                sessionStorage.removeItem("mc_locked");
-                setPassword("");
-                setUnlockError(null);
-              }}
-              className="text-[9px] text-zinc-500 hover:text-zinc-700 dark:text-dark-text-secondary dark:hover:text-dark-text transition-colors py-1 font-bold uppercase tracking-wider mt-1 text-center"
-            >
-              Switch Profile
-            </button>
           </form>
         </div>
       </div>

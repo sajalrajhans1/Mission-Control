@@ -339,7 +339,9 @@ export default function HomePage() {
                   )}
                 >
                   {item.pinned && (
-                    <div className="absolute -top-2.5 right-3 text-base filter drop-shadow-md" title="Pinned">📌</div>
+                    <div className="absolute -top-2 right-3 p-1 rounded-full bg-white/15 dark:bg-black/25 border border-white/25 text-white shadow-md z-10" title="Pinned">
+                      <Pin className="h-3 w-3 fill-amber-300 stroke-amber-400 rotate-[30deg]" />
+                    </div>
                   )}
                   <div className="mb-2 flex items-start justify-between gap-2">
                     <Input

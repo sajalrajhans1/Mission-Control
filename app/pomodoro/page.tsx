@@ -16,7 +16,10 @@ import {
   TrendingUp,
   History,
   CheckCircle2,
-  ListTodo
+  ListTodo,
+  Keyboard,
+  Brain,
+  Sparkles
 } from "lucide-react";
 import { useData, useUserNames } from "@/components/data-provider";
 import { Button } from "@/components/ui/button";
@@ -401,10 +404,10 @@ export default function PomodoroPage() {
       )}
 
       {/* Main Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-4 border-zinc-100 dark:border-dark-border">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-4 border-white/20 dark:border-white/10">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-dark-text">Pomodoro Focus Room</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Customize your sessions, play ambient soundscapes, and align with your task checklist.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-white text-wallpaper-safe">Pomodoro Focus Room</h1>
+          <p className="text-xs text-white/90 text-wallpaper-safe mt-0.5">Customize your sessions, play ambient soundscapes, and align with your task checklist.</p>
         </div>
 
         {/* Action controls */}
@@ -439,12 +442,12 @@ export default function PomodoroPage() {
       {shortcutsOpen && (
         <div className="mt-4 p-4 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 rounded-2xl flex flex-wrap gap-4 items-center justify-between animate-fade-in text-xs text-indigo-955 dark:text-indigo-200 font-medium">
           <div className="flex flex-wrap gap-x-5 gap-y-2">
-            <span>⌨️ <kbd className="px-1.5 py-0.5 bg-white dark:bg-dark-hover border border-zinc-200 dark:border-dark-muted rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-dark-text">Space</kbd> Play / Pause</span>
-            <span>🔄 <kbd className="px-1.5 py-0.5 bg-white dark:bg-dark-hover border border-zinc-200 dark:border-dark-muted rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-dark-text">R</kbd> Reset Timer</span>
-            <span>🔴 <kbd className="px-1.5 py-0.5 bg-white dark:bg-dark-hover border border-zinc-200 dark:border-dark-muted rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-dark-text">W</kbd> Work Mode</span>
-            <span>🟢 <kbd className="px-1.5 py-0.5 bg-white dark:bg-dark-hover border border-zinc-200 dark:border-dark-muted rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-dark-text">S</kbd> Short Break</span>
-            <span>🔵 <kbd className="px-1.5 py-0.5 bg-white dark:bg-dark-hover border border-zinc-200 dark:border-dark-muted rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-dark-text">L</kbd> Long Break</span>
-            <span>🧘 <kbd className="px-1.5 py-0.5 bg-white dark:bg-dark-hover border border-zinc-200 dark:border-dark-muted rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-dark-text">F</kbd> Zen Focus Mode</span>
+            <span className="flex items-center"><Keyboard className="h-3.5 w-3.5 text-indigo-500/85 dark:text-indigo-400/85 mr-1" /> <kbd className="px-1.5 py-0.5 bg-white dark:bg-dark-hover border border-zinc-200 dark:border-dark-muted rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-dark-text mr-1">Space</kbd> Play / Pause</span>
+            <span className="flex items-center"><RotateCcw className="h-3.5 w-3.5 text-indigo-500/85 dark:text-indigo-400/85 mr-1" /> <kbd className="px-1.5 py-0.5 bg-white dark:bg-dark-hover border border-zinc-200 dark:border-dark-muted rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-dark-text mr-1">R</kbd> Reset Timer</span>
+            <span className="flex items-center"><span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 dark:bg-red-600 mr-1.5 shadow-sm" /> <kbd className="px-1.5 py-0.5 bg-white dark:bg-dark-hover border border-zinc-200 dark:border-dark-muted rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-dark-text mr-1">W</kbd> Work Mode</span>
+            <span className="flex items-center"><span className="inline-block w-2.5 h-2.5 rounded-full bg-green-500 dark:bg-green-600 mr-1.5 shadow-sm" /> <kbd className="px-1.5 py-0.5 bg-white dark:bg-dark-hover border border-zinc-200 dark:border-dark-muted rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-dark-text mr-1">S</kbd> Short Break</span>
+            <span className="flex items-center"><span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 dark:bg-blue-600 mr-1.5 shadow-sm" /> <kbd className="px-1.5 py-0.5 bg-white dark:bg-dark-hover border border-zinc-200 dark:border-dark-muted rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-dark-text mr-1">L</kbd> Long Break</span>
+            <span className="flex items-center"><Brain className="h-3.5 w-3.5 text-indigo-500/85 dark:text-indigo-400/85 mr-1" /> <kbd className="px-1.5 py-0.5 bg-white dark:bg-dark-hover border border-zinc-200 dark:border-dark-muted rounded shadow-sm text-[10px] font-bold text-zinc-800 dark:text-dark-text mr-1">F</kbd> Zen Focus Mode</span>
           </div>
           <button onClick={() => setShortcutsOpen(false)} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Dismiss</button>
         </div>
@@ -1003,11 +1006,16 @@ export default function PomodoroPage() {
               </div>
               <div className="flex-1">
                 <span className="text-xs font-bold text-zinc-800 dark:text-dark-text block">Daily Focus Target</span>
-                <span className="text-[10px] text-muted-foreground mt-0.5 block">
-                  {completedSessionsCount >= settings.targetSessions 
-                    ? "✨ Target fully achieved today! Excellent work."
-                    : `Complete ${settings.targetSessions - completedSessionsCount} more focus cycles to hit your daily goal.`}
-                </span>
+                <div className="text-[10px] text-muted-foreground mt-0.5">
+                  {completedSessionsCount >= settings.targetSessions ? (
+                    <span className="flex items-center gap-1">
+                      <Sparkles className="h-3.5 w-3.5 text-amber-500 animate-pulse shrink-0" />
+                      Target fully achieved today! Excellent work.
+                    </span>
+                  ) : (
+                    <span>Complete {settings.targetSessions - completedSessionsCount} more focus cycles to hit your daily goal.</span>
+                  )}
+                </div>
               </div>
             </div>
 

@@ -130,8 +130,8 @@ export default function ProjectsPage() {
     <div className="grid gap-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-dark-text">Projects</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Operational workspace &amp; collaborative project boards.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-white text-wallpaper-safe">Projects</h1>
+          <p className="mt-1 text-sm text-white/90 text-wallpaper-safe">Operational workspace &amp; collaborative project boards.</p>
         </div>
         <Button variant="outline" size="sm" onClick={() => setShowArchived((v) => !v)} className="dark:border-dark-border">
           {showArchived ? "Hide archived" : "Show archived"}
@@ -197,25 +197,25 @@ export default function ProjectsPage() {
                   type="button"
                   onClick={() => setIsPrivate(false)}
                   className={cn(
-                    "flex-1 py-1.5 text-xs font-medium rounded-md transition-all",
+                    "flex-1 py-1.5 text-xs font-bold rounded-md transition-all",
                     !isPrivate
                       ? "bg-white dark:bg-dark-card shadow-sm text-zinc-900 dark:text-dark-text"
                       : "text-zinc-500 hover:text-zinc-800 dark:hover:text-dark-text-secondary"
                   )}
                 >
-                  👥 Collab
+                  Collab
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsPrivate(true)}
                   className={cn(
-                    "flex-1 py-1.5 text-xs font-medium rounded-md transition-all",
+                    "flex-1 py-1.5 text-xs font-bold rounded-md transition-all",
                     isPrivate
                       ? "bg-white dark:bg-dark-card shadow-sm text-zinc-900 dark:text-dark-text"
                       : "text-zinc-500 hover:text-zinc-800 dark:hover:text-dark-text-secondary"
                   )}
                 >
-                  🔒 Private
+                  Private
                 </button>
               </div>
             </div>

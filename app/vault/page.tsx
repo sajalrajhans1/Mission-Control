@@ -1537,8 +1537,8 @@ export default function VaultPage() {
   return (
     <div className="grid gap-6">
       <div className="flex flex-col gap-1.5">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-dark-text">Vault</h1>
-        <p className="text-sm text-slate-500 dark:text-dark-text-secondary">Prompts, ideas, resources, and notes — all in one place.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-white text-wallpaper-safe">Vault</h1>
+        <p className="text-sm text-white/90 text-wallpaper-safe">Prompts, ideas, resources, and notes — all in one place.</p>
       </div>
 
       <Input 

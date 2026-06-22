@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import {
-  AlertCircle, Check, Sparkles, Trash2, X, Plus, Clock, ArrowRight, CircleDollarSign, CheckCheck, Send
+  AlertCircle, Check, Sparkles, Trash2, X, Plus, Clock, ArrowRight, CircleDollarSign, CheckCheck, Send, Lock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -435,8 +435,8 @@ export default function MoneyPage() {
     <div className="grid gap-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-dark-text">Money</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Private wallets &amp; split expense tracking.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-white text-wallpaper-safe">Money</h1>
+          <p className="mt-1 text-sm text-white/90 text-wallpaper-safe">Private wallets &amp; split expense tracking.</p>
         </div>
       </div>
 
@@ -484,8 +484,10 @@ export default function MoneyPage() {
               </>
             ) : (
               <div className="flex flex-col items-center justify-center py-10 bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-2xl border border-dashed border-white/20 dark:border-white/10">
-                <div className="text-2xl text-muted-foreground">🔒</div>
-                <p className="mt-2 text-sm font-semibold text-zinc-800 dark:text-white">Balance &amp; History Private</p>
+                <div className="p-3 bg-slate-100 dark:bg-[#2b2d31] rounded-full border border-white/10 shadow-sm">
+                  <Lock className="h-5 w-5 text-slate-500 dark:text-dark-text-secondary" />
+                </div>
+                <p className="mt-3 text-sm font-semibold text-zinc-800 dark:text-white">Balance &amp; History Private</p>
                 <p className="text-xs text-slate-500 dark:text-dark-text-secondary mt-0.5">Visible only to {names.user1}</p>
               </div>
             )}
@@ -534,8 +536,10 @@ export default function MoneyPage() {
               </>
             ) : (
               <div className="flex flex-col items-center justify-center py-10 bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-2xl border border-dashed border-white/20 dark:border-white/10">
-                <div className="text-2xl text-muted-foreground">🔒</div>
-                <p className="mt-2 text-sm font-semibold text-zinc-800 dark:text-white">Balance &amp; History Private</p>
+                <div className="p-3 bg-slate-100 dark:bg-[#2b2d31] rounded-full border border-white/10 shadow-sm">
+                  <Lock className="h-5 w-5 text-slate-500 dark:text-dark-text-secondary" />
+                </div>
+                <p className="mt-3 text-sm font-semibold text-zinc-800 dark:text-white">Balance &amp; History Private</p>
                 <p className="text-xs text-slate-500 dark:text-dark-text-secondary mt-0.5">Visible only to {names.user2}</p>
               </div>
             )}
@@ -864,7 +868,10 @@ export default function MoneyPage() {
                   );
                 })}
                 {debtsIOwe.length === 0 && (
-                  <p className="text-xs text-muted-foreground py-2 italic text-center">No debts to settle. All clear! 🎉</p>
+                  <p className="text-xs text-muted-foreground py-2 italic text-center flex items-center justify-center gap-1.5">
+                    <CheckCheck className="h-4 w-4 text-green-500 shrink-0" />
+                    No debts to settle. All clear!
+                  </p>
                 )}
               </div>
             </div>

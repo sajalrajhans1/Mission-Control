@@ -115,44 +115,16 @@ select {
   cursor: text;
 }
 
-/* Premium custom scrollbar styling */
-.scrollbar-sleek {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+/* Hide all scrollbar indicators globally */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
 }
 
-.scrollbar-sleek::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-
-.scrollbar-sleek::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.scrollbar-sleek::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 9999px;
-}
-
-.scrollbar-sleek::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
-}
-
-.scrollbar-sleek::-webkit-scrollbar-corner {
-  background: transparent;
-}
-
-.dark .scrollbar-sleek {
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
-}
-
-.dark .scrollbar-sleek::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.dark .scrollbar-sleek::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+  width: 0;
+  height: 0;
 }
 
 /* Shake animation for password failures */
@@ -164,4 +136,9 @@ select {
 
 .animate-shake {
   animation: shake 0.4s ease-in-out;
+}
+
+/* Ensure text is readable over wallpapers */
+.text-wallpaper-safe {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25), 0 2px 10px rgba(0, 0, 0, 0.35);
 }
