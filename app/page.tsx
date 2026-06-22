@@ -211,8 +211,8 @@ export default function HomePage() {
         }
       }}
     >
-        {/* Top/Center: macOS Clock & Date Widget (Viewport-Fixed with no background container) */}
-        <div className="fixed top-12 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center justify-center text-center select-none animate-in fade-in slide-in-from-top-4 duration-500 w-full max-w-xl">
+        {/* Top/Center: macOS Clock & Date Widget */}
+        <div className="flex flex-col items-center justify-center text-center mt-4 mb-2 select-none animate-in fade-in slide-in-from-top-4 duration-500">
           <span className="text-sm font-bold uppercase tracking-widest text-white/90 drop-shadow-md">
             {dateString}
           </span>
@@ -235,9 +235,6 @@ export default function HomePage() {
             </span>
           </div>
         </div>
-
-        {/* Spacer to push widgets below the fixed clock */}
-        <div className="h-44 shrink-0" />
 
         {/* Widgets Grid */}
         <div className="grid gap-6 lg:grid-cols-12">
