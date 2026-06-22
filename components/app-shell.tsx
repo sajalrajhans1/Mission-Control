@@ -27,6 +27,22 @@ interface HlsConstructor {
   new (): HlsInstance;
   isSupported(): boolean;
 }
+// --- Wallpapers Preset ---
+export const WALLPAPERS = [
+  { name: "Aurora Nordic", path: "/wallpapers/aurora_nordic.png" },
+  { name: "Minimalist Silk", path: "/wallpapers/minimalist_silk.png" },
+  { name: "Obsidian Gold", path: "/wallpapers/obsidian_gold.png" },
+  { name: "Misty Mountains", path: "/wallpapers/misty_mountains.png" },
+  { name: "Cyberpunk Grid", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260424_064411_9e9d7f84-9277-41f4-ab10-59172d89e6be.mp4" },
+  { name: "Abstract Flow", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260419_065931_e3ca7b53-d32e-4ad5-81de-dc9d6fcfda6d.mp4" },
+  { name: "Deep Space", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260411_104032_69319010-2458-492b-b04d-b40a5dfa4482.mp4" },
+  { name: "Techno Rings", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260403_050628_c4e32401-fab4-4a27-b7a8-6e9291cd5959.mp4" },
+  { name: "Digital Wave", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260324_151826_c7218672-6e92-402c-9e45-f1e0f454bdc4.mp4" },
+  { name: "Abstract Neon", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260611_183632_c311af08-e4b7-458f-81e7-79847a49b3d3.mp4" },
+  { name: "Fluid Dynamic", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260319_055001_8e16d972-3b2b-441c-86ad-2901a54682f9.mp4" },
+  { name: "Golden Horizon", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260302_085844_21a8f4b3-dea5-4ede-be16-d53f6973bb14.mp4" },
+  { name: "Live Stream", path: "https://stream.mux.com/Aa02T7oM1wH5Mk5EEVDYhbZ1ChcdhRsS2m1NYyx4Ua1g.m3u8" }
+];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -36,31 +52,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const userColors = useUserColors();
   const { stickyNotes, notifications, isScreensaverActive, setIsScreensaverActive } = useData();
 
-  // --- Wallpapers Preset ---
-  const WALLPAPERS = useMemo(() => [
-    { name: "Aurora Nordic", path: "/wallpapers/aurora_nordic.png" },
-    { name: "Minimalist Silk", path: "/wallpapers/minimalist_silk.png" },
-    { name: "Obsidian Gold", path: "/wallpapers/obsidian_gold.png" },
-    { name: "Misty Mountains", path: "/wallpapers/misty_mountains.png" },
-    { name: "Cyberpunk Grid", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260424_064411_9e9d7f84-9277-41f4-ab10-59172d89e6be.mp4" },
-    { name: "Abstract Flow", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260419_065931_e3ca7b53-d32e-4ad5-81de-dc9d6fcfda6d.mp4" },
-    { name: "Deep Space", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260411_104032_69319010-2458-492b-b04d-b40a5dfa4482.mp4" },
-    { name: "Techno Rings", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260403_050628_c4e32401-fab4-4a27-b7a8-6e9291cd5959.mp4" },
-    { name: "Digital Wave", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260324_151826_c7218672-6e92-402c-9e45-f1e0f454bdc4.mp4" },
-    { name: "Abstract Neon", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260611_183632_c311af08-e4b7-458f-81e7-79847a49b3d3.mp4" },
-    { name: "Fluid Dynamic", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260319_055001_8e16d972-3b2b-441c-86ad-2901a54682f9.mp4" },
-    { name: "Golden Horizon", path: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260302_085844_21a8f4b3-dea5-4ede-be16-d53f6973bb14.mp4" },
-    { name: "Live Stream", path: "https://stream.mux.com/Aa02T7oM1wH5Mk5EEVDYhbZ1ChcdhRsS2m1NYyx4Ua1g.m3u8" }
-  ], []);
-
   const [activeWallpaper, setActiveWallpaper] = useState("/wallpapers/aurora_nordic.png");
   const [showWallpaperPicker, setShowWallpaperPicker] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("mc_wallpaper");
-    if (saved) {
-      setActiveWallpaper(saved);
-    }
+    const loadWallpaper = () => {
+      const saved = localStorage.getItem("mc_wallpaper");
+      if (saved) {
+        setActiveWallpaper(saved);
+      }
+    };
+    loadWallpaper();
+
+    window.addEventListener("mc_wallpaper_changed", loadWallpaper);
+    window.addEventListener("storage", loadWallpaper);
+    return () => {
+      window.removeEventListener("mc_wallpaper_changed", loadWallpaper);
+      window.removeEventListener("storage", loadWallpaper);
+    };
   }, []);
 
   const handleSelectWallpaper = (path: string) => {
@@ -586,28 +595,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const isVideo = activeWallpaper.endsWith(".mp4") || activeWallpaper.includes(".m3u8");
 
   return (
-    <div 
-      className="min-h-screen relative flex flex-col justify-between overflow-hidden bg-cover bg-center transition-colors duration-500 ease-in-out"
-      style={!isVideo ? {
-        backgroundImage: `url(${activeWallpaper})`,
-        backgroundAttachment: "fixed",
-      } : undefined}
-    >
-      {isVideo && (
-        <video 
-          ref={shellVideoRef}
-          key={activeWallpaper}
-          className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
-          autoPlay
-          muted
-          loop
-          playsInline
-        >
-          <source src={activeWallpaper} type={activeWallpaper.includes(".m3u8") ? "application/x-mpegURL" : "video/mp4"} />
-        </video>
-      )}
-      {/* Translucent overlay for better contrast */}
-      <div className="absolute inset-0 bg-slate-900/5 dark:bg-black/20 backdrop-blur-[0.5px] pointer-events-none z-0" />
+    <div className="min-h-screen relative flex flex-col justify-between overflow-hidden transition-colors duration-500 ease-in-out">
+      {/* FIXED VIEWPORT-LOCKED WALLPAPER CANVAS */}
+      <div className="fixed inset-0 w-screen h-screen z-0 pointer-events-none select-none overflow-hidden">
+        {isVideo ? (
+          <video 
+            ref={shellVideoRef}
+            key={activeWallpaper}
+            className="w-full h-full object-cover"
+            autoPlay
+            muted
+            loop
+            playsInline
+          >
+            <source src={activeWallpaper} type={activeWallpaper.includes(".m3u8") ? "application/x-mpegURL" : "video/mp4"} />
+          </video>
+        ) : (
+          <div 
+            className="w-full h-full bg-cover bg-center"
+            style={{
+              backgroundImage: `url(${activeWallpaper})`,
+            }}
+          />
+        )}
+        {/* Translucent overlay for better contrast */}
+        <div className="absolute inset-0 bg-slate-900/5 dark:bg-black/20 backdrop-blur-[0.5px]" />
+      </div>
 
       {/* TOP SLIM macOS MENU BAR */}
       <header className={cn(
@@ -1404,7 +1417,7 @@ function FloatingPomodoro() {
   );
 }
 
-function WallpaperVideoPreview({ path }: { path: string }) {
+export function WallpaperVideoPreview({ path }: { path: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,6 +23,7 @@ const COLOR_OPTIONS = [
 ];
 
 export default function SettingsPage() {
+  const router = useRouter();
   const { settings } = useData();
   const { activeUser, setPassword } = useActiveUser();
 
@@ -225,6 +227,23 @@ export default function SettingsPage() {
                 </button>
               );
             })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Desktop Background ────────────────────────────────────────────── */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-zinc-900">Desktop Background</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <p className="text-sm text-muted-foreground">
+            Customize your workspace background using high-definition static images or live video wallpapers.
+          </p>
+          <div>
+            <Button onClick={() => router.push("/settings/wallpaper")}>
+              Choose Wallpaper
+            </Button>
           </div>
         </CardContent>
       </Card>
