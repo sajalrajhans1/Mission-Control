@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { 
   TrendingUp, WalletCards, ListTodo, Pin, StickyNote, Trash2, Lock, Unlock,
-  Sparkles, Plus
+  Plus
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -191,7 +191,6 @@ export default function HomePage() {
             {timeString}
           </h1>
           <div className="mt-2 flex items-center gap-3 bg-black/25 dark:bg-black/35 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 text-white shadow-lg">
-            <Sparkles className="h-4.5 w-4.5 text-yellow-300 animate-pulse" />
             <span className="text-sm font-semibold tracking-wide">
               {greeting}, {activeUserName}
             </span>
