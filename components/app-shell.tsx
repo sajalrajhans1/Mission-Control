@@ -14,6 +14,7 @@ import { QuickAdd } from "@/components/quick-add";
 import { Button } from "@/components/ui/button";
 import { NotificationsMenu } from "@/components/notifications-menu";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
@@ -23,7 +24,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { activeUser, activeUserName, login, logout, isPasswordSet } = useActiveUser();
   const names = useUserNames();
   const userColors = useUserColors();
-  const { stickyNotes } = useData();
+  const { stickyNotes, notifications } = useData();
 
   // --- Wallpapers Preset ---
   const WALLPAPERS = useMemo(() => [
@@ -174,6 +175,54 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // --- Top Status Bar Interactive Menu Dropdowns ---
+  const [activeMenu, setActiveMenu] = useState<"File" | "Edit" | "View" | "Go" | "Help" | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+  const [showAboutDialog, setShowAboutDialog] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+        setActiveMenu(null);
+      }
+    };
+    if (menuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menuOpen]);
+
+  const handleMenuClick = (menu: "File" | "Edit" | "View" | "Go" | "Help") => {
+    setActiveMenu(menu);
+    setMenuOpen(true);
+  };
+
+  const handleMenuHover = (menu: "File" | "Edit" | "View" | "Go" | "Help") => {
+    if (menuOpen) {
+      setActiveMenu(menu);
+    }
+  };
+
+  const closeMenu = () => {
+    setMenuOpen(false);
+    setActiveMenu(null);
+  };
+
+  const myNotifications = useMemo(() => {
+    if (!activeUser) return [];
+    return notifications.rows.filter((n) => n.for_user === activeUser);
+  }, [notifications.rows, activeUser]);
+
+  const clearAllNotifications = async () => {
+    if (!activeUser) return;
+    for (const n of myNotifications) {
+      await notifications.remove(n.id);
+    }
+  };
+
   // Workspace Lock trigger
   const lock = useCallback(() => {
     if (!activeUser) return;
@@ -183,28 +232,59 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     setUnlockError(null);
   }, [activeUser]);
 
-  // Keyboard shortcut listener: Alt+L, Ctrl+Alt+L, Ctrl+Shift+L, Alt+Space+L
+  // Keyboard shortcuts listener (⌥L, ⌥T, ⌥F, ⌘N, ⌘D, ⌘K, ⌘H, ⌘W)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!activeUser) return;
 
-      const isLKey = e.key.toLowerCase() === "l";
+      const key = e.key.toLowerCase();
+      const isMetaOrCtrl = e.metaKey || e.ctrlKey;
 
-      const matchesShortcut = 
-        (e.altKey && isLKey) || 
-        (e.ctrlKey && e.altKey && isLKey) ||
-        (e.ctrlKey && e.shiftKey && isLKey) ||
-        (e.altKey && e.code === "Space" && isLKey);
-
-      if (matchesShortcut) {
+      // Lock Screen: Alt+L or Command+L
+      if ((e.altKey && key === "l") || (isMetaOrCtrl && key === "l")) {
         e.preventDefault();
         lock();
+      }
+      // Toggle Theme: Alt+T
+      if (e.altKey && key === "t") {
+        e.preventDefault();
+        toggleTheme();
+      }
+      // Toggle Fullscreen: Alt+F
+      if (e.altKey && key === "f") {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+      // New Task: Command+N or Alt+N
+      if ((isMetaOrCtrl && key === "n") || (e.altKey && key === "n")) {
+        e.preventDefault();
+        router.push("/tasks");
+      }
+      // New Note: Command+D or Alt+D
+      if ((isMetaOrCtrl && key === "d") || (e.altKey && key === "d")) {
+        e.preventDefault();
+        handleCreateNote();
+      }
+      // Clear Alerts: Command+K or Alt+K
+      if ((isMetaOrCtrl && key === "k") || (e.altKey && key === "k")) {
+        e.preventDefault();
+        clearAllNotifications();
+      }
+      // Go to Desktop: Command+H or Alt+H
+      if ((isMetaOrCtrl && key === "h") || (e.altKey && key === "h")) {
+        e.preventDefault();
+        router.push("/");
+      }
+      // Wallpapers picker: Command+W or Alt+W
+      if ((e.altKey && key === "w") || (isMetaOrCtrl && key === "w")) {
+        e.preventDefault();
+        setShowWallpaperPicker(prev => !prev);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeUser, lock]);
+  }, [activeUser, lock, toggleTheme, toggleFullscreen, router, handleCreateNote, clearAllNotifications]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -416,12 +496,156 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="font-extrabold uppercase tracking-wider text-slate-900 dark:text-white">Mission Control</span>
           </Link>
           <span className="font-bold text-slate-900 dark:text-white border-l border-slate-300 dark:border-white/10 pl-4">{activeAppName}</span>
-          <div className="hidden md:flex items-center gap-3 text-slate-500 dark:text-white/50 text-[10px] uppercase tracking-wider ml-2">
-            <span className="hover:text-slate-900 dark:hover:text-white cursor-default transition-colors">File</span>
-            <span className="hover:text-slate-900 dark:hover:text-white cursor-default transition-colors">Edit</span>
-            <span className="hover:text-slate-900 dark:hover:text-white cursor-default transition-colors">View</span>
-            <span className="hover:text-slate-900 dark:hover:text-white cursor-default transition-colors">Go</span>
-            <span className="hover:text-slate-900 dark:hover:text-white cursor-default transition-colors">Help</span>
+          <div className="hidden md:flex items-center gap-1.5 relative" ref={menuRef}>
+            {/* File Menu */}
+            <div className="relative">
+              <button
+                onClick={() => handleMenuClick("File")}
+                onMouseEnter={() => handleMenuHover("File")}
+                className={cn(
+                  "px-2.5 py-1 rounded-md transition-colors cursor-default select-none",
+                  activeMenu === "File" ? "bg-slate-900/10 dark:bg-white/10 text-slate-900 dark:text-white" : "hover:bg-slate-950/5 dark:hover:bg-white/5 text-slate-700 dark:text-dark-text-secondary"
+                )}
+              >
+                File
+              </button>
+              {menuOpen && activeMenu === "File" && (
+                <div className="absolute left-0 mt-1 w-44 rounded-xl border border-slate-200/50 dark:border-white/10 bg-white/95 dark:bg-[#1e1f22]/95 backdrop-blur-2xl p-1 shadow-2xl z-50 text-[11px] text-slate-700 dark:text-dark-text animate-in fade-in slide-in-from-top-1 duration-100">
+                  <button onClick={() => { router.push("/tasks"); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
+                    <span>New Task</span>
+                    <span className="opacity-55 font-mono text-[9px]">⌘N</span>
+                  </button>
+                  <button onClick={() => { handleCreateNote(); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
+                    <span>New Note</span>
+                    <span className="opacity-55 font-mono text-[9px]">⌘D</span>
+                  </button>
+                  <div className="h-px bg-slate-200/50 dark:bg-white/5 my-1" />
+                  <button onClick={() => { lock(); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
+                    <span>Lock Screen</span>
+                    <span className="opacity-55 font-mono text-[9px]">⌥L</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Edit Menu */}
+            <div className="relative">
+              <button
+                onClick={() => handleMenuClick("Edit")}
+                onMouseEnter={() => handleMenuHover("Edit")}
+                className={cn(
+                  "px-2.5 py-1 rounded-md transition-colors cursor-default select-none",
+                  activeMenu === "Edit" ? "bg-slate-900/10 dark:bg-white/10 text-slate-900 dark:text-white" : "hover:bg-slate-955/5 dark:hover:bg-white/5 text-slate-700 dark:text-dark-text-secondary"
+                )}
+              >
+                Edit
+              </button>
+              {menuOpen && activeMenu === "Edit" && (
+                <div className="absolute left-0 mt-1 w-48 rounded-xl border border-slate-200/50 dark:border-white/10 bg-white/95 dark:bg-[#1e1f22]/95 backdrop-blur-2xl p-1 shadow-2xl z-50 text-[11px] text-slate-700 dark:text-dark-text animate-in fade-in slide-in-from-top-1 duration-100">
+                  <button onClick={() => { toggleTheme(); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
+                    <span>Toggle Theme</span>
+                    <span className="opacity-55 font-mono text-[9px]">⌥T</span>
+                  </button>
+                  <button onClick={() => { clearAllNotifications(); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
+                    <span>Clear Alerts</span>
+                    <span className="opacity-55 font-mono text-[9px]">⌘K</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* View Menu */}
+            <div className="relative">
+              <button
+                onClick={() => handleMenuClick("View")}
+                onMouseEnter={() => handleMenuHover("View")}
+                className={cn(
+                  "px-2.5 py-1 rounded-md transition-colors cursor-default select-none",
+                  activeMenu === "View" ? "bg-slate-900/10 dark:bg-white/10 text-slate-900 dark:text-white" : "hover:bg-slate-955/5 dark:hover:bg-white/5 text-slate-700 dark:text-dark-text-secondary"
+                )}
+              >
+                View
+              </button>
+              {menuOpen && activeMenu === "View" && (
+                <div className="absolute left-0 mt-1 w-44 rounded-xl border border-slate-200/50 dark:border-white/10 bg-white/95 dark:bg-[#1e1f22]/95 backdrop-blur-2xl p-1 shadow-2xl z-50 text-[11px] text-slate-700 dark:text-dark-text animate-in fade-in slide-in-from-top-1 duration-100">
+                  <button onClick={() => { router.push("/"); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
+                    <span>Go to Desktop</span>
+                    <span className="opacity-55 font-mono text-[9px]">⌘H</span>
+                  </button>
+                  <button onClick={() => { toggleFullscreen(); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
+                    <span>Toggle Fullscreen</span>
+                    <span className="opacity-55 font-mono text-[9px]">⌥F</span>
+                  </button>
+                  <button onClick={() => { setShowWallpaperPicker(true); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
+                    <span>Wallpapers...</span>
+                    <span className="opacity-55 font-mono text-[9px]">⌘W</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Go Menu */}
+            <div className="relative">
+              <button
+                onClick={() => handleMenuClick("Go")}
+                onMouseEnter={() => handleMenuHover("Go")}
+                className={cn(
+                  "px-2.5 py-1 rounded-md transition-colors cursor-default select-none",
+                  activeMenu === "Go" ? "bg-slate-900/10 dark:bg-white/10 text-slate-900 dark:text-white" : "hover:bg-slate-955/5 dark:hover:bg-white/5 text-slate-700 dark:text-dark-text-secondary"
+                )}
+              >
+                Go
+              </button>
+              {menuOpen && activeMenu === "Go" && (
+                <div className="absolute left-0 mt-1 w-40 rounded-xl border border-slate-200/50 dark:border-white/10 bg-white/95 dark:bg-[#1e1f22]/95 backdrop-blur-2xl p-1 shadow-2xl z-50 text-[11px] text-slate-700 dark:text-dark-text animate-in fade-in slide-in-from-top-1 duration-100">
+                  <button onClick={() => { router.push("/"); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center gap-2">
+                    <Home className="h-3 w-3 opacity-60" /> Desktop
+                  </button>
+                  <button onClick={() => { router.push("/vault"); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center gap-2">
+                    <FolderOpen className="h-3 w-3 opacity-60" /> Vault
+                  </button>
+                  <button onClick={() => { router.push("/tasks"); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center gap-2">
+                    <ListTodo className="h-3 w-3 opacity-60" /> Tasks
+                  </button>
+                  <button onClick={() => { router.push("/timetable"); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center gap-2">
+                    <Calendar className="h-3 w-3 opacity-60" /> Schedule
+                  </button>
+                  <button onClick={() => { router.push("/pomodoro"); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center gap-2">
+                    <Clock className="h-3 w-3 opacity-60" /> Focus
+                  </button>
+                  <button onClick={() => { router.push("/money"); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center gap-2">
+                    <WalletCards className="h-3 w-3 opacity-60" /> Finance
+                  </button>
+                  <button onClick={() => { router.push("/settings"); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center gap-2">
+                    <Settings className="h-3 w-3 opacity-60" /> Settings
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Help Menu */}
+            <div className="relative">
+              <button
+                onClick={() => handleMenuClick("Help")}
+                onMouseEnter={() => handleMenuHover("Help")}
+                className={cn(
+                  "px-2.5 py-1 rounded-md transition-colors cursor-default select-none",
+                  activeMenu === "Help" ? "bg-slate-900/10 dark:bg-white/10 text-slate-900 dark:text-white" : "hover:bg-slate-955/5 dark:hover:bg-white/5 text-slate-700 dark:text-dark-text-secondary"
+                )}
+              >
+                Help
+              </button>
+              {menuOpen && activeMenu === "Help" && (
+                <div className="absolute left-0 mt-1 w-44 rounded-xl border border-slate-200/50 dark:border-white/10 bg-white/95 dark:bg-[#1e1f22]/95 backdrop-blur-2xl p-1 shadow-2xl z-50 text-[11px] text-slate-700 dark:text-dark-text animate-in fade-in slide-in-from-top-1 duration-100">
+                  <button onClick={() => { setShowShortcutsHelp(true); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
+                    <span>Keyboard Shortcuts</span>
+                  </button>
+                  <button onClick={() => { setShowAboutDialog(true); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
+                    <span>About Mission Control</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -504,19 +728,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* PERSISTENT BOTTOM macOS-STYLE DOCK */}
       <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 w-max max-w-[95%] animate-in slide-in-from-bottom-5 duration-500 select-none">
-        <div className="relative flex items-center gap-3.5 bg-white/20 dark:bg-black/35 border border-white/25 dark:border-white/5 backdrop-blur-2xl shadow-2xl rounded-3xl px-4 py-2 hover:shadow-black/20 transition-all duration-300">
+        <div className="relative flex items-end gap-3.5 bg-white/15 dark:bg-black/35 border border-white/25 dark:border-white/5 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[24px] px-4 pt-3.5 pb-2 hover:shadow-black/25 transition-all duration-300">
           
-          <Link href="/" className="flex flex-col items-center group relative hover:-translate-y-1.5 transition-transform duration-200">
-            <div className={cn(
-              "p-2.5 rounded-2xl border transition-all duration-200 shadow-md",
-              pathname === "/" 
-                ? "bg-white/40 dark:bg-white/15 border-white/40 dark:border-white/20 scale-105" 
-                : "bg-white/10 dark:bg-white/5 border-white/10 hover:bg-white/25 hover:border-white/25"
-            )}>
+          <Link href="/" className="flex flex-col items-center group relative hover:scale-[1.28] hover:-translate-y-3.5 active:scale-95 transition-all duration-200 ease-out origin-bottom">
+            <div 
+              className={cn(
+                "p-2.5 rounded-2xl border transition-all duration-200 shadow-md",
+                pathname === "/" 
+                  ? "bg-white/40 dark:bg-white/15 border-white/40 dark:border-white/20 scale-105" 
+                  : "bg-white/10 dark:bg-white/5 border-white/10 hover:bg-white/25 hover:border-white/25"
+              )}
+              style={{ WebkitBoxReflect: "below 2px linear-gradient(transparent 70%, rgba(255, 255, 255, 0.08))" }}
+            >
               <Home className="h-5 w-5 text-white" />
             </div>
             <span className="absolute -top-9 bg-black/75 text-[9px] text-white px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider pointer-events-none shadow">Desktop</span>
-            {pathname === "/" && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white shadow-glow" />}
+            {pathname === "/" && <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-indigo-400 dark:bg-indigo-300 shadow-[0_0_8px_#818cf8]" />}
           </Link>
 
           {dockItems.map((item) => {
@@ -525,32 +752,36 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Link 
                 key={item.href} 
                 href={item.href} 
-                className="flex flex-col items-center group relative hover:-translate-y-1.5 transition-transform duration-200"
+                className="flex flex-col items-center group relative hover:scale-[1.28] hover:-translate-y-3.5 active:scale-95 transition-all duration-200 ease-out origin-bottom"
               >
-                <div className={cn(
-                  "p-2.5 rounded-2xl border transition-all duration-200 shadow-md",
-                  isActive 
-                    ? "bg-white/40 dark:bg-white/15 border-white/40 dark:border-white/20 scale-105" 
-                    : "bg-white/10 dark:bg-white/5 border-white/10 hover:bg-white/25 hover:border-white/25"
-                )}>
+                <div 
+                  className={cn(
+                    "p-2.5 rounded-2xl border transition-all duration-200 shadow-md",
+                    isActive 
+                      ? "bg-white/40 dark:bg-white/15 border-white/40 dark:border-white/20 scale-105" 
+                      : "bg-white/10 dark:bg-white/5 border-white/10 hover:bg-white/25 hover:border-white/25"
+                  )}
+                  style={{ WebkitBoxReflect: "below 2px linear-gradient(transparent 70%, rgba(255, 255, 255, 0.08))" }}
+                >
                   <item.icon className="h-5 w-5 text-white" />
                 </div>
                 <span className="absolute -top-9 bg-black/75 text-[9px] text-white px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider pointer-events-none shadow">{item.label}</span>
-                {isActive && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white shadow-glow" />}
+                {isActive && <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-indigo-400 dark:bg-indigo-300 shadow-[0_0_8px_#818cf8]" />}
               </Link>
             );
           })}
 
-          <div className="h-6 w-px bg-white/20 shrink-0" />
+          <div className="h-10 w-px bg-white/20 shrink-0 self-center" />
 
           {/* Wallpaper preset selector */}
-          <div className="relative">
+          <div className="relative flex flex-col items-center">
             <button 
               onClick={() => setShowWallpaperPicker(!showWallpaperPicker)}
               className={cn(
-                "p-2.5 rounded-2xl border transition-all duration-200 shadow-md relative flex flex-col items-center group hover:-translate-y-1.5",
+                "p-2.5 rounded-2xl border transition-all duration-200 shadow-md relative flex flex-col items-center group hover:scale-[1.28] hover:-translate-y-3.5 active:scale-95 origin-bottom",
                 showWallpaperPicker ? "bg-white/30 border-white/40 scale-105" : "bg-white/10 dark:bg-white/5 border-white/10 hover:bg-white/25 hover:border-white/25"
               )}
+              style={{ WebkitBoxReflect: "below 2px linear-gradient(transparent 70%, rgba(255, 255, 255, 0.08))" }}
             >
               <Laptop className="h-5 w-5 text-white" />
               <span className="absolute -top-9 bg-black/75 text-[9px] text-white px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider pointer-events-none shadow">Wallpaper</span>
@@ -583,7 +814,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* Quick-add Note button */}
           <button 
             onClick={handleCreateNote}
-            className="p-2.5 rounded-2xl bg-white/10 dark:bg-white/5 border border-white/10 hover:bg-white/25 hover:border-white/25 transition-all duration-200 shadow-md relative flex flex-col items-center group hover:-translate-y-1.5"
+            className="p-2.5 rounded-2xl bg-white/10 dark:bg-white/5 border border-white/10 hover:bg-white/25 hover:border-white/25 hover:scale-[1.28] hover:-translate-y-3.5 active:scale-95 transition-all duration-200 ease-out origin-bottom shadow-md relative flex flex-col items-center group"
+            style={{ WebkitBoxReflect: "below 2px linear-gradient(transparent 70%, rgba(255, 255, 255, 0.08))" }}
           >
             <Plus className="h-5 w-5 text-white" />
             <span className="absolute -top-9 bg-black/75 text-[9px] text-white px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider pointer-events-none shadow">Add Note</span>
@@ -594,6 +826,66 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <QuickAdd />
       <FloatingPomodoro />
+
+      {/* Keyboard Shortcuts Dialog */}
+      <Dialog open={showShortcutsHelp} onOpenChange={setShowShortcutsHelp}>
+        <DialogContent className="max-w-md bg-white/80 dark:bg-[#1e1f22]/85 border border-slate-200/50 dark:border-white/10 shadow-2xl backdrop-blur-2xl text-slate-800 dark:text-dark-text">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-slate-900 dark:text-white">Keyboard Shortcuts</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3 text-xs mt-2">
+            <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-white/5 pb-2">
+              <span className="opacity-80">Lock Workspace</span>
+              <kbd className="px-2 py-0.5 bg-slate-200/50 dark:bg-white/10 rounded font-mono text-[10px]">⌥L / ⌘L</kbd>
+            </div>
+            <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-white/5 pb-2">
+              <span className="opacity-80">Toggle Dark Theme</span>
+              <kbd className="px-2 py-0.5 bg-slate-200/50 dark:bg-white/10 rounded font-mono text-[10px]">⌥T</kbd>
+            </div>
+            <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-white/5 pb-2">
+              <span className="opacity-80">Toggle Fullscreen</span>
+              <kbd className="px-2 py-0.5 bg-slate-200/50 dark:bg-white/10 rounded font-mono text-[10px]">⌥F</kbd>
+            </div>
+            <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-white/5 pb-2">
+              <span className="opacity-80">New Task</span>
+              <kbd className="px-2 py-0.5 bg-slate-200/50 dark:bg-white/10 rounded font-mono text-[10px]">⌘N / ⌥N</kbd>
+            </div>
+            <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-white/5 pb-2">
+              <span className="opacity-80">New Note</span>
+              <kbd className="px-2 py-0.5 bg-slate-200/50 dark:bg-white/10 rounded font-mono text-[10px]">⌘D / ⌥D</kbd>
+            </div>
+            <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-white/5 pb-2">
+              <span className="opacity-80">Clear Alerts</span>
+              <kbd className="px-2 py-0.5 bg-slate-200/50 dark:bg-white/10 rounded font-mono text-[10px]">⌘K / ⌥K</kbd>
+            </div>
+            <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-white/5 pb-2">
+              <span className="opacity-80">Go to Desktop</span>
+              <kbd className="px-2 py-0.5 bg-slate-200/50 dark:bg-white/10 rounded font-mono text-[10px]">⌘H / ⌥H</kbd>
+            </div>
+            <div className="flex items-center justify-between pb-1">
+              <span className="opacity-80">Change Wallpaper</span>
+              <kbd className="px-2 py-0.5 bg-slate-200/50 dark:bg-white/10 rounded font-mono text-[10px]">⌘W / ⌥W</kbd>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* About Dialog */}
+      <Dialog open={showAboutDialog} onOpenChange={setShowAboutDialog}>
+        <DialogContent className="max-w-xs text-center bg-white/80 dark:bg-[#1e1f22]/85 border border-slate-200/50 dark:border-white/10 shadow-2xl backdrop-blur-2xl text-slate-800 dark:text-dark-text flex flex-col items-center p-6">
+          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-tr from-indigo-500 to-purple-600 shadow-xl border border-white/20 mb-3 hover:scale-105 transition-transform duration-300">
+            <Brain className="h-9 w-9 text-white" />
+          </div>
+          <DialogTitle className="text-lg font-extrabold text-slate-900 dark:text-white tracking-tight">Mission Control</DialogTitle>
+          <span className="text-[10px] opacity-60 font-semibold tracking-wider uppercase mt-0.5">Version 2.0.0 (Premium)</span>
+          <div className="text-xs opacity-80 leading-relaxed max-w-[240px] mt-3">
+            A luxury productivity suite for creators, organizers, and developers. Designed with glassmorphic aesthetics and modern fluid controls.
+          </div>
+          <div className="text-[9px] opacity-40 font-mono mt-5">
+            © 2026 DeepMind Antigravity Group
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

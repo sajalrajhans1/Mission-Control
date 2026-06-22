@@ -65,7 +65,7 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
   const canDelete = isCreator || isBoth;
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border bg-white p-3 dark:border-dark-border dark:bg-dark-card">
+    <div className="flex items-center gap-3 rounded-xl border bg-white/35 p-3 dark:border-white/10 dark:bg-black/35 backdrop-blur-xl shadow-sm transition-all duration-300 hover:shadow-md hover:scale-[1.01] hover:border-white/40">
       {isBoth ? (
         <div className="flex gap-1.5 shrink-0">
           {/* User 1 Circle */}
@@ -204,7 +204,7 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
 
         {/* Editable Task Note */}
         {task.note || isEditingNote ? (
-          <div className="mt-2 text-xs border-t pt-1.5 border-zinc-100">
+          <div className="mt-2 text-xs border-t pt-1.5 border-white/15 dark:border-white/5">
             {isEditingNote ? (
               <input
                 value={noteDraft}
@@ -212,13 +212,13 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
                 onBlur={handleSaveNote}
                 onKeyDown={(e) => e.key === "Enter" && handleSaveNote()}
                 placeholder="Write a note..."
-                className="w-full text-xs px-2 py-1 bg-zinc-50 border rounded outline-none border-zinc-200 focus:border-zinc-500"
+                className="w-full text-xs px-2 py-1 bg-white/20 dark:bg-black/30 border border-white/20 dark:border-white/10 rounded outline-none text-slate-800 dark:text-white placeholder-slate-400 focus:border-indigo-500"
                 autoFocus
               />
             ) : (
               <p
                 onClick={() => setIsEditingNote(true)}
-                className="text-muted-foreground hover:bg-zinc-50 cursor-pointer p-1 rounded transition-colors italic"
+                className="text-slate-600 dark:text-dark-text-secondary hover:bg-white/40 dark:hover:bg-white/5 cursor-pointer p-1 rounded transition-colors italic"
               >
                 Note: {task.note}
               </p>
@@ -227,7 +227,7 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
         ) : (
           <button
             onClick={() => setIsEditingNote(true)}
-            className="mt-1.5 text-[10px] text-zinc-400 hover:text-zinc-600 hover:underline cursor-pointer block"
+            className="mt-1.5 text-[10px] text-slate-500 hover:text-slate-700 dark:text-dark-text-secondary dark:hover:text-dark-text hover:underline cursor-pointer block"
           >
             + Add Note
           </button>
@@ -239,22 +239,22 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
             className={cn(
               "flex items-center gap-1 px-2 py-0.5 font-medium text-xs rounded-md border shadow-none",
               task.completed
-                ? "bg-zinc-50 text-zinc-400 border-zinc-200 dark:bg-dark-card dark:text-dark-text-secondary dark:border-dark-border"
+                ? "bg-white/10 text-slate-400 border-white/10 dark:bg-white/5 dark:text-dark-text-secondary dark:border-white/5"
                 : (() => {
                     const info = getDueDateLabel(task.due_date!);
                     if (info.variant === "overdue") {
-                      return "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900 font-semibold";
+                      return "bg-red-500/15 text-red-700 border-red-500/30 dark:bg-red-950/30 dark:text-red-400 dark:border-red-900/50 font-semibold";
                     }
                     if (info.variant === "today") {
-                      return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900 font-semibold";
+                      return "bg-amber-500/15 text-amber-700 border-amber-500/30 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50 font-semibold";
                     }
                     if (info.variant === "tomorrow") {
-                      return "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900 font-semibold";
+                      return "bg-blue-500/15 text-blue-700 border-blue-500/30 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-900/50 font-semibold";
                     }
                     if (info.variant === "upcoming") {
-                      return "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/20 dark:text-sky-400 dark:border-sky-900";
+                      return "bg-sky-500/15 text-sky-700 border-sky-500/30 dark:bg-sky-950/30 dark:text-sky-400 dark:border-sky-900/50";
                     }
-                    return "bg-zinc-50 text-zinc-700 border-zinc-200 dark:bg-dark-card dark:text-dark-text-secondary dark:border-dark-border";
+                    return "bg-white/20 text-slate-700 border-white/20 dark:bg-white/10 dark:text-dark-text-secondary dark:border-white/10";
                   })()
             )}
           >
@@ -265,11 +265,12 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
         {!compact ? (
           <Badge
             className={cn(
+              "border shadow-none",
               task.priority === "High"
-                ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900"
+                ? "bg-red-500/15 text-red-700 border-red-500/30 dark:bg-red-950/30 dark:text-red-400 dark:border-red-900/50 font-semibold"
                 : task.priority === "Medium"
-                ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900"
-                : "bg-zinc-50 text-zinc-700 border-zinc-200 dark:bg-dark-card dark:text-dark-text-secondary dark:border-dark-border"
+                ? "bg-amber-500/15 text-amber-700 border-amber-500/30 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50 font-semibold"
+                : "bg-white/20 text-slate-700 border-white/20 dark:bg-white/10 dark:text-dark-text-secondary dark:border-white/10"
             )}
           >
             {task.priority}

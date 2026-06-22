@@ -632,16 +632,16 @@ export default function TimetablePage() {
       </div>
 
       {/* Scheduler Calendar Body */}
-      <div className="flex-1 min-h-0 mt-6 flex flex-col border border-zinc-200/80 dark:border-dark-border/80 bg-white dark:bg-dark-card/60 backdrop-blur-md rounded-2xl shadow-soft dark:shadow-2xl overflow-hidden">
+      <div className="flex-1 min-h-0 mt-6 flex flex-col border border-white/20 dark:border-white/10 bg-white/45 dark:bg-black/30 backdrop-blur-xl rounded-[24px] shadow-2xl overflow-hidden">
         {/* Days Header */}
-        <div className="grid grid-cols-[64px_1fr] border-b border-zinc-100 dark:border-dark-border bg-zinc-50/50 dark:bg-dark-base/40">
-          <div className="border-r border-zinc-100 dark:border-dark-border py-3 text-center text-[10px] font-bold text-zinc-400">GMT</div>
-          <div className="grid grid-cols-7 divide-x divide-zinc-100 dark:divide-dark-border">
+        <div className="grid grid-cols-[64px_1fr] border-b border-white/15 dark:border-white/5 bg-white/40 dark:bg-black/40 backdrop-blur-md z-30">
+          <div className="border-r border-white/15 dark:border-white/5 py-3 text-center text-[10px] font-extrabold text-slate-450 dark:text-zinc-500">GMT</div>
+          <div className="grid grid-cols-7 divide-x divide-white/15 dark:divide-white/5">
             {weekDays.map((day, idx) => {
               const isToday = isSameDay(day, new Date());
               return (
                 <div key={idx} className="py-2.5 text-center flex flex-col items-center">
-                  <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
+                  <span className="text-[10px] font-bold tracking-wider text-slate-400 dark:text-zinc-500 uppercase">
                     {format(day, "eee")}
                   </span>
                   <span
@@ -665,12 +665,12 @@ export default function TimetablePage() {
         >
           <div className="grid grid-cols-[64px_1fr] min-h-[1536px]">
             {/* Time Labels */}
-            <div className="border-r border-zinc-100 dark:border-dark-border bg-zinc-50/20 dark:bg-dark-base/20 divide-y divide-zinc-100/50 dark:divide-dark-border/50">
+            <div className="border-r border-white/15 dark:border-white/5 bg-white/10 dark:bg-black/10 divide-y divide-white/10 dark:divide-white/5">
               {HOURS.map((hour) => {
                 const ampm = hour >= 12 ? "PM" : "AM";
                 const displayH = hour % 12 === 0 ? 12 : hour % 12;
                 return (
-                  <div key={hour} className="h-16 text-[10px] font-semibold text-zinc-400 text-right pr-2.5 pt-1">
+                  <div key={hour} className="h-16 text-[10px] font-semibold text-zinc-450 dark:text-zinc-500 text-right pr-2.5 pt-1">
                     {displayH} {ampm}
                   </div>
                 );
@@ -678,9 +678,9 @@ export default function TimetablePage() {
             </div>
 
             {/* Grid Columns */}
-            <div className="relative divide-y divide-zinc-100/60 dark:divide-dark-border/60 bg-grid-pattern">
+            <div className="relative divide-y divide-white/15 dark:divide-white/5 bg-grid-pattern">
               {/* Vertical Column Divider Guidelines */}
-              <div className="absolute inset-0 grid grid-cols-7 divide-x divide-zinc-100/60 dark:divide-dark-border/60 pointer-events-none z-0">
+              <div className="absolute inset-0 grid grid-cols-7 divide-x divide-white/15 dark:divide-white/5 pointer-events-none z-0">
                 {Array.from({ length: 7 }).map((_, i) => (
                   <div key={i} className="h-full" />
                 ))}
@@ -710,7 +710,7 @@ export default function TimetablePage() {
                       {/* Gray out whole column if day is in the past */}
                       {pastDay && (
                         <div 
-                          className="absolute inset-0 bg-zinc-200/50 cursor-not-allowed pointer-events-auto z-15"
+                          className="absolute inset-0 bg-slate-900/25 dark:bg-black/45 backdrop-blur-[0.5px] cursor-not-allowed pointer-events-auto z-15"
                           onPointerDown={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -726,7 +726,7 @@ export default function TimetablePage() {
                       {isToday && (
                         <>
                           <div
-                            className="absolute left-0 right-0 top-0 bg-zinc-200/50 cursor-not-allowed pointer-events-auto border-b border-dashed border-zinc-300 z-15"
+                            className="absolute left-0 right-0 top-0 bg-slate-900/25 dark:bg-black/45 backdrop-blur-[0.5px] cursor-not-allowed pointer-events-auto border-b border-dashed border-red-500/30 z-15"
                             style={{ height: `${pastMinutesHeight}px` }}
                             onPointerDown={(e) => {
                               e.preventDefault();

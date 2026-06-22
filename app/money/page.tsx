@@ -435,7 +435,7 @@ export default function MoneyPage() {
     <div className="grid gap-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Money</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-dark-text">Money</h1>
           <p className="mt-1 text-sm text-muted-foreground">Private wallets &amp; split expense tracking.</p>
         </div>
       </div>
@@ -443,33 +443,33 @@ export default function MoneyPage() {
       {/* ── Two Columns: Wallets ────────────────────────────────────────────── */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* User 1 Wallet */}
-        <Card className="relative overflow-hidden dark:border-dark-border dark:bg-dark-card">
+        <Card className="relative overflow-hidden bg-white/35 dark:bg-black/35 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-2xl rounded-3xl">
           <CardHeader>
-            <CardTitle className="text-base text-zinc-900 dark:text-dark-text">
+            <CardTitle className="text-base text-zinc-900 dark:text-dark-text font-bold">
               {names.user1}&apos;s Wallet {myKey === "user1" && <span className="text-xs font-normal text-green-600">(You)</span>}
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
             {myKey === "user1" ? (
               <>
-                <div className="text-3xl font-bold text-zinc-900 dark:text-dark-text">
+                <div className="text-3xl font-extrabold text-zinc-900 dark:text-dark-text">
                   {formatVal(myWalletTotal)}
                 </div>
-                <div className="max-h-[300px] overflow-y-auto grid gap-2 pr-1">
+                <div className="max-h-[300px] overflow-y-auto grid gap-2 pr-1 scrollbar-sleek">
                   {myTransactions.map((e) => (
-                    <div key={e.id} className="flex justify-between items-center p-2 rounded-lg border bg-zinc-50/50 dark:border-dark-border dark:bg-dark-card/50 text-sm">
+                    <div key={e.id} className="flex justify-between items-center p-2.5 rounded-2xl border border-white/10 bg-white/15 dark:bg-black/15 backdrop-blur-sm text-sm shadow-sm">
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold truncate text-zinc-800 dark:text-dark-text">{e.description}</p>
-                        <p className="text-xs text-muted-foreground">{e.category} • {e.entry_date}</p>
+                        <p className="font-semibold truncate text-zinc-800 dark:text-white">{e.description}</p>
+                        <p className="text-xs text-slate-500 dark:text-dark-text-secondary">{e.category} • {e.entry_date}</p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className={cn("font-bold", e.type === "Income" ? "text-green-600" : "text-zinc-900 dark:text-dark-text")}>
+                        <span className={cn("font-bold", e.type === "Income" ? "text-green-600" : "text-zinc-900 dark:text-white")}>
                           {e.type === "Income" ? "+" : "-"}{formatVal(Number(e.amount))}
                         </span>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 text-destructive"
+                          className="h-7 w-7 text-destructive hover:bg-red-500/10 dark:hover:bg-red-950/20 rounded-lg"
                           onClick={() => setDeletingEntry(e)}
                         >
                           <Trash2 className="h-4.5 w-4.5" />
@@ -483,43 +483,43 @@ export default function MoneyPage() {
                 </div>
               </>
             ) : (
-              <div className="flex flex-col items-center justify-center py-10 bg-zinc-50/50 dark:bg-dark-card/50 rounded-xl border border-dashed dark:border-dark-border">
+              <div className="flex flex-col items-center justify-center py-10 bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-2xl border border-dashed border-white/20 dark:border-white/10">
                 <div className="text-2xl text-muted-foreground">🔒</div>
-                <p className="mt-2 text-sm font-semibold text-zinc-800 dark:text-dark-text">Balance &amp; History Private</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Visible only to {names.user1}</p>
+                <p className="mt-2 text-sm font-semibold text-zinc-800 dark:text-white">Balance &amp; History Private</p>
+                <p className="text-xs text-slate-500 dark:text-dark-text-secondary mt-0.5">Visible only to {names.user1}</p>
               </div>
             )}
           </CardContent>
         </Card>
 
         {/* User 2 Wallet */}
-        <Card className="relative overflow-hidden dark:border-dark-border dark:bg-dark-card">
+        <Card className="relative overflow-hidden bg-white/35 dark:bg-black/35 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-2xl rounded-3xl">
           <CardHeader>
-            <CardTitle className="text-base text-zinc-900 dark:text-dark-text">
+            <CardTitle className="text-base text-zinc-900 dark:text-dark-text font-bold">
               {names.user2}&apos;s Wallet {myKey === "user2" && <span className="text-xs font-normal text-green-600">(You)</span>}
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
             {myKey === "user2" ? (
               <>
-                <div className="text-3xl font-bold text-zinc-900 dark:text-dark-text">
+                <div className="text-3xl font-extrabold text-zinc-900 dark:text-dark-text">
                   {formatVal(myWalletTotal)}
                 </div>
-                <div className="max-h-[300px] overflow-y-auto grid gap-2 pr-1">
+                <div className="max-h-[300px] overflow-y-auto grid gap-2 pr-1 scrollbar-sleek">
                   {myTransactions.map((e) => (
-                    <div key={e.id} className="flex justify-between items-center p-2 rounded-lg border bg-zinc-50/50 dark:border-dark-border dark:bg-dark-card/50 text-sm">
+                    <div key={e.id} className="flex justify-between items-center p-2.5 rounded-2xl border border-white/10 bg-white/15 dark:bg-black/15 backdrop-blur-sm text-sm shadow-sm">
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold truncate text-zinc-800 dark:text-dark-text">{e.description}</p>
-                        <p className="text-xs text-muted-foreground">{e.category} • {e.entry_date}</p>
+                        <p className="font-semibold truncate text-zinc-800 dark:text-white">{e.description}</p>
+                        <p className="text-xs text-slate-500 dark:text-dark-text-secondary">{e.category} • {e.entry_date}</p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className={cn("font-bold", e.type === "Income" ? "text-green-600" : "text-zinc-900 dark:text-dark-text")}>
+                        <span className={cn("font-bold", e.type === "Income" ? "text-green-600" : "text-zinc-900 dark:text-white")}>
                           {e.type === "Income" ? "+" : "-"}{formatVal(Number(e.amount))}
                         </span>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 text-destructive"
+                          className="h-7 w-7 text-destructive hover:bg-red-500/10 dark:hover:bg-red-950/20 rounded-lg"
                           onClick={() => setDeletingEntry(e)}
                         >
                           <Trash2 className="h-4.5 w-4.5" />
@@ -533,10 +533,10 @@ export default function MoneyPage() {
                 </div>
               </>
             ) : (
-              <div className="flex flex-col items-center justify-center py-10 bg-zinc-50/50 dark:bg-dark-card/50 rounded-xl border border-dashed dark:border-dark-border">
+              <div className="flex flex-col items-center justify-center py-10 bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-2xl border border-dashed border-white/20 dark:border-white/10">
                 <div className="text-2xl text-muted-foreground">🔒</div>
-                <p className="mt-2 text-sm font-semibold text-zinc-800 dark:text-dark-text">Balance &amp; History Private</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Visible only to {names.user2}</p>
+                <p className="mt-2 text-sm font-semibold text-zinc-800 dark:text-white">Balance &amp; History Private</p>
+                <p className="text-xs text-slate-500 dark:text-dark-text-secondary mt-0.5">Visible only to {names.user2}</p>
               </div>
             )}
           </CardContent>
@@ -544,13 +544,13 @@ export default function MoneyPage() {
       </div>
 
       {/* ── Savings Goals ─────────────────────────────────────────────────── */}
-      <Card className="dark:border-dark-border dark:bg-dark-card">
+      <Card className="bg-white/35 dark:bg-black/35 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-2xl rounded-3xl overflow-hidden">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-zinc-900 dark:text-dark-text">Savings Goals</CardTitle>
+            <CardTitle className="text-zinc-900 dark:text-dark-text font-bold">Savings Goals</CardTitle>
             <p className="text-xs text-muted-foreground mt-0.5">Put money aside for long-term targets.</p>
           </div>
-          <Button onClick={() => setShowCreateGoal(true)} className="rounded-xl">
+          <Button onClick={() => setShowCreateGoal(true)} className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all active:scale-[0.98]">
             <Plus className="h-4 w-4 mr-1.5" /> Create Goal
           </Button>
         </CardHeader>
@@ -559,18 +559,18 @@ export default function MoneyPage() {
             {savingsGoals.rows.filter((g) => g.created_by === myKey).map((goal) => {
               const percent = Math.min(100, Math.max(0, goal.target_amount ? (goal.current_amount / goal.target_amount) * 100 : 0));
               return (
-                <Card key={goal.id} className="relative overflow-hidden bg-zinc-50/50 dark:bg-dark-card/50 border dark:border-dark-border">
+                <Card key={goal.id} className="relative overflow-hidden bg-white/25 dark:bg-black/25 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-2xl shadow-md">
                   <CardContent className="pt-6 grid gap-4">
                     <div>
                       <div className="flex justify-between items-start gap-2 mb-1">
-                        <h4 className="font-bold text-sm text-zinc-800 dark:text-dark-text truncate">{goal.title}</h4>
-                        <span className="text-[10px] bg-zinc-100 dark:bg-dark-hover text-zinc-700 dark:text-dark-text-secondary px-1.5 py-0.5 rounded font-medium shrink-0">
+                        <h4 className="font-bold text-sm text-zinc-800 dark:text-white truncate">{goal.title}</h4>
+                        <span className="text-[10px] bg-white/20 dark:bg-black/20 text-slate-700 dark:text-dark-text-secondary px-1.5 py-0.5 rounded font-medium shrink-0 border border-white/10">
                           by {goal.created_by === "user1" ? names.user1 : names.user2}
                         </span>
                       </div>
                       <div className="flex justify-between items-baseline mt-2 text-xs">
-                        <span className="text-zinc-500">Progress</span>
-                        <span className="font-bold text-zinc-900 dark:text-dark-text">
+                        <span className="text-slate-500">Progress</span>
+                        <span className="font-bold text-zinc-900 dark:text-white">
                           {formatVal(goal.current_amount)} / {formatVal(goal.target_amount)}
                         </span>
                       </div>
@@ -581,11 +581,11 @@ export default function MoneyPage() {
                       <div className="text-[10px] text-right text-muted-foreground font-medium">{percent.toFixed(0)}% Complete</div>
                     </div>
                     
-                    <div className="flex gap-2 justify-end mt-1 pt-3 border-t dark:border-dark-border">
+                    <div className="flex gap-2 justify-end mt-1 pt-3 border-t border-white/10">
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-8 rounded-lg"
+                        className="h-8 rounded-lg border-white/20 dark:border-white/10 text-slate-700 dark:text-dark-text hover:bg-white/20"
                         onClick={() => { setAdjustingGoal(goal); setAdjustMode("deposit"); }}
                       >
                         Deposit
@@ -593,7 +593,7 @@ export default function MoneyPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-8 rounded-lg"
+                        className="h-8 rounded-lg border-white/20 dark:border-white/10 text-slate-700 dark:text-dark-text hover:bg-white/20"
                         onClick={() => { setAdjustingGoal(goal); setAdjustMode("withdraw"); }}
                         disabled={goal.current_amount <= 0}
                       >
@@ -602,7 +602,7 @@ export default function MoneyPage() {
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-8 w-8 text-destructive hover:bg-red-50 dark:hover:bg-red-950/20"
+                        className="h-8 w-8 text-destructive hover:bg-red-500/10 dark:hover:bg-red-950/20 rounded-lg"
                         onClick={() => setDeletingGoal(goal)}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -624,9 +624,9 @@ export default function MoneyPage() {
       {/* ── Split Requests Dashboard ────────────────────────────────────────── */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Split Approvals Panel */}
-        <Card className="dark:border-dark-border dark:bg-dark-card">
+        <Card className="bg-white/35 dark:bg-black/35 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-2xl rounded-3xl overflow-hidden">
           <CardHeader>
-            <CardTitle className="text-base text-zinc-900 dark:text-dark-text flex items-center gap-2">
+            <CardTitle className="text-base text-zinc-900 dark:text-dark-text font-bold flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-amber-500" />
               Split Approvals
             </CardTitle>
@@ -635,23 +635,23 @@ export default function MoneyPage() {
           <CardContent className="grid gap-5">
             {/* Needs My Approval */}
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-dark-text-secondary mb-2 flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
                 Needs Your Approval
               </h3>
               <div className="grid gap-2">
                 {pendingRequestsToMe.map((e) => (
-                  <div key={e.id} className="flex justify-between items-center p-3 rounded-xl border bg-amber-50/30 border-amber-200/60 text-sm transition-all hover:shadow-sm">
+                  <div key={e.id} className="flex justify-between items-center p-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 dark:bg-amber-950/20 backdrop-blur-md text-sm transition-all hover:shadow-lg">
                     <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-zinc-800 truncate">{e.description}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="font-semibold text-zinc-800 dark:text-white truncate">{e.description}</p>
+                      <p className="text-xs text-slate-500 dark:text-dark-text-secondary">
                         Requested by {e.added_by === "user1" ? names.user1 : names.user2} • {e.entry_date}
                       </p>
                     </div>
                     <div className="flex gap-2 shrink-0 ml-3">
                       <Button
                         size="sm"
-                        className="rounded-lg h-8 px-3 bg-emerald-600 hover:bg-emerald-700 text-white"
+                        className="rounded-lg h-8 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
                         onClick={async () => {
                           await moneyEntries.update(e.id, { request_status: "approved" });
                           sendNotification(
@@ -667,7 +667,7 @@ export default function MoneyPage() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="rounded-lg h-8 w-8 p-0 text-destructive hover:bg-red-50"
+                        className="rounded-lg h-8 w-8 p-0 text-destructive hover:bg-red-500/10 dark:hover:bg-red-950/25"
                         onClick={() => moneyEntries.remove(e.id)}
                       >
                         <X className="h-4 w-4" />
@@ -683,15 +683,15 @@ export default function MoneyPage() {
 
             {/* Waiting for Partner */}
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-dark-text-secondary mb-2 flex items-center gap-1.5">
                 <Clock className="h-3 w-3 text-zinc-400" />
                 Pending Partner Approval
               </h3>
               <div className="grid gap-1.5">
                 {sentPendingRequests.map((e) => (
-                  <div key={e.id} className="flex justify-between items-center p-2.5 rounded-lg border bg-zinc-50/50 text-sm">
-                    <span className="truncate text-zinc-700 min-w-0 flex-1">{e.description}</span>
-                    <span className="font-semibold text-muted-foreground shrink-0 ml-3">{formatVal(Number(e.amount))}</span>
+                  <div key={e.id} className="flex justify-between items-center p-2.5 rounded-xl border border-white/10 bg-white/15 dark:bg-black/15 backdrop-blur-sm text-sm">
+                    <span className="truncate text-zinc-700 dark:text-white min-w-0 flex-1">{e.description}</span>
+                    <span className="font-semibold text-slate-500 dark:text-dark-text-secondary shrink-0 ml-3">{formatVal(Number(e.amount))}</span>
                   </div>
                 ))}
                 {sentPendingRequests.length === 0 && (
@@ -703,9 +703,9 @@ export default function MoneyPage() {
         </Card>
 
         {/* Cash Settlements Panel */}
-        <Card className="dark:border-dark-border dark:bg-dark-card">
+        <Card className="bg-white/35 dark:bg-black/35 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-2xl rounded-3xl overflow-hidden">
           <CardHeader>
-            <CardTitle className="text-base text-zinc-900 dark:text-dark-text flex items-center gap-2">
+            <CardTitle className="text-base text-zinc-900 dark:text-dark-text font-bold flex items-center gap-2">
               <CircleDollarSign className="h-4 w-4 text-emerald-500" />
               Cash Settlements
             </CardTitle>
@@ -716,7 +716,7 @@ export default function MoneyPage() {
             {/* ── 1. Confirm Receipt (partner paid, I need to confirm) ─────── */}
             {confirmReceipts.length > 0 && (
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-dark-text-secondary mb-2 flex items-center gap-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
                   Confirm Receipt
                 </h3>
@@ -725,16 +725,16 @@ export default function MoneyPage() {
                     const paidAmt = e.paid_amount || 0;
                     const totalAmt = Number(e.amount);
                     return (
-                      <div key={e.id} className="p-3 rounded-xl border-2 border-blue-200 bg-blue-50/30 text-sm transition-all">
+                      <div key={e.id} className="p-3.5 rounded-2xl border border-blue-500/35 bg-blue-500/10 dark:bg-blue-950/20 backdrop-blur-md text-sm transition-all shadow-md">
                         <div className="flex justify-between items-start gap-2">
                           <div className="min-w-0 flex-1">
-                            <p className="font-semibold text-zinc-800 truncate">{e.description}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">
+                            <p className="font-semibold text-zinc-800 dark:text-white truncate">{e.description}</p>
+                            <p className="text-xs text-slate-500 dark:text-dark-text-secondary mt-0.5">
                               {e.paid_by === "user1" ? names.user1 : names.user2} claims to have paid
                             </p>
                           </div>
                           <div className="text-right shrink-0">
-                            <p className="text-base font-bold text-blue-700">{formatVal(paidAmt)}</p>
+                            <p className="text-base font-bold text-blue-750 dark:text-blue-400">{formatVal(paidAmt)}</p>
                             <p className="text-[10px] text-muted-foreground">of {formatVal(totalAmt)}</p>
                           </div>
                         </div>
@@ -742,7 +742,7 @@ export default function MoneyPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="rounded-lg h-8 border-red-200 text-red-600 hover:bg-red-50 text-xs"
+                            className="rounded-lg h-8 border-red-500/20 text-red-650 dark:text-red-400 hover:bg-red-500/10 dark:hover:bg-red-950/25 text-xs font-bold"
                             onClick={() => handleDispute(e)}
                           >
                             <X className="h-3 w-3 mr-1" />
@@ -750,7 +750,7 @@ export default function MoneyPage() {
                           </Button>
                           <Button
                             size="sm"
-                            className="rounded-lg h-8 bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                            className="rounded-lg h-8 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold"
                             onClick={() => handleConfirmReceipt(e)}
                           >
                             <CheckCheck className="h-3.5 w-3.5 mr-1" />
@@ -766,7 +766,7 @@ export default function MoneyPage() {
 
             {/* ── 2. You Owe (approved debts I need to pay) ──────────────── */}
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-dark-text-secondary mb-2 flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
                 You Owe
               </h3>
@@ -778,21 +778,21 @@ export default function MoneyPage() {
                   const isPayingThis = payingEntry?.id === e.id;
 
                   return (
-                    <div key={e.id} className="rounded-xl border bg-red-50/20 border-red-200/60 text-sm transition-all">
+                    <div key={e.id} className="rounded-2xl border border-red-500/25 bg-red-500/10 dark:bg-red-950/20 backdrop-blur-md text-sm transition-all shadow-sm">
                       <div className="flex justify-between items-start p-3 gap-2">
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-zinc-800 truncate">{e.description}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
+                          <p className="font-semibold text-zinc-800 dark:text-white truncate">{e.description}</p>
+                          <p className="text-xs text-slate-500 dark:text-dark-text-secondary mt-0.5">
                             Owed to {e.added_by === "user1" ? names.user1 : names.user2} • {e.entry_date}
                           </p>
                           {paidSoFar > 0 && (
-                            <p className="text-[10px] text-emerald-600 font-semibold mt-1">
+                            <p className="text-[10px] text-emerald-600 font-bold mt-1">
                               Previously paid: {formatVal(paidSoFar)} • Remaining: {formatVal(remaining)}
                             </p>
                           )}
                         </div>
                         <div className="text-right shrink-0">
-                          <p className="text-lg font-bold text-red-600">{formatVal(remaining)}</p>
+                          <p className="text-lg font-extrabold text-red-600 dark:text-red-400">{formatVal(remaining)}</p>
                         </div>
                       </div>
                       
@@ -801,7 +801,7 @@ export default function MoneyPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="rounded-lg h-8 border-red-200 text-red-700 hover:bg-red-50 text-xs"
+                            className="rounded-lg h-8 border-red-500/20 text-red-650 dark:text-red-400 hover:bg-red-500/10 dark:hover:bg-red-950/25 text-xs font-bold"
                             onClick={() => { setPayingEntry(e); setPayAmount(remaining.toString()); }}
                           >
                             <ArrowRight className="h-3 w-3 mr-1" />
@@ -809,22 +809,22 @@ export default function MoneyPage() {
                           </Button>
                         </div>
                       ) : (
-                        <div className="px-3 pb-3 border-t border-red-100 pt-3 mt-1">
+                        <div className="px-3 pb-3 border-t border-red-500/20 pt-3 mt-1">
                           <div className="flex gap-2 items-end">
                             <div className="flex-1">
-                              <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1 block">Payment Amount</label>
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-dark-text-secondary mb-1 block">Payment Amount</label>
                               <Input
                                 type="number"
                                 value={payAmount}
                                 onChange={(ev) => setPayAmount(ev.target.value)}
                                 placeholder="Enter amount..."
-                                className="h-9 text-sm"
+                                className="h-9 text-sm bg-white/20 dark:bg-black/20 border-white/25 dark:border-white/10 rounded-xl"
                                 autoFocus
                               />
                             </div>
                             <Button
                               size="sm"
-                              className="rounded-lg h-9 bg-red-600 hover:bg-red-700 text-white text-xs shrink-0"
+                              className="rounded-lg h-9 bg-red-600 hover:bg-red-700 text-white text-xs shrink-0 font-bold"
                               disabled={Number(payAmount) <= 0 || Number(payAmount) > remaining}
                               onClick={() => handlePay(e, Number(payAmount))}
                             >
@@ -843,7 +843,7 @@ export default function MoneyPage() {
                           <div className="flex gap-1.5 mt-2">
                             <button
                               type="button"
-                              className="text-[10px] font-semibold text-red-600 hover:text-red-800 px-2 py-1 rounded-md bg-red-50 hover:bg-red-100 transition-colors"
+                              className="text-[10px] font-bold text-red-600 dark:text-red-450 hover:underline px-2 py-1 rounded-md"
                               onClick={() => setPayAmount(remaining.toString())}
                             >
                               Pay Full ({formatVal(remaining)})
@@ -851,7 +851,7 @@ export default function MoneyPage() {
                             {remaining > 100 && (
                               <button
                                 type="button"
-                                className="text-[10px] font-semibold text-zinc-600 hover:text-zinc-800 px-2 py-1 rounded-md bg-zinc-100 hover:bg-zinc-200 transition-colors"
+                                className="text-[10px] font-bold text-slate-500 dark:text-dark-text-secondary hover:underline px-2 py-1 rounded-md"
                                 onClick={() => setPayAmount(Math.round(remaining / 2).toString())}
                               >
                                 Pay Half ({formatVal(Math.round(remaining / 2))})
@@ -872,21 +872,21 @@ export default function MoneyPage() {
             {/* ── 3. Waiting Confirmation (I paid, waiting for partner) ──── */}
             {waitingConfirmation.length > 0 && (
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-dark-text-secondary mb-2 flex items-center gap-1.5">
                   <Clock className="h-3 w-3 text-amber-400 animate-pulse" />
                   Waiting Confirmation
                 </h3>
                 <div className="grid gap-2">
                   {waitingConfirmation.map((e) => (
-                    <div key={e.id} className="flex justify-between items-center p-3 rounded-xl border border-amber-200/60 bg-amber-50/20 text-sm">
+                    <div key={e.id} className="flex justify-between items-center p-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 dark:bg-amber-950/20 backdrop-blur-md text-sm">
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-zinc-800 truncate">{e.description}</p>
-                        <p className="text-xs text-amber-600 font-medium mt-0.5">
+                        <p className="font-semibold text-zinc-800 dark:text-white truncate">{e.description}</p>
+                        <p className="text-xs text-amber-605 dark:text-amber-400 font-bold mt-0.5">
                           Paid {formatVal(e.paid_amount || 0)} — waiting for {e.added_by === "user1" ? names.user1 : names.user2} to confirm
                         </p>
                       </div>
                       <div className="shrink-0 ml-3 flex items-center gap-1.5 text-amber-600">
-                        <Clock className="h-4 w-4" />
+                        <Clock className="h-4 w-4 animate-spin" />
                         <span className="text-xs font-bold">Pending</span>
                       </div>
                     </div>
@@ -897,7 +897,7 @@ export default function MoneyPage() {
 
             {/* ── 4. They Owe You (waiting for them to pay) ────────────── */}
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-dark-text-secondary mb-2 flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                 They Owe You
               </h3>
@@ -906,10 +906,10 @@ export default function MoneyPage() {
                   const totalAmt = Number(e.amount);
                   const paidSoFar = e.paid_amount || 0;
                   return (
-                    <div key={e.id} className="flex justify-between items-center p-3 rounded-xl border bg-emerald-50/20 border-emerald-200/60 text-sm">
+                    <div key={e.id} className="flex justify-between items-center p-3 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 dark:bg-emerald-950/20 backdrop-blur-md text-sm">
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold truncate text-zinc-700">{e.description}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
+                        <p className="font-semibold truncate text-zinc-700 dark:text-white">{e.description}</p>
+                        <p className="text-xs text-slate-500 dark:text-dark-text-secondary mt-0.5">
                           Waiting for {e.request_to === "user1" ? names.user1 : names.user2} to pay
                         </p>
                         {paidSoFar > 0 && (
@@ -918,7 +918,7 @@ export default function MoneyPage() {
                           </p>
                         )}
                       </div>
-                      <span className="font-bold text-emerald-600 shrink-0 ml-3 text-base">{formatVal(totalAmt - paidSoFar)}</span>
+                      <span className="font-extrabold text-emerald-650 dark:text-emerald-450 shrink-0 ml-3 text-base">{formatVal(totalAmt - paidSoFar)}</span>
                     </div>
                   );
                 })}
@@ -933,9 +933,9 @@ export default function MoneyPage() {
       </div>
 
       {/* ── Send Money ────────────────────────────────────────────────────── */}
-      <Card className="dark:border-dark-border dark:bg-dark-card">
+      <Card className="bg-white/35 dark:bg-black/35 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-2xl rounded-3xl overflow-hidden">
         <CardHeader>
-          <CardTitle className="text-base text-zinc-900 dark:text-dark-text flex items-center gap-2">
+          <CardTitle className="text-base text-zinc-900 dark:text-dark-text font-bold flex items-center gap-2">
             <Send className="h-4 w-4 text-violet-500" />
             Send Money to {otherKey === "user1" ? names.user1 : names.user2}
           </CardTitle>
@@ -948,7 +948,7 @@ export default function MoneyPage() {
                 value={sendDesc}
                 onChange={(ev) => setSendDesc(ev.target.value)}
                 placeholder="What's this for? e.g. Your half of dinner"
-                className="h-10"
+                className="h-10 bg-white/20 dark:bg-black/20 border-white/25 dark:border-white/10 rounded-xl"
               />
             </div>
             <div className="w-full sm:w-[140px]">
@@ -957,12 +957,12 @@ export default function MoneyPage() {
                 value={sendAmount}
                 onChange={(ev) => setSendAmount(ev.target.value)}
                 placeholder="Amount"
-                className="h-10"
+                className="h-10 bg-white/20 dark:bg-black/20 border-white/25 dark:border-white/10 rounded-xl"
               />
             </div>
             <div className="w-full sm:w-[130px]">
               <Select value={sendCategory} onValueChange={setSendCategory}>
-                <SelectTrigger className="h-10">
+                <SelectTrigger className="h-10 bg-white/20 dark:bg-black/20 border-white/25 dark:border-white/10 rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -973,7 +973,7 @@ export default function MoneyPage() {
               </Select>
             </div>
             <Button
-              className="h-10 rounded-xl bg-violet-600 hover:bg-violet-700 text-white shrink-0"
+              className="h-10 rounded-xl bg-violet-600 hover:bg-violet-700 text-white shrink-0 font-bold transition-all active:scale-[0.98]"
               disabled={!sendDesc.trim() || Number(sendAmount) <= 0}
               onClick={async () => {
                 const amt = Number(sendAmount);
@@ -1012,23 +1012,23 @@ export default function MoneyPage() {
       {/* ── Add Entry & Spending Charts ──────────────────────────────────────── */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* New Transaction Form */}
-        <Card className="dark:border-dark-border dark:bg-dark-card">
+        <Card className="bg-white/35 dark:bg-black/35 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-2xl rounded-3xl overflow-hidden">
           <CardHeader>
-            <CardTitle className="text-zinc-900 dark:text-dark-text">New Entry</CardTitle>
+            <CardTitle className="text-zinc-900 dark:text-dark-text font-bold">New Entry</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Description">
-                <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Rent, Groceries, Fiverr..." />
+                <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Rent, Groceries, Fiverr..." className="bg-white/20 dark:bg-black/20 border-white/25 dark:border-white/10 rounded-xl" />
               </Field>
               <Field label="Amount">
-                <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} />
+                <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="bg-white/20 dark:bg-black/20 border-white/25 dark:border-white/10 rounded-xl" />
               </Field>
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
               <Field label="Type">
                 <Select value={type} onValueChange={(t) => { setType(t as "Income" | "Expense"); if (t === "Income") setSplitMode("none"); }}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="bg-white/20 dark:bg-black/20 border-white/25 dark:border-white/10 rounded-xl"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Income">Income</SelectItem>
                     <SelectItem value="Expense">Expense</SelectItem>
@@ -1037,7 +1037,7 @@ export default function MoneyPage() {
               </Field>
               <Field label="Category">
                 <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="bg-white/20 dark:bg-black/20 border-white/25 dark:border-white/10 rounded-xl"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {CATEGORIES.map((c) => (
                       <SelectItem key={c} value={c}>{c}</SelectItem>
@@ -1046,21 +1046,21 @@ export default function MoneyPage() {
                 </Select>
               </Field>
               <Field label="Date">
-                <Input type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} />
+                <Input type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} className="bg-white/20 dark:bg-black/20 border-white/25 dark:border-white/10 rounded-xl" />
               </Field>
             </div>
             {type === "Expense" && (
               <div className="grid gap-2 pt-1">
-                <span className="text-xs font-semibold text-zinc-700">Split / Request Options</span>
+                <span className="text-xs font-bold text-slate-500 dark:text-dark-text-secondary">Split / Request Options</span>
                 <div className="grid gap-2 sm:grid-cols-3">
                   <button
                     type="button"
                     onClick={() => setSplitMode("none")}
                     className={cn(
-                      "flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-semibold transition-all h-14",
+                      "flex flex-col items-center justify-center p-2.5 rounded-xl text-xs font-bold transition-all h-14 border",
                       splitMode === "none"
-                        ? "bg-zinc-900 border-zinc-900 text-white"
-                        : "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50"
+                        ? "bg-white/40 dark:bg-white/15 text-indigo-650 dark:text-indigo-400 border-white/25 dark:border-white/10 shadow-sm"
+                        : "bg-transparent text-slate-500 dark:text-dark-text-secondary border-white/10 dark:border-white/5 hover:text-slate-900 dark:hover:text-white"
                     )}
                   >
                     <span>None</span>
@@ -1070,10 +1070,10 @@ export default function MoneyPage() {
                     type="button"
                     onClick={() => setSplitMode("split")}
                     className={cn(
-                      "flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-semibold transition-all h-14",
+                      "flex flex-col items-center justify-center p-2.5 rounded-xl text-xs font-bold transition-all h-14 border",
                       splitMode === "split"
-                        ? "bg-zinc-900 border-zinc-900 text-white"
-                        : "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50"
+                        ? "bg-white/40 dark:bg-white/15 text-indigo-650 dark:text-indigo-400 border-white/25 dark:border-white/10 shadow-sm"
+                        : "bg-transparent text-slate-500 dark:text-dark-text-secondary border-white/10 dark:border-white/5 hover:text-slate-900 dark:hover:text-white"
                     )}
                   >
                     <span>Split 50/50</span>
@@ -1083,10 +1083,10 @@ export default function MoneyPage() {
                     type="button"
                     onClick={() => setSplitMode("request")}
                     className={cn(
-                      "flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-semibold transition-all h-14",
+                      "flex flex-col items-center justify-center p-2.5 rounded-xl text-xs font-bold transition-all h-14 border",
                       splitMode === "request"
-                        ? "bg-zinc-900 border-zinc-900 text-white"
-                        : "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50"
+                        ? "bg-white/40 dark:bg-white/15 text-indigo-650 dark:text-indigo-400 border-white/25 dark:border-white/10 shadow-sm"
+                        : "bg-transparent text-slate-500 dark:text-dark-text-secondary border-white/10 dark:border-white/5 hover:text-slate-900 dark:hover:text-white"
                     )}
                   >
                     <span>Request Full</span>
@@ -1095,14 +1095,14 @@ export default function MoneyPage() {
                 </div>
               </div>
             )}
-            <Button className="mt-2" onClick={createEntry}>Create Entry</Button>
+            <Button className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl" onClick={createEntry}>Create Entry</Button>
           </CardContent>
         </Card>
 
         {/* Charts & Spending Pie Chart */}
-        <Card className="dark:border-dark-border dark:bg-dark-card">
+        <Card className="bg-white/35 dark:bg-black/35 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-2xl rounded-3xl overflow-hidden">
           <CardHeader>
-            <CardTitle className="text-zinc-900 dark:text-dark-text">Spending Insights</CardTitle>
+            <CardTitle className="text-zinc-900 dark:text-dark-text font-bold">Spending Insights</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-6 sm:grid-cols-[auto_1fr] items-center">
             {pieData.sum > 0 ? (
@@ -1125,22 +1125,22 @@ export default function MoneyPage() {
                   ))}
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span className="text-xs text-muted-foreground">Total Spend</span>
-                  <span className="text-sm font-bold text-zinc-900 dark:text-dark-text">{formatVal(pieData.sum)}</span>
+                  <span className="text-xs text-muted-foreground font-semibold">Total Spend</span>
+                  <span className="text-sm font-bold text-zinc-900 dark:text-white">{formatVal(pieData.sum)}</span>
                 </div>
               </div>
             ) : (
-              <div className="h-[160px] w-[160px] mx-auto rounded-full border-4 border-dashed dark:border-dark-border flex items-center justify-center text-xs text-muted-foreground text-center p-3">
+              <div className="h-[160px] w-[160px] mx-auto rounded-full border-4 border-dashed border-white/20 dark:border-white/10 flex items-center justify-center text-xs text-muted-foreground text-center p-3">
                 No spending data this month
               </div>
             )}
             <div className="grid gap-2">
               {pieData.sum > 0 ? (
                 svgCircles.map((c) => (
-                  <div key={c.name} className="flex items-center gap-2 text-xs font-semibold text-zinc-800 dark:text-dark-text">
+                  <div key={c.name} className="flex items-center gap-2 text-xs font-semibold text-zinc-800 dark:text-white">
                     <span className="h-3 w-3 rounded-full shrink-0" style={{ background: CATEGORY_COLORS[c.name] }} />
                     <span className="flex-1 truncate">{c.name}</span>
-                    <span className="text-muted-foreground">{c.percentage.toFixed(0)}% ({formatVal(c.value)})</span>
+                    <span className="text-slate-500 dark:text-dark-text-secondary">{c.percentage.toFixed(0)}% ({formatVal(c.value)})</span>
                   </div>
                 ))
               ) : (
@@ -1152,16 +1152,16 @@ export default function MoneyPage() {
       </div>
 
       {/* ── Weekly Insights Card ────────────────────────────────────────────── */}
-      <Card className="dark:border-dark-border dark:bg-dark-card">
+      <Card className="bg-white/35 dark:bg-black/35 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-2xl rounded-3xl overflow-hidden">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-dark-text">
+          <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-dark-text font-bold">
             <Sparkles className="h-4 w-4 text-yellow-500" />
             Weekly Wallet Insights
           </CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-zinc-700 dark:text-dark-text-secondary grid gap-3">
           <p>
-            This week you spent <strong className="text-zinc-900 dark:text-dark-text">{formatVal(weeklyInsights.currentTotal)}</strong>
+            This week you spent <strong className="text-zinc-900 dark:text-white">{formatVal(weeklyInsights.currentTotal)}</strong>
             {weeklyInsights.prevTotal > 0 ? (
               <span>
                 , which is{" "}
@@ -1176,10 +1176,10 @@ export default function MoneyPage() {
             )}
           </p>
           {weeklyInsights.topCategoryName ? (
-            <div className="p-3 bg-zinc-50 dark:bg-dark-hover/40 rounded-xl border dark:border-dark-border flex gap-3 items-start">
+            <div className="p-3.5 bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-2xl border border-white/15 dark:border-white/5 flex gap-3 items-start shadow-sm">
               <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-zinc-900 dark:text-dark-text">Top category spend: {weeklyInsights.topCategoryName}</p>
+                <p className="font-semibold text-zinc-900 dark:text-white">Top category spend: {weeklyInsights.topCategoryName}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   You spent {formatVal(weeklyInsights.topCategoryValue)} on {weeklyInsights.topCategoryName} this week.
                   {weeklyInsights.topCategoryName === "Tea" && " That’s a lot of cups! Try setting a small daily tea budget to lock-in."}
@@ -1206,7 +1206,7 @@ export default function MoneyPage() {
 
       {/* ── Create Goal Dialog ────────────────────────────────────────── */}
       <Dialog open={showCreateGoal} onOpenChange={(open) => !open && setShowCreateGoal(false)}>
-        <DialogContent className="max-w-md bg-white dark:bg-dark-card border dark:border-dark-border">
+        <DialogContent className="max-w-md bg-white/80 dark:bg-black/85 backdrop-blur-2xl border border-white/25 dark:border-white/10 rounded-3xl shadow-2xl">
           <DialogHeader>
             <DialogTitle>New Savings Goal</DialogTitle>
           </DialogHeader>
@@ -1216,6 +1216,7 @@ export default function MoneyPage() {
                 placeholder="Trip to Tokyo, New Mac Studio, emergency fund..."
                 value={newGoalTitle}
                 onChange={(e) => setNewGoalTitle(e.target.value)}
+                className="bg-white/20 dark:bg-black/20 border-white/25 dark:border-white/10 rounded-xl"
               />
             </Field>
             <Field label={`Target Amount (${currencySymbol})`}>
@@ -1224,11 +1225,12 @@ export default function MoneyPage() {
                 placeholder="50000"
                 value={newGoalTarget}
                 onChange={(e) => setNewGoalTarget(e.target.value)}
+                className="bg-white/20 dark:bg-black/20 border-white/25 dark:border-white/10 rounded-xl"
               />
             </Field>
             <div className="flex gap-2 justify-end mt-2">
-              <Button variant="outline" onClick={() => setShowCreateGoal(false)}>Cancel</Button>
-              <Button onClick={handleCreateGoal} disabled={!newGoalTitle.trim() || Number(newGoalTarget) <= 0}>
+              <Button variant="outline" className="border-white/25 dark:border-white/10 text-slate-700 dark:text-dark-text hover:bg-white/20 rounded-xl" onClick={() => setShowCreateGoal(false)}>Cancel</Button>
+              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl" onClick={handleCreateGoal} disabled={!newGoalTitle.trim() || Number(newGoalTarget) <= 0}>
                 Create Goal
               </Button>
             </div>
@@ -1238,15 +1240,15 @@ export default function MoneyPage() {
 
       {/* ── Deposit/Withdraw Dialog ────────────────────────────────────── */}
       <Dialog open={Boolean(adjustingGoal)} onOpenChange={(open) => !open && setAdjustingGoal(null)}>
-        <DialogContent className="max-w-md bg-white dark:bg-dark-card border dark:border-dark-border">
+        <DialogContent className="max-w-md bg-white/80 dark:bg-black/85 backdrop-blur-2xl border border-white/25 dark:border-white/10 rounded-3xl shadow-2xl">
           <DialogHeader>
             <DialogTitle>
               {adjustMode === "deposit" ? "Deposit to" : "Withdraw from"} {adjustingGoal?.title}
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 pt-2">
-            <div className="text-xs text-muted-foreground">
-              Current Balance: <span className="font-bold text-zinc-900 dark:text-dark-text">{adjustingGoal ? formatVal(adjustingGoal.current_amount) : ""}</span>
+            <div className="text-xs text-muted-foreground font-semibold">
+              Current Balance: <span className="font-bold text-zinc-900 dark:text-white">{adjustingGoal ? formatVal(adjustingGoal.current_amount) : ""}</span>
             </div>
             <Field label={`Amount to ${adjustMode === "deposit" ? "deposit" : "withdraw"} (${currencySymbol})`}>
               <Input
@@ -1254,11 +1256,12 @@ export default function MoneyPage() {
                 placeholder="1000"
                 value={adjustAmount}
                 onChange={(e) => setAdjustAmount(e.target.value)}
+                className="bg-white/20 dark:bg-black/20 border-white/25 dark:border-white/10 rounded-xl"
               />
             </Field>
             <div className="flex gap-2 justify-end mt-2">
-              <Button variant="outline" onClick={() => setAdjustingGoal(null)}>Cancel</Button>
-              <Button onClick={handleAdjustGoal} disabled={Number(adjustAmount) <= 0}>
+              <Button variant="outline" className="border-white/25 dark:border-white/10 text-slate-700 dark:text-dark-text hover:bg-white/20 rounded-xl" onClick={() => setAdjustingGoal(null)}>Cancel</Button>
+              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl" onClick={handleAdjustGoal} disabled={Number(adjustAmount) <= 0}>
                 Confirm {adjustMode === "deposit" ? "Deposit" : "Withdrawal"}
               </Button>
             </div>

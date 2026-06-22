@@ -23,10 +23,10 @@ import type { Row } from "@/lib/database.types";
 const PROMPT_CATEGORIES = ["Thumbnail", "AI Image", "Coding", "Outreach", "Copywriting", "Misc"];
 
 const NOTE_COLORS = {
-  Yellow: "bg-[#fff8c7] dark:bg-amber-950/30 dark:border-amber-900/50 dark:text-amber-200",
-  Blue: "bg-[#dff2ff] dark:bg-blue-950/30 dark:border-blue-900/50 dark:text-blue-200",
-  Green: "bg-[#e4f8df] dark:bg-emerald-950/30 dark:border-emerald-900/50 dark:text-emerald-200",
-  Pink: "bg-[#ffe6ef] dark:bg-pink-950/30 dark:border-pink-900/50 dark:text-pink-200"
+  Yellow: "bg-[#fff8c7]/75 backdrop-blur-md dark:bg-amber-950/30 dark:border-amber-900/50 dark:text-amber-200",
+  Blue: "bg-[#dff2ff]/75 backdrop-blur-md dark:bg-blue-950/30 dark:border-blue-900/50 dark:text-blue-200",
+  Green: "bg-[#e4f8df]/75 backdrop-blur-md dark:bg-emerald-950/30 dark:border-emerald-900/50 dark:text-emerald-200",
+  Pink: "bg-[#ffe6ef]/75 backdrop-blur-md dark:bg-pink-950/30 dark:border-pink-900/50 dark:text-pink-200"
 } as const;
 
 const DEFAULT_VAULT_ICONS: Record<string, React.ReactNode> = {
@@ -86,7 +86,7 @@ function PromptsPanel({ search }: { search: string }) {
         {prompts.map((item) => (
           <Card
             key={item.id}
-            className="flex flex-col min-h-[200px] relative overflow-hidden group bg-white dark:bg-dark-card/50 cursor-pointer hover:shadow-soft transition-shadow border-zinc-200 dark:border-dark-border"
+            className="flex flex-col min-h-[200px] relative overflow-hidden group bg-white/35 dark:bg-black/35 backdrop-blur-xl border border-white/20 dark:border-white/10 cursor-pointer hover:shadow-xl hover:scale-[1.02] hover:border-white/40 transition-all duration-300 rounded-2xl"
             onClick={() => setViewingPrompt(item)}
           >
             <CardHeader className="pb-2 flex flex-row items-start justify-between space-y-0">
@@ -329,7 +329,7 @@ function IdeasPanel({ search }: { search: string }) {
         {ideas.map((item) => (
           <Card
             key={item.id}
-            className="bg-white dark:bg-dark-card/50 flex flex-col justify-between group cursor-pointer hover:shadow-soft transition-shadow border border-zinc-200 dark:border-dark-border"
+            className="bg-white/35 dark:bg-black/35 backdrop-blur-xl flex flex-col justify-between group cursor-pointer hover:shadow-xl hover:scale-[1.02] hover:border-white/40 transition-all duration-300 border border-white/20 dark:border-white/10 rounded-2xl"
             onClick={() => setViewingIdea(item)}
           >
             <CardHeader className="flex-row items-start justify-between gap-2 pb-2">
@@ -510,7 +510,7 @@ function ResourcesPanel({ search }: { search: string }) {
       {/* Resources Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {resources.map((item) => (
-          <div key={item.id} className="group relative rounded-xl border border-zinc-200 dark:border-dark-border bg-white dark:bg-dark-card/50 p-4 hover:bg-zinc-50 dark:hover:bg-dark-hover/30 transition-colors flex flex-col justify-between min-h-[110px]">
+          <div key={item.id} className="group relative rounded-2xl border border-white/20 dark:border-white/10 bg-white/35 dark:bg-black/35 backdrop-blur-xl p-4 hover:bg-white/45 dark:hover:bg-white/5 transition-all duration-300 flex flex-col justify-between min-h-[110px] hover:scale-[1.02] hover:shadow-xl hover:border-white/40">
             <a href={item.url} target="_blank" rel="noreferrer" className="block min-w-0 flex-1">
               <div className="flex items-center justify-between gap-3 min-w-0">
                 <span className="font-semibold text-zinc-800 dark:text-dark-text text-sm truncate pr-4">{item.title}</span>
@@ -975,35 +975,35 @@ function DeliverablesPanel({ search }: { search: string }) {
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border shadow-sm">
+        <Card className="bg-white/35 dark:bg-black/35 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-lg rounded-2xl">
           <CardContent className="p-4 flex flex-col justify-between">
             <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Total Deliverables</span>
-            <span className="text-2xl font-extrabold text-zinc-800 dark:text-dark-text mt-1">{stats.totalCount}</span>
+            <span className="text-2xl font-extrabold text-zinc-800 dark:text-white mt-1">{stats.totalCount}</span>
             <span className="text-[10px] text-zinc-400 mt-1">Items successfully delivered</span>
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border shadow-sm">
+        <Card className="bg-white/35 dark:bg-black/35 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-lg rounded-2xl">
           <CardContent className="p-4 flex flex-col justify-between">
             <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Total Earnings Logged</span>
-            <span className="text-2xl font-extrabold text-zinc-800 dark:text-dark-text mt-1">₹{stats.totalAmount.toLocaleString()}</span>
+            <span className="text-2xl font-extrabold text-zinc-800 dark:text-white mt-1">₹{stats.totalAmount.toLocaleString()}</span>
             <span className="text-[10px] text-zinc-400 mt-1">Claimable value of all items</span>
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-emerald-950/10 border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/10 shadow-sm">
+        <Card className="bg-emerald-500/10 dark:bg-emerald-950/20 backdrop-blur-xl border border-emerald-500/20 dark:border-emerald-900/30 shadow-lg rounded-2xl">
           <CardContent className="p-4 flex flex-col justify-between">
-            <span className="text-[10px] font-bold text-emerald-600/70 uppercase tracking-wider">Paid amount</span>
-            <span className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-450 mt-1">₹{stats.paidAmount.toLocaleString()}</span>
-            <span className="text-[10px] text-emerald-500/80 mt-1">Cleared by client HR / CEO</span>
+            <span className="text-[10px] font-bold text-emerald-600/70 dark:text-emerald-400 uppercase tracking-wider">Paid amount</span>
+            <span className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">₹{stats.paidAmount.toLocaleString()}</span>
+            <span className="text-[10px] text-emerald-555/80 dark:text-emerald-400/80 mt-1">Cleared by client HR / CEO</span>
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-amber-950/10 border-amber-100 dark:border-amber-900/30 bg-amber-50/10 shadow-sm">
+        <Card className="bg-amber-500/10 dark:bg-amber-950/20 backdrop-blur-xl border border-amber-500/20 dark:border-amber-900/30 shadow-lg rounded-2xl">
           <CardContent className="p-4 flex flex-col justify-between">
-            <span className="text-[10px] font-bold text-amber-600/70 uppercase tracking-wider">Pending invoice</span>
-            <span className="text-2xl font-extrabold text-amber-600 dark:text-amber-450 mt-1">₹{stats.unpaidAmount.toLocaleString()}</span>
-            <span className="text-[10px] text-amber-500/80 mt-1">Claimable for monthly settlement</span>
+            <span className="text-[10px] font-bold text-amber-600/70 dark:text-amber-400 uppercase tracking-wider">Pending invoice</span>
+            <span className="text-2xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">₹{stats.unpaidAmount.toLocaleString()}</span>
+            <span className="text-[10px] text-amber-555/80 dark:text-amber-400/80 mt-1">Claimable for monthly settlement</span>
           </CardContent>
         </Card>
       </div>
@@ -1014,7 +1014,7 @@ function DeliverablesPanel({ search }: { search: string }) {
         </Button>
       </div>
 
-      <div className="border border-zinc-200 dark:border-dark-border bg-white dark:bg-dark-card/50 rounded-2xl overflow-hidden shadow-soft">
+      <div className="border border-white/20 dark:border-white/10 bg-white/30 dark:bg-black/35 backdrop-blur-xl rounded-2xl overflow-hidden shadow-lg">
         {deliverables.length === 0 ? (
           <div className="p-10 text-center">
             <EmptyState title="No deliverables logged yet." />
@@ -1023,7 +1023,7 @@ function DeliverablesPanel({ search }: { search: string }) {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left text-xs">
-              <thead className="bg-zinc-50 dark:bg-dark-card/80 border-b border-zinc-200 dark:border-dark-border text-zinc-500 dark:text-dark-text-secondary font-semibold uppercase tracking-wider">
+              <thead className="bg-white/40 dark:bg-white/10 border-b border-white/20 dark:border-white/10 text-slate-700 dark:text-dark-text-secondary font-bold uppercase tracking-wider">
                 <tr>
                   <th className="p-4">Deliverable Title</th>
                   <th className="p-4">Client</th>
@@ -1538,52 +1538,55 @@ export default function VaultPage() {
     <div className="grid gap-6">
       <div className="flex flex-col gap-1.5">
         <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-dark-text">Vault</h1>
-        <p className="text-sm text-muted-foreground">Prompts, ideas, resources, and notes — all in one place.</p>
+        <p className="text-sm text-slate-500 dark:text-dark-text-secondary">Prompts, ideas, resources, and notes — all in one place.</p>
       </div>
 
-      <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search vault…" className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text max-w-md" />
+      <Input 
+        value={search} 
+        onChange={(e) => setSearch(e.target.value)} 
+        placeholder="Search vault…" 
+        className="bg-white/40 dark:bg-black/30 border-white/25 dark:border-white/10 text-slate-800 dark:text-white placeholder-slate-450 focus-visible:ring-1 focus-visible:ring-indigo-500 rounded-xl max-w-md" 
+      />
 
       {/* ── Top Navbar Tabs ────────────────────────────────────────────── */}
-      <div className="border-b border-zinc-200 dark:border-dark-border pb-2">
-        <div className="flex flex-wrap items-center gap-2">
-          {vaults.map((vault) => (
-            <button
-              key={vault.id}
-              onClick={() => setSelectedVaultId(vault.id)}
-              className={cn(
-                "flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors border",
-                activeVaultId === vault.id
-                  ? "bg-zinc-900 dark:bg-dark-text border-zinc-900 dark:border-dark-text text-white dark:text-dark-base"
-                  : "bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-muted-foreground hover:bg-zinc-50 dark:hover:bg-dark-hover/50 hover:text-zinc-700 dark:hover:text-dark-text"
-              )}
-            >
-              <span className="shrink-0">
-                {vault.icon && DEFAULT_VAULT_ICONS[vault.icon]
-                  ? DEFAULT_VAULT_ICONS[vault.icon]
-                  : <Brain className="h-4 w-4" />}
-              </span>
-              <span>{vault.name}</span>
-            </button>
-          ))}
-          <Button
-            variant="outline"
-            onClick={() => setShowCreate(true)}
-            className="rounded-xl border-dashed border-zinc-300 dark:border-dark-muted text-muted-foreground hover:text-zinc-700 dark:hover:text-dark-text hover:bg-zinc-50 dark:hover:bg-dark-hover/50 bg-white dark:bg-dark-card/30"
+      <div className="flex p-1 bg-white/20 dark:bg-black/25 backdrop-blur-md rounded-2xl border border-white/20 dark:border-white/10 w-fit gap-1 flex-wrap">
+        {vaults.map((vault) => (
+          <button
+            key={vault.id}
+            onClick={() => setSelectedVaultId(vault.id)}
+            className={cn(
+              "flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all duration-200 border border-transparent",
+              activeVaultId === vault.id
+                ? "bg-white/40 dark:bg-white/15 border-white/40 dark:border-white/20 text-zinc-900 dark:text-white shadow-sm"
+                : "text-slate-650 dark:text-dark-text-secondary hover:text-zinc-900 dark:hover:text-white"
+            )}
           >
-            <Plus className="h-4 w-4 mr-1.5" />
-            New Vault
-          </Button>
-        </div>
+            <span className="shrink-0">
+              {vault.icon && DEFAULT_VAULT_ICONS[vault.icon]
+                ? DEFAULT_VAULT_ICONS[vault.icon]
+                : <Brain className="h-3.5 w-3.5" />}
+            </span>
+            <span>{vault.name}</span>
+          </button>
+        ))}
+        <Button
+          variant="ghost"
+          onClick={() => setShowCreate(true)}
+          className="rounded-xl border border-dashed border-white/30 dark:border-white/15 text-slate-650 dark:text-dark-text-secondary hover:text-zinc-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-white/5 bg-transparent py-2 h-auto text-xs font-bold transition-all duration-200"
+        >
+          <Plus className="h-3.5 w-3.5 mr-1" />
+          New Vault
+        </Button>
       </div>
 
       {/* ── Active Vault Header & Controls ────────────────────────────── */}
       {activeVault && (
-        <div className="flex flex-wrap items-center justify-between gap-4 bg-zinc-50/50 dark:bg-dark-card/30 p-4 rounded-xl border border-zinc-200/60 dark:border-dark-border/60">
+        <div className="flex flex-wrap items-center justify-between gap-4 bg-white/25 dark:bg-black/20 backdrop-blur-xl p-4 rounded-2xl border border-white/25 dark:border-white/10 shadow-lg">
           <div className="flex items-center gap-3">
-            <span className="text-zinc-800 dark:text-dark-text font-bold text-lg">{activeVault.name}</span>
+            <span className="text-zinc-800 dark:text-white font-extrabold text-base">{activeVault.name}</span>
             <div className="flex gap-1">
               <Button
-                variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-950 dark:hover:text-dark-text hover:bg-zinc-100 dark:hover:bg-dark-hover"
+                variant="ghost" size="icon" className="h-7 w-7 text-slate-500 dark:text-dark-text-secondary hover:text-zinc-950 dark:hover:text-white hover:bg-white/30 dark:hover:bg-white/5 rounded-lg"
                 onClick={() => { setRenaming(activeVault); setRenameValue(activeVault.name); }}
                 title="Rename Vault"
               >
@@ -1591,7 +1594,7 @@ export default function VaultPage() {
               </Button>
               {!activeVault.is_default && (!activeVault.created_by || activeVault.created_by === activeUserName) && (
                 <Button
-                  variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-destructive"
+                  variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-red-500/10 dark:hover:bg-red-950/20 hover:text-destructive rounded-lg"
                   onClick={() => setDeletingVault(activeVault)}
                   title="Delete Vault"
                 >
