@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useData } from "@/components/data-provider";
 
-export function GlobalSearch() {
+export function GlobalSearch({ iconOnly = false }: { iconOnly?: boolean }) {
   const data = useData();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -34,10 +34,22 @@ export function GlobalSearch() {
 
   return (
     <>
-      <Button variant="outline" onClick={() => setOpen(true)} className="min-w-44 justify-start text-muted-foreground">
-        <Search className="h-4 w-4" />
-        Search
-      </Button>
+      {iconOnly ? (
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => setOpen(true)} 
+          className="h-6 w-6 rounded-lg text-white hover:bg-white/10 dark:text-dark-text dark:hover:bg-white/10"
+          title="Search"
+        >
+          <Search className="h-3.5 w-3.5" />
+        </Button>
+      ) : (
+        <Button variant="outline" onClick={() => setOpen(true)} className="min-w-44 justify-start text-muted-foreground">
+          <Search className="h-4 w-4" />
+          Search
+        </Button>
+      )}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>

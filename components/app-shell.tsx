@@ -4,8 +4,9 @@ import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Brain, CheckSquare, Folder, Home, LogOut, Settings, WalletCards, Lock, Calendar, Timer,
-  GripHorizontal, X, Play, Pause, Tv, SkipForward, ChevronsLeft, ChevronsRight, Sun, Moon
+  Brain, Folder, Home, LogOut, Settings, WalletCards, Lock, Calendar,
+  GripHorizontal, X, Play, Pause, Tv, SkipForward, Sun, Moon,
+  Maximize2, Minimize2, Laptop, FolderOpen, ListTodo, Plus, Clock
 } from "lucide-react";
 import { useActiveUser, useUserNames, useUserColors, useData } from "@/components/data-provider";
 import { GlobalSearch } from "@/components/global-search";
@@ -16,39 +17,104 @@ import { Input } from "@/components/ui/input";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
-const nav = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/tasks", label: "Tasks", icon: CheckSquare },
-  { href: "/timetable", label: "Timetable", icon: Calendar },
-  { href: "/pomodoro", label: "Pomodoro", icon: Timer },
-  { href: "/projects", label: "Projects", icon: Folder },
-  { href: "/vault", label: "Vault", icon: Brain },
-  { href: "/money", label: "Money", icon: WalletCards },
-  { href: "/settings", label: "Settings", icon: Settings }
-];
-
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { activeUser, activeUserName, login, logout, isPasswordSet } = useActiveUser();
   const names = useUserNames();
   const userColors = useUserColors();
+  const { stickyNotes } = useData();
 
-  // Sidebar open/collapse state
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  // --- Wallpapers Preset ---
+  const WALLPAPERS = useMemo(() => [
+    { name: "Aurora Nordic", path: "/wallpapers/aurora_nordic.png" },
+    { name: "Minimalist Silk", path: "/wallpapers/minimalist_silk.png" },
+    { name: "Obsidian Gold", path: "/wallpapers/obsidian_gold.png" },
+    { name: "Misty Mountains", path: "/wallpapers/misty_mountains.png" }
+  ], []);
 
-  // Handle auto-collapse sidebar on smaller screens
+  const [activeWallpaper, setActiveWallpaper] = useState("/wallpapers/aurora_nordic.png");
+  const [showWallpaperPicker, setShowWallpaperPicker] = useState(false);
+
   useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 1024) {
-        setIsSidebarOpen(false);
-      } else {
-        setIsSidebarOpen(true);
-      }
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    const saved = localStorage.getItem("mc_wallpaper");
+    if (saved) {
+      setActiveWallpaper(saved);
+    }
   }, []);
+
+  const handleSelectWallpaper = (path: string) => {
+    setActiveWallpaper(path);
+    localStorage.setItem("mc_wallpaper", path);
+    setShowWallpaperPicker(false);
+  };
+
+  // --- Fullscreen State ---
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => {
+        setIsFullscreen(true);
+      }).catch((err) => {
+        console.error("Error entering fullscreen mode:", err);
+      });
+    } else {
+      document.exitFullscreen().then(() => {
+        setIsFullscreen(false);
+      }).catch((err) => {
+        console.error("Error exiting fullscreen mode:", err);
+      });
+    }
+  };
+
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFsChange);
+    return () => document.removeEventListener("fullscreenchange", handleFsChange);
+  }, []);
+
+  // Create sticky note helper from dock
+  const handleCreateNote = async () => {
+    await stickyNotes.create({
+      title: "New Note",
+      body: "Write details here...",
+      color: "Yellow",
+      is_private: false,
+      pinned: false,
+      author: activeUserName || "Unknown",
+      read: false
+    });
+    if (pathname !== "/") {
+      router.push("/");
+    }
+  };
+
+  // Map route pathnames to macOS active app headers
+  const activeAppName = useMemo(() => {
+    if (pathname === "/") return "Finder";
+    if (pathname === "/tasks") return "Tasks";
+    if (pathname === "/timetable") return "Calendar";
+    if (pathname === "/pomodoro") return "Focus";
+    if (pathname === "/projects" || pathname.startsWith("/projects/")) return "Projects";
+    if (pathname === "/vault") return "Vault";
+    if (pathname === "/money") return "Finance";
+    if (pathname === "/settings") return "Settings";
+    return "Finder";
+  }, [pathname]);
+
+  // Dock items list configuration
+  const dockItems = useMemo(() => [
+    { href: "/vault", label: "Vault", icon: FolderOpen },
+    { href: "/tasks", label: "Tasks", icon: ListTodo },
+    { href: "/timetable", label: "Schedule", icon: Calendar },
+    { href: "/pomodoro", label: "Focus", icon: Clock },
+    { href: "/money", label: "Finance", icon: WalletCards },
+    { href: "/projects", label: "Projects", icon: Folder },
+    { href: "/settings", label: "Settings", icon: Settings }
+  ], []);
 
   // Theme Controller State
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -331,140 +397,201 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] dark:bg-dark-surface text-zinc-900 dark:text-dark-text transition-colors duration-300">
-      {/* Mobile backdrop shadow */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 z-20 bg-black/15 backdrop-blur-sm transition-opacity lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
+    <div 
+      className="min-h-screen relative flex flex-col justify-between overflow-hidden bg-cover bg-center transition-all duration-500 ease-in-out"
+      style={{
+        backgroundImage: `url(${activeWallpaper})`,
+        backgroundAttachment: "fixed",
+      }}
+    >
+      {/* Translucent overlay for better contrast */}
+      <div className="absolute inset-0 bg-slate-900/5 dark:bg-black/20 backdrop-blur-[0.5px] pointer-events-none z-0" />
 
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-30 w-64 border-r border-zinc-200/40 dark:border-dark-border/40 bg-white/70 dark:bg-dark-base/60 backdrop-blur-lg px-4 py-5 transition-all duration-300 ease-in-out transform",
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
-        <Link href="/" className="mb-8 block px-2">
-          <div className="text-xl font-bold tracking-tight text-zinc-900 dark:text-dark-text">Mission Control</div>
-          <div className="text-xs text-zinc-500 dark:text-dark-text-secondary">Private two-person OS</div>
-        </Link>
-        <nav className="grid gap-1">
-          {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-500 dark:text-dark-text-secondary hover:bg-zinc-200/50 dark:hover:bg-dark-hover hover:text-zinc-900 dark:hover:text-dark-text transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]",
-                pathname === item.href && "bg-zinc-900 dark:bg-dark-text text-white dark:text-dark-base shadow-sm hover:bg-zinc-900 dark:hover:bg-dark-text hover:text-white dark:hover:text-dark-base scale-100 hover:scale-100"
-              )}
-              onClick={() => {
-                // Auto close on navigation if on mobile
-                if (window.innerWidth < 1024) {
-                  setIsSidebarOpen(false);
-                }
-              }}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      </aside>
-      <div
-        className={cn(
-          "transition-all duration-300 ease-in-out",
-          isSidebarOpen ? "lg:pl-64" : "lg:pl-0"
-        )}
-      >
-        <header className="sticky top-0 z-20 border-b border-zinc-200/40 dark:border-dark-border/40 bg-[#f5f5f7]/85 dark:bg-dark-base/85 backdrop-blur-md px-4 py-3 sm:px-6">
-          <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="h-9 w-9 rounded-xl text-zinc-500 hover:text-zinc-900 dark:text-dark-text-secondary dark:hover:text-dark-text hover:bg-zinc-200/50 dark:hover:bg-dark-hover transition-all duration-200 hover:scale-105 active:scale-95 shrink-0"
-                title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
-              >
-                {isSidebarOpen ? (
-                  <ChevronsLeft className="h-5 w-5" />
-                ) : (
-                  <ChevronsRight className="h-5 w-5 animate-pulse" />
-                )}
-              </Button>
-              
-              <div className="flex gap-2 overflow-x-auto lg:hidden">
-                {nav.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "rounded-xl border border-zinc-200/50 dark:border-dark-border bg-white/70 dark:bg-dark-card/60 p-2 text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-900 dark:hover:text-dark-text backdrop-blur-md transition-all duration-200",
-                      pathname === item.href && "bg-zinc-900 dark:bg-dark-text text-white dark:text-dark-base hover:bg-zinc-900 hover:text-white dark:hover:bg-dark-text dark:hover:text-dark-base shadow-md"
-                    )}
-                  >
-                    <item.icon className="h-4 w-4" />
-                  </Link>
-                ))}
-              </div>
-            </div>
-            <div className="ml-auto flex items-center gap-3">
-              <GlobalSearch />
-              <div className="h-4 w-px bg-zinc-200 dark:bg-dark-border" />
-              <NotificationsMenu />
-              <div className="h-4 w-px bg-zinc-200 dark:bg-dark-border" />
-              <div className="flex items-center gap-2">
-                <div
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-white text-xs font-bold shrink-0"
-                  style={{ backgroundColor: activeUser === "user1" ? userColors.user1 : userColors.user2 }}
-                >
-                  {(activeUserName ? activeUserName[0] : "").toUpperCase()}
-                </div>
-                <span className="hidden text-sm font-medium sm:inline text-zinc-700 dark:text-dark-text-secondary">{activeUserName}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={toggleTheme}
-                  className="h-9 w-9 rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50 dark:text-dark-text-secondary dark:hover:text-dark-text dark:hover:bg-dark-hover transition-all duration-200"
-                  title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
-                >
-                  {theme === "light" ? (
-                    <Moon className="h-4 w-4" />
-                  ) : (
-                    <Sun className="h-4 w-4" />
-                  )}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={lock}
-                  className="h-9 w-9 rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50 dark:text-dark-text-secondary dark:hover:text-dark-text dark:hover:bg-dark-hover transition-all duration-200"
-                  title="Lock Workspace"
-                >
-                  <Lock className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={logout}
-                  className="h-9 w-9 rounded-xl text-destructive hover:bg-destructive/10 transition-all duration-200"
-                  title="Logout"
-                >
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+      {/* TOP SLIM macOS MENU BAR */}
+      <header className="fixed top-0 inset-x-0 h-8 z-40 flex items-center justify-between px-4 bg-white/70 dark:bg-[#1e1f22]/75 border-b border-slate-200/20 dark:border-white/5 backdrop-blur-xl text-[11px] font-medium text-slate-800 dark:text-dark-text select-none shadow-sm">
+        {/* Left Side: Brand & active app name */}
+        <div className="flex items-center gap-4">
+          <Link href="/" className="flex items-center gap-1.5 font-bold hover:opacity-80 transition-opacity">
+            <Brain className="h-3.5 w-3.5 text-indigo-500 dark:text-indigo-400" />
+            <span className="font-extrabold uppercase tracking-wider text-slate-900 dark:text-white">Mission Control</span>
+          </Link>
+          <span className="font-bold text-slate-900 dark:text-white border-l border-slate-300 dark:border-white/10 pl-4">{activeAppName}</span>
+          <div className="hidden md:flex items-center gap-3 text-slate-500 dark:text-white/50 text-[10px] uppercase tracking-wider ml-2">
+            <span className="hover:text-slate-900 dark:hover:text-white cursor-default transition-colors">File</span>
+            <span className="hover:text-slate-900 dark:hover:text-white cursor-default transition-colors">Edit</span>
+            <span className="hover:text-slate-900 dark:hover:text-white cursor-default transition-colors">View</span>
+            <span className="hover:text-slate-900 dark:hover:text-white cursor-default transition-colors">Go</span>
+            <span className="hover:text-slate-900 dark:hover:text-white cursor-default transition-colors">Help</span>
           </div>
-        </header>
-        {!isSupabaseConfigured ? (
-          <div className="border-b border-zinc-200 dark:border-dark-border bg-white dark:bg-dark-base px-4 py-3 text-sm text-muted-foreground sm:px-6">
+        </div>
+
+        {/* Right Side: mock widget elements, clock, and system buttons */}
+        <div className="flex items-center gap-2.5">
+          <GlobalSearch iconOnly />
+          
+          <NotificationsMenu slim />
+          
+          <div className="h-3.5 w-px bg-slate-350 dark:bg-white/10 mx-1" />
+
+          {/* Fullscreen Button */}
+          <button
+            onClick={toggleFullscreen}
+            className="h-6 w-6 rounded-lg flex items-center justify-center text-slate-650 hover:text-slate-900 dark:text-dark-text-secondary dark:hover:text-dark-text hover:bg-slate-950/5 dark:hover:bg-white/10 transition-all active:scale-95"
+            title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+          >
+            {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+          </button>
+
+          {/* Dark Mode toggle */}
+          <button
+            onClick={toggleTheme}
+            className="h-6 w-6 rounded-lg flex items-center justify-center text-slate-655 hover:text-slate-900 dark:text-dark-text-secondary dark:hover:text-dark-text hover:bg-slate-950/5 dark:hover:bg-white/10 transition-all active:scale-95"
+            title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+          >
+            {theme === "light" ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
+          </button>
+
+          {/* Lock workspace */}
+          <button
+            onClick={lock}
+            className="h-6 w-6 rounded-lg flex items-center justify-center text-slate-655 hover:text-slate-900 dark:text-dark-text-secondary dark:hover:text-dark-text hover:bg-slate-950/5 dark:hover:bg-white/10 transition-all active:scale-95"
+            title="Lock Workspace"
+          >
+            <Lock className="h-3.5 w-3.5" />
+          </button>
+
+          {/* Logout */}
+          <button
+            onClick={logout}
+            className="h-6 w-6 rounded-lg flex items-center justify-center text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-350 hover:bg-red-50 dark:hover:bg-red-950/10 transition-all active:scale-95"
+            title="Log Out"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+          </button>
+
+          <div className="h-3.5 w-px bg-slate-350 dark:bg-white/10 mx-1" />
+
+          {/* User profile */}
+          <div className="flex items-center gap-1.5 cursor-default">
+            <div
+              className="flex h-5 w-5 items-center justify-center rounded-full text-white text-[10px] font-bold shadow shadow-black/20"
+              style={{ backgroundColor: activeUser === "user1" ? userColors.user1 : userColors.user2 }}
+              title={activeUserName}
+            >
+              {(activeUserName ? activeUserName[0] : "").toUpperCase()}
+            </div>
+            <span className="hidden sm:inline font-semibold text-slate-900 dark:text-white">{activeUserName}</span>
+          </div>
+
+          <div className="h-3.5 w-px bg-slate-350 dark:bg-white/10 mx-1" />
+
+          {/* Live system clock */}
+          <span className="font-mono text-slate-900 dark:text-white tabular-nums font-bold">
+            {timeStr}
+          </span>
+        </div>
+      </header>
+
+      {/* MAIN VIEWPORT CANVAS */}
+      <main className="relative z-10 flex-1 w-full mx-auto max-w-[1400px] px-4 sm:px-6 pt-12 pb-24 flex flex-col justify-start">
+        {!isSupabaseConfigured && (
+          <div className="mt-2 mb-4 rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-3 text-xs text-yellow-600 dark:text-yellow-400 animate-pulse">
             Add Supabase environment variables from <code>.env.example</code> to connect live data.
           </div>
-        ) : null}
-        <main className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6">{children}</main>
+        )}
+        {children}
+      </main>
+
+      {/* PERSISTENT BOTTOM macOS-STYLE DOCK */}
+      <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 w-max max-w-[95%] animate-in slide-in-from-bottom-5 duration-500 select-none">
+        <div className="relative flex items-center gap-3.5 bg-white/20 dark:bg-black/35 border border-white/25 dark:border-white/5 backdrop-blur-2xl shadow-2xl rounded-3xl px-4 py-2 hover:shadow-black/20 transition-all duration-300">
+          
+          <Link href="/" className="flex flex-col items-center group relative hover:-translate-y-1.5 transition-transform duration-200">
+            <div className={cn(
+              "p-2.5 rounded-2xl border transition-all duration-200 shadow-md",
+              pathname === "/" 
+                ? "bg-white/40 dark:bg-white/15 border-white/40 dark:border-white/20 scale-105" 
+                : "bg-white/10 dark:bg-white/5 border-white/10 hover:bg-white/25 hover:border-white/25"
+            )}>
+              <Home className="h-5 w-5 text-white" />
+            </div>
+            <span className="absolute -top-9 bg-black/75 text-[9px] text-white px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider pointer-events-none shadow">Desktop</span>
+            {pathname === "/" && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white shadow-glow" />}
+          </Link>
+
+          {dockItems.map((item) => {
+            const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+            return (
+              <Link 
+                key={item.href} 
+                href={item.href} 
+                className="flex flex-col items-center group relative hover:-translate-y-1.5 transition-transform duration-200"
+              >
+                <div className={cn(
+                  "p-2.5 rounded-2xl border transition-all duration-200 shadow-md",
+                  isActive 
+                    ? "bg-white/40 dark:bg-white/15 border-white/40 dark:border-white/20 scale-105" 
+                    : "bg-white/10 dark:bg-white/5 border-white/10 hover:bg-white/25 hover:border-white/25"
+                )}>
+                  <item.icon className="h-5 w-5 text-white" />
+                </div>
+                <span className="absolute -top-9 bg-black/75 text-[9px] text-white px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider pointer-events-none shadow">{item.label}</span>
+                {isActive && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white shadow-glow" />}
+              </Link>
+            );
+          })}
+
+          <div className="h-6 w-px bg-white/20 shrink-0" />
+
+          {/* Wallpaper preset selector */}
+          <div className="relative">
+            <button 
+              onClick={() => setShowWallpaperPicker(!showWallpaperPicker)}
+              className={cn(
+                "p-2.5 rounded-2xl border transition-all duration-200 shadow-md relative flex flex-col items-center group hover:-translate-y-1.5",
+                showWallpaperPicker ? "bg-white/30 border-white/40 scale-105" : "bg-white/10 dark:bg-white/5 border-white/10 hover:bg-white/25 hover:border-white/25"
+              )}
+            >
+              <Laptop className="h-5 w-5 text-white" />
+              <span className="absolute -top-9 bg-black/75 text-[9px] text-white px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider pointer-events-none shadow">Wallpaper</span>
+            </button>
+
+            {showWallpaperPicker && (
+              <div className="absolute bottom-14 left-1/2 -translate-x-1/2 w-48 rounded-2xl border border-white/20 bg-slate-900/90 dark:bg-black/90 backdrop-blur-2xl p-3 shadow-2xl flex flex-col gap-2 z-50 animate-in slide-in-from-bottom-2 duration-150">
+                <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest text-center">Change Background</span>
+                <div className="grid grid-cols-2 gap-2">
+                  {WALLPAPERS.map((wp) => (
+                    <button
+                      key={wp.name}
+                      onClick={() => handleSelectWallpaper(wp.path)}
+                      className={cn(
+                        "group relative aspect-video rounded-lg overflow-hidden border transition-all hover:scale-105",
+                        activeWallpaper === wp.path ? "border-indigo-400 scale-102 ring-1 ring-indigo-400" : "border-white/10 hover:border-white/30"
+                      )}
+                      title={wp.name}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={wp.path} alt={wp.name} className="w-full h-full object-cover" />
+                      <span className="absolute inset-x-0 bottom-0 bg-black/60 text-[8px] text-white py-0.5 truncate text-center opacity-0 group-hover:opacity-100 transition-opacity">{wp.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Quick-add Note button */}
+          <button 
+            onClick={handleCreateNote}
+            className="p-2.5 rounded-2xl bg-white/10 dark:bg-white/5 border border-white/10 hover:bg-white/25 hover:border-white/25 transition-all duration-200 shadow-md relative flex flex-col items-center group hover:-translate-y-1.5"
+          >
+            <Plus className="h-5 w-5 text-white" />
+            <span className="absolute -top-9 bg-black/75 text-[9px] text-white px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider pointer-events-none shadow">Add Note</span>
+          </button>
+
+        </div>
       </div>
+
       <QuickAdd />
       <FloatingPomodoro />
     </div>

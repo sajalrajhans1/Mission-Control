@@ -1,10 +1,9 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import Link from "next/link";
 import { 
   TrendingUp, WalletCards, ListTodo, Pin, StickyNote, Trash2, Lock, Unlock,
-  Sparkles, Laptop, FolderOpen, Clock, Calendar, Plus
+  Sparkles, Plus
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -28,29 +27,6 @@ export default function HomePage() {
   const otherUserName = activeUserName === user1 ? user2 : user1;
   const isOtherUserOnline = onlineUsers.includes(otherUserName);
 
-  // --- Wallpapers Preset ---
-  const WALLPAPERS = useMemo(() => [
-    { name: "Aurora Nordic", path: "/wallpapers/aurora_nordic.png" },
-    { name: "Minimalist Silk", path: "/wallpapers/minimalist_silk.png" },
-    { name: "Obsidian Gold", path: "/wallpapers/obsidian_gold.png" },
-    { name: "Misty Mountains", path: "/wallpapers/misty_mountains.png" }
-  ], []);
-
-  const [activeWallpaper, setActiveWallpaper] = useState("/wallpapers/aurora_nordic.png");
-  const [showWallpaperPicker, setShowWallpaperPicker] = useState(false);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("mc_wallpaper");
-    if (saved) {
-      setActiveWallpaper(saved);
-    }
-  }, []);
-
-  const handleSelectWallpaper = (path: string) => {
-    setActiveWallpaper(path);
-    localStorage.setItem("mc_wallpaper", path);
-    setShowWallpaperPicker(false);
-  };
 
   // --- Clock & Date Widget State ---
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
@@ -204,18 +180,7 @@ export default function HomePage() {
   };
 
   return (
-    <div 
-      className="relative -mx-4 -my-6 sm:-mx-6 p-4 sm:p-8 min-h-[calc(100vh-65px)] transition-all duration-500 ease-in-out select-none flex flex-col justify-between gap-8 rounded-2xl overflow-hidden"
-      style={{
-        backgroundImage: `url(${activeWallpaper})`,
-        backgroundPosition: "center",
-        backgroundSize: "cover",
-      }}
-    >
-      {/* Translucent overlay for better contrast */}
-      <div className="absolute inset-0 bg-slate-900/5 dark:bg-black/20 backdrop-blur-[1px] pointer-events-none z-0" />
-
-      <div className="relative z-10 flex-1 flex flex-col gap-8 pb-20">
+    <div className="flex-1 flex flex-col gap-8 pb-10">
         
         {/* Top/Center: macOS Clock & Date Widget */}
         <div className="flex flex-col items-center justify-center text-center mt-4 mb-2 select-none animate-in fade-in slide-in-from-top-4 duration-500">
@@ -456,108 +421,18 @@ export default function HomePage() {
             ) : null}
           </div>
         </div>
+
+        <ConfirmDialog
+          open={Boolean(deletingNote)}
+          onOpenChange={(open) => !open && setDeletingNote(null)}
+          title="Delete Sticky Note?"
+          description="Are you sure you want to delete this sticky note?"
+          onConfirm={() => {
+            if (deletingNote) {
+              stickyNotes.remove(deletingNote.id);
+            }
+          }}
+        />
       </div>
-
-      {/* BOTTOM macOS-STYLE DOCK */}
-      <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 w-max max-w-[95%] animate-in slide-in-from-bottom-5 duration-500">
-        <div className="relative flex items-center gap-3 bg-white/15 dark:bg-black/35 border border-white/15 dark:border-white/5 backdrop-blur-xl shadow-2xl rounded-2xl px-4 py-2">
-          
-          <Link href="/vault" className="flex flex-col items-center group relative hover:-translate-y-1 transition-transform">
-            <div className="p-2.5 rounded-xl bg-white/10 dark:bg-white/5 border border-white/10 hover:bg-white/20 transition-colors shadow">
-              <FolderOpen className="h-5 w-5 text-white" />
-            </div>
-            <span className="absolute -top-8 bg-black/75 text-[9px] text-white px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider">Vault</span>
-          </Link>
-
-          <Link href="/tasks" className="flex flex-col items-center group relative hover:-translate-y-1 transition-transform">
-            <div className="p-2.5 rounded-xl bg-white/10 dark:bg-white/5 border border-white/10 hover:bg-white/20 transition-colors shadow">
-              <ListTodo className="h-5 w-5 text-white" />
-            </div>
-            <span className="absolute -top-8 bg-black/75 text-[9px] text-white px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider">Tasks</span>
-          </Link>
-
-          <Link href="/timetable" className="flex flex-col items-center group relative hover:-translate-y-1 transition-transform">
-            <div className="p-2.5 rounded-xl bg-white/10 dark:bg-white/5 border border-white/10 hover:bg-white/20 transition-colors shadow">
-              <Calendar className="h-5 w-5 text-white" />
-            </div>
-            <span className="absolute -top-8 bg-black/75 text-[9px] text-white px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider">Schedule</span>
-          </Link>
-
-          <Link href="/pomodoro" className="flex flex-col items-center group relative hover:-translate-y-1 transition-transform">
-            <div className="p-2.5 rounded-xl bg-white/10 dark:bg-white/5 border border-white/10 hover:bg-white/20 transition-colors shadow">
-              <Clock className="h-5 w-5 text-white" />
-            </div>
-            <span className="absolute -top-8 bg-black/75 text-[9px] text-white px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider">Focus</span>
-          </Link>
-
-          <Link href="/money" className="flex flex-col items-center group relative hover:-translate-y-1 transition-transform">
-            <div className="p-2.5 rounded-xl bg-white/10 dark:bg-white/5 border border-white/10 hover:bg-white/20 transition-colors shadow">
-              <WalletCards className="h-5 w-5 text-white" />
-            </div>
-            <span className="absolute -top-8 bg-black/75 text-[9px] text-white px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider">Finance</span>
-          </Link>
-
-          <div className="h-6 w-px bg-white/20" />
-
-          {/* Wallpaper selector trigger */}
-          <div className="relative">
-            <button 
-              onClick={() => setShowWallpaperPicker(!showWallpaperPicker)}
-              className={cn(
-                "p-2.5 rounded-xl border transition-colors shadow relative flex flex-col items-center group hover:-translate-y-1",
-                showWallpaperPicker ? "bg-white/25 border-white/30" : "bg-white/10 dark:bg-white/5 border-white/10 hover:bg-white/20"
-              )}
-            >
-              <Laptop className="h-5 w-5 text-white" />
-              <span className="absolute -top-8 bg-black/75 text-[9px] text-white px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider">Wallpaper</span>
-            </button>
-
-            {showWallpaperPicker && (
-              <div className="absolute bottom-14 left-1/2 -translate-x-1/2 w-48 rounded-xl border border-white/20 bg-slate-900/90 dark:bg-black/90 backdrop-blur-xl p-3 shadow-2xl flex flex-col gap-2 z-50 animate-in slide-in-from-bottom-2 duration-150">
-                <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest text-center">Change Background</span>
-                <div className="grid grid-cols-2 gap-2">
-                  {WALLPAPERS.map((wp) => (
-                    <button
-                      key={wp.name}
-                      onClick={() => handleSelectWallpaper(wp.path)}
-                      className={cn(
-                        "group relative aspect-video rounded-lg overflow-hidden border transition-all hover:scale-105",
-                        activeWallpaper === wp.path ? "border-indigo-400 scale-102 ring-1 ring-indigo-400" : "border-white/10 hover:border-white/30"
-                      )}
-                      title={wp.name}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={wp.path} alt={wp.name} className="w-full h-full object-cover" />
-                      <span className="absolute inset-x-0 bottom-0 bg-black/60 text-[8px] text-white py-0.5 truncate text-center opacity-0 group-hover:opacity-100 transition-opacity">{wp.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <button 
-            onClick={handleCreateNote}
-            className="p-2.5 rounded-xl bg-white/10 dark:bg-white/5 border border-white/10 hover:bg-white/20 transition-colors shadow relative flex flex-col items-center group hover:-translate-y-1"
-          >
-            <Plus className="h-5 w-5 text-white" />
-            <span className="absolute -top-8 bg-black/75 text-[9px] text-white px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider">Add Note</span>
-          </button>
-
-        </div>
-      </div>
-
-      <ConfirmDialog
-        open={Boolean(deletingNote)}
-        onOpenChange={(open) => !open && setDeletingNote(null)}
-        title="Delete Sticky Note?"
-        description="Are you sure you want to delete this sticky note?"
-        onConfirm={() => {
-          if (deletingNote) {
-            stickyNotes.remove(deletingNote.id);
-          }
-        }}
-      />
-    </div>
-  );
-}
+    );
+  }

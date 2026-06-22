@@ -29,7 +29,7 @@ function formatRelativeTime(dateStr: string) {
   }
 }
 
-export function NotificationsMenu() {
+export function NotificationsMenu({ slim = false }: { slim?: boolean }) {
   const { notifications } = useData();
   const { activeUser } = useActiveUser();
   const [isOpen, setIsOpen] = useState(false);
@@ -108,14 +108,22 @@ export function NotificationsMenu() {
         size="icon"
         onClick={toggleOpen}
         className={cn(
-          "relative h-9 w-9 rounded-xl text-zinc-600 hover:text-zinc-900 transition-colors",
-          isOpen && "bg-zinc-100 text-zinc-955"
+          "relative transition-colors",
+          slim 
+            ? "h-6 w-6 rounded-lg text-white hover:bg-white/10 dark:text-dark-text dark:hover:bg-white/10" 
+            : "h-9 w-9 rounded-xl text-zinc-600 hover:text-zinc-900",
+          isOpen && (slim ? "bg-white/20 text-white" : "bg-zinc-100 text-zinc-955")
         )}
         title="Notifications"
       >
-        <Bell className="h-4.5 w-4.5" />
+        <Bell className={slim ? "h-3.5 w-3.5" : "h-4.5 w-4.5"} />
         {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-indigo-600 px-1 text-[10px] font-bold text-white ring-2 ring-white">
+          <span className={cn(
+            "absolute flex items-center justify-center rounded-full bg-indigo-600 font-bold text-white",
+            slim 
+              ? "-top-1 -right-1 h-3 min-w-3 text-[7px] ring-1 ring-black" 
+              : "-top-1.5 -right-1.5 h-4.5 min-w-4.5 px-1 text-[10px] ring-2 ring-white"
+          )}>
             {unreadCount}
           </span>
         )}
