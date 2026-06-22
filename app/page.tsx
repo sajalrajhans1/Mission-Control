@@ -211,9 +211,8 @@ export default function HomePage() {
         }
       }}
     >
-        
         {/* Top/Center: macOS Clock & Date Widget */}
-        <div className="flex flex-col items-center justify-center text-center mt-4 mb-2 select-none animate-in fade-in slide-in-from-top-4 duration-500">
+        <div className="sticky top-8 z-20 flex flex-col items-center justify-center text-center pt-3 pb-4 select-none animate-in fade-in slide-in-from-top-4 duration-500 backdrop-blur-md bg-white/10 dark:bg-black/20 border border-white/15 dark:border-white/5 rounded-3xl max-w-xl mx-auto w-full px-4 shadow-lg">
           <span className="text-sm font-bold uppercase tracking-widest text-white/90 drop-shadow-md">
             {dateString}
           </span>

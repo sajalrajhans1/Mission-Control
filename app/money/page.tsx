@@ -436,7 +436,6 @@ export default function MoneyPage() {
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-white text-wallpaper-safe">Money</h1>
-          <p className="mt-1 text-sm text-white/90 text-wallpaper-safe">Private wallets &amp; split expense tracking.</p>
         </div>
       </div>
 

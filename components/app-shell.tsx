@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Brain, Folder, Home, LogOut, Settings, WalletCards, Lock, Calendar,
-  GripHorizontal, X, Play, Pause, Tv, SkipForward, Sun, Moon,
+  GripHorizontal, X, Play, Pause, Tv, SkipForward,
   Maximize2, Minimize2, Laptop, FolderOpen, ListTodo, Plus, Clock
 } from "lucide-react";
 import { useActiveUser, useUserNames, useUserColors, useData } from "@/components/data-provider";
@@ -140,31 +140,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     { href: "/settings", label: "Settings", icon: Settings }
   ], []);
 
-  // Theme Controller State
-  const [theme, setTheme] = useState<"light" | "dark">("light");
-
   useEffect(() => {
-    const savedTheme = localStorage.getItem("mc_theme") as "light" | "dark" | null;
-    const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-    const initialTheme = savedTheme || systemTheme;
-    setTheme(initialTheme);
-    if (initialTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    document.documentElement.classList.add("dark");
   }, []);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === "light" ? "dark" : "light";
-    setTheme(nextTheme);
-    localStorage.setItem("mc_theme", nextTheme);
-    if (nextTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  };
 
   // Real-time Clock for Apple-like Lock Screen
   const [timeStr, setTimeStr] = useState("");
@@ -337,11 +315,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         e.preventDefault();
         lock();
       }
-      // Toggle Theme: Alt+T
-      if (e.altKey && key === "t") {
-        e.preventDefault();
-        toggleTheme();
-      }
       // Toggle Fullscreen: Alt+F
       if (e.altKey && key === "f") {
         e.preventDefault();
@@ -384,7 +357,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeUser, lock, toggleTheme, toggleFullscreen, router, handleCreateNote, clearAllNotifications, pathname, setIsScreensaverActive]);
+  }, [activeUser, lock, toggleFullscreen, router, handleCreateNote, clearAllNotifications, pathname, setIsScreensaverActive]);
 
 
 
@@ -683,10 +656,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </button>
               {menuOpen && activeMenu === "Edit" && (
                 <div className="absolute left-0 mt-1 w-48 rounded-xl border border-slate-200/50 dark:border-white/10 bg-white/95 dark:bg-[#1e1f22]/95 backdrop-blur-2xl p-1 shadow-2xl z-50 text-[11px] text-slate-700 dark:text-dark-text animate-in fade-in slide-in-from-top-1 duration-100">
-                  <button onClick={() => { toggleTheme(); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
-                    <span>Toggle Theme</span>
-                    <span className="opacity-55 font-mono text-[9px]">⌥T</span>
-                  </button>
                   <button onClick={() => { clearAllNotifications(); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
                     <span>Clear Alerts</span>
                     <span className="opacity-55 font-mono text-[9px]">⌘K</span>
@@ -809,15 +778,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
           >
             {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
-          </button>
-
-          {/* Dark Mode toggle */}
-          <button
-            onClick={toggleTheme}
-            className="h-6 w-6 rounded-lg flex items-center justify-center text-slate-655 hover:text-slate-900 dark:text-dark-text-secondary dark:hover:text-dark-text hover:bg-slate-950/5 dark:hover:bg-white/10 transition-all active:scale-95"
-            title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
-          >
-            {theme === "light" ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
           </button>
 
           {/* Lock workspace */}

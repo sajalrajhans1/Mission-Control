@@ -131,16 +131,15 @@ export default function ProjectsPage() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-white text-wallpaper-safe">Projects</h1>
-          <p className="mt-1 text-sm text-white/90 text-wallpaper-safe">Operational workspace &amp; collaborative project boards.</p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => setShowArchived((v) => !v)} className="dark:border-dark-border">
+        <Button variant="outline" size="sm" onClick={() => setShowArchived((v) => !v)} className="bg-white/15 dark:bg-black/25 hover:bg-white/25 dark:hover:bg-black/40 backdrop-blur border border-white/20 dark:border-white/10 text-white hover:text-white">
           {showArchived ? "Hide archived" : "Show archived"}
         </Button>
       </div>
 
-      <Card className="dark:border-dark-border dark:bg-dark-card">
+      <Card className="bg-white/30 dark:bg-black/35 backdrop-blur-xl border border-white/25 dark:border-white/10 shadow-2xl rounded-3xl overflow-hidden">
         <CardHeader className="pb-3">
-          <CardTitle className="text-zinc-900 dark:text-dark-text">New Project</CardTitle>
+          <CardTitle className="text-white text-wallpaper-safe font-bold">New Project</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="flex gap-2">
@@ -149,7 +148,7 @@ export default function ProjectsPage() {
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && createProject()}
               placeholder="Startup idea / Business lane / Client name..."
-              className="flex-1 dark:border-dark-border dark:bg-dark-base"
+              className="flex-1 bg-white/40 dark:bg-black/30 border-white/25 dark:border-white/10 text-white placeholder-white/50 focus-visible:ring-1 focus-visible:ring-indigo-500 rounded-xl"
             />
             <Button onClick={createProject}>
               <Plus className="h-4 w-4 mr-2" />
@@ -160,16 +159,16 @@ export default function ProjectsPage() {
           <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 items-end">
             {/* Project Type Selection */}
             <div className="grid gap-1.5">
-              <label className="text-xs font-semibold text-zinc-500 dark:text-dark-text-secondary">Project Type</label>
-              <div className="flex rounded-lg border dark:border-dark-border p-0.5 bg-zinc-100/50 dark:bg-dark-base">
+              <label className="text-xs font-semibold text-white/70">Project Type</label>
+              <div className="flex rounded-lg border border-white/25 dark:border-white/10 p-0.5 bg-white/10 dark:bg-black/25 backdrop-blur-md">
                 <button
                   type="button"
                   onClick={() => setProjectType("normal")}
                   className={cn(
                     "flex-1 py-1.5 text-xs font-medium rounded-md transition-all",
                     projectType === "normal"
-                      ? "bg-white dark:bg-dark-card shadow-sm text-zinc-900 dark:text-dark-text"
-                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-dark-text-secondary"
+                      ? "bg-white/40 dark:bg-white/15 shadow-sm text-white"
+                      : "text-white/60 hover:text-white"
                   )}
                 >
                   Normal Project
@@ -180,8 +179,8 @@ export default function ProjectsPage() {
                   className={cn(
                     "flex-1 py-1.5 text-xs font-medium rounded-md transition-all",
                     projectType === "client"
-                      ? "bg-white dark:bg-dark-card shadow-sm text-zinc-900 dark:text-dark-text"
-                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-dark-text-secondary"
+                      ? "bg-white/40 dark:bg-white/15 shadow-sm text-white"
+                      : "text-white/60 hover:text-white"
                   )}
                 >
                   Client Project
@@ -191,16 +190,16 @@ export default function ProjectsPage() {
 
             {/* Visibility / Privacy Selection */}
             <div className="grid gap-1.5">
-              <label className="text-xs font-semibold text-zinc-500 dark:text-dark-text-secondary">Visibility</label>
-              <div className="flex rounded-lg border dark:border-dark-border p-0.5 bg-zinc-100/50 dark:bg-dark-base">
+              <label className="text-xs font-semibold text-white/70">Visibility</label>
+              <div className="flex rounded-lg border border-white/25 dark:border-white/10 p-0.5 bg-white/10 dark:bg-black/25 backdrop-blur-md">
                 <button
                   type="button"
                   onClick={() => setIsPrivate(false)}
                   className={cn(
                     "flex-1 py-1.5 text-xs font-bold rounded-md transition-all",
                     !isPrivate
-                      ? "bg-white dark:bg-dark-card shadow-sm text-zinc-900 dark:text-dark-text"
-                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-dark-text-secondary"
+                      ? "bg-white/40 dark:bg-white/15 shadow-sm text-white"
+                      : "text-white/60 hover:text-white"
                   )}
                 >
                   Collab
@@ -211,8 +210,8 @@ export default function ProjectsPage() {
                   className={cn(
                     "flex-1 py-1.5 text-xs font-bold rounded-md transition-all",
                     isPrivate
-                      ? "bg-white dark:bg-dark-card shadow-sm text-zinc-900 dark:text-dark-text"
-                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-dark-text-secondary"
+                      ? "bg-white/40 dark:bg-white/15 shadow-sm text-white"
+                      : "text-white/60 hover:text-white"
                   )}
                 >
                   Private
@@ -223,17 +222,17 @@ export default function ProjectsPage() {
             {/* Client Deadline (Visible only if Client Project is active) */}
             {projectType === "client" ? (
               <div className="grid gap-1.5 animate-in fade-in slide-in-from-top-1 duration-250">
-                <label className="text-xs font-semibold text-zinc-500 dark:text-dark-text-secondary">Client Deadline</label>
+                <label className="text-xs font-semibold text-white/70">Client Deadline</label>
                 <Input
                   type="datetime-local"
                   value={clientDeadline}
                   onChange={(e) => setClientDeadline(e.target.value)}
-                  className="h-9.5 text-xs py-1 dark:border-dark-border dark:bg-dark-base border-zinc-200"
+                  className="h-9.5 text-xs py-1 bg-white/40 dark:bg-black/30 border-white/25 dark:border-white/10 text-white placeholder-white/50 focus-visible:ring-1 focus-visible:ring-indigo-500 rounded-xl"
                 />
               </div>
             ) : (
               <div className="flex items-center gap-2 pb-1.5">
-                <label className="text-xs font-semibold text-zinc-500 dark:text-dark-text-secondary mr-2">Color Tag:</label>
+                <label className="text-xs font-semibold text-white/70 mr-2">Color Tag:</label>
                 <div className="flex flex-wrap gap-1.5">
                   {PROJECT_COLORS.map((c) => (
                     <button
@@ -254,8 +253,8 @@ export default function ProjectsPage() {
 
           {/* Color tag selector in case of Client Project */}
           {projectType === "client" && (
-            <div className="flex items-center gap-2 border-t dark:border-dark-border pt-2 animate-in fade-in duration-200">
-              <label className="text-xs font-semibold text-zinc-500 dark:text-dark-text-secondary mr-2">Color Tag:</label>
+            <div className="flex items-center gap-2 border-t border-white/15 pt-2 animate-in fade-in duration-200">
+              <label className="text-xs font-semibold text-white/70 mr-2">Color Tag:</label>
               <div className="flex flex-wrap gap-1.5">
                 {PROJECT_COLORS.map((c) => (
                   <button
@@ -284,7 +283,7 @@ export default function ProjectsPage() {
             >
               <Card
                 className={cn(
-                  "transition-shadow hover:shadow-soft dark:border-dark-border dark:bg-dark-card h-full flex flex-col justify-between",
+                  "transition-all duration-200 hover:shadow-2xl bg-white/30 dark:bg-black/35 backdrop-blur-xl border border-white/25 dark:border-white/10 rounded-2xl h-full flex flex-col justify-between overflow-hidden",
                   project.archived ? "opacity-60" : ""
                 )}
                 style={project.color ? { borderLeftColor: project.color, borderLeftWidth: 4 } : undefined}
@@ -293,29 +292,29 @@ export default function ProjectsPage() {
                   <div className="flex flex-wrap gap-1 mb-1.5">
                     {/* Project Type Badge */}
                     {project.project_type === "client" ? (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800">
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/25">
                         <Briefcase className="h-2.5 w-2.5 shrink-0" />
                         Client
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-zinc-50 text-zinc-650 border border-zinc-200 dark:bg-dark-card dark:text-dark-text-secondary dark:border-dark-border">
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/10 text-white/80 border border-white/15 dark:bg-white/5 dark:text-white/70 dark:border-white/10">
                         Normal
                       </span>
                     )}
                     {/* Privacy Badge */}
                     {project.is_private ? (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800">
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/25">
                         <Lock className="h-2.5 w-2.5 shrink-0" />
                         Private
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800">
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/25">
                         <Users className="h-2.5 w-2.5 shrink-0" />
                         Collab
                       </span>
                     )}
                   </div>
-                  <CardTitle className="text-base text-zinc-900 dark:text-dark-text font-bold truncate">
+                  <CardTitle className="text-base text-white text-wallpaper-safe font-bold truncate">
                     {project.name}
                   </CardTitle>
                 </CardHeader>
@@ -323,14 +322,14 @@ export default function ProjectsPage() {
                   {/* Milestones progress (for Client project if it has milestones) */}
                   {project.project_type === "client" && milestonesTotal > 0 ? (
                     <div className="grid gap-1.5">
-                      <div className="flex justify-between text-xs text-muted-foreground font-medium">
+                      <div className="flex justify-between text-xs text-white/70 font-medium">
                         <span className="flex items-center gap-1">Timeline: {milestonesCompleted}/{milestonesTotal} done</span>
                       </div>
-                      <Progress value={(milestonesCompleted / milestonesTotal) * 100} className="h-2 bg-blue-100/50" />
+                      <Progress value={(milestonesCompleted / milestonesTotal) * 100} className="h-2 bg-blue-500/20" />
                     </div>
                   ) : (
                     <div className="grid gap-1.5">
-                      <div className="flex justify-between text-xs text-muted-foreground font-medium">
+                      <div className="flex justify-between text-xs text-white/70 font-medium">
                         <span>Tasks: {completed}/{total} done</span>
                       </div>
                       <Progress value={total ? (completed / total) * 100 : 0} className="h-2" />
@@ -339,8 +338,8 @@ export default function ProjectsPage() {
 
                   {/* Deadline text */}
                   {project.project_type === "client" && project.client_deadline && (
-                    <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-semibold border-t dark:border-dark-border pt-2 mt-1">
-                      <Clock className="h-3 w-3 text-zinc-400 shrink-0" />
+                    <div className="flex items-center gap-1 text-[10px] text-white/60 font-semibold border-t border-white/10 pt-2 mt-1">
+                      <Clock className="h-3 w-3 text-white/40 shrink-0" />
                       <span className="truncate">Due: {formatDeadline(project.client_deadline)}</span>
                     </div>
                   )}
@@ -349,19 +348,19 @@ export default function ProjectsPage() {
             </button>
             <div className="absolute right-2 top-2 hidden gap-1 group-hover:flex">
               <Button
-                variant="ghost" size="icon" className="h-7 w-7 bg-white/80 backdrop-blur dark:bg-dark-base/80"
+                variant="ghost" size="icon" className="h-7 w-7 bg-white/20 hover:bg-white/30 dark:bg-black/40 dark:hover:bg-black/60 backdrop-blur border border-white/20 dark:border-white/10 text-white hover:text-white"
                 onClick={(e) => { e.stopPropagation(); setRenaming(project); setRenameValue(project.name); }}
               >
                 <Pencil className="h-3 w-3" />
               </Button>
               <Button
-                variant="ghost" size="icon" className="h-7 w-7 bg-white/80 backdrop-blur dark:bg-dark-base/80"
+                variant="ghost" size="icon" className="h-7 w-7 bg-white/20 hover:bg-white/30 dark:bg-black/40 dark:hover:bg-black/60 backdrop-blur border border-white/20 dark:border-white/10 text-white hover:text-white"
                 onClick={(e) => { e.stopPropagation(); projects.update(project.id, { archived: !project.archived }); }}
               >
                 {project.archived ? <ArchiveRestore className="h-3 w-3" /> : <Archive className="h-3 w-3" />}
               </Button>
               <Button
-                variant="ghost" size="icon" className="h-7 w-7 bg-white/80 backdrop-blur dark:bg-dark-base/80 text-destructive"
+                variant="ghost" size="icon" className="h-7 w-7 bg-red-500/20 hover:bg-red-500/30 backdrop-blur border border-red-500/30 text-red-200 hover:text-red-100"
                 onClick={(e) => { e.stopPropagation(); setDeleting(project); setDeleteMode("move"); }}
               >
                 <Trash2 className="h-3 w-3" />
@@ -387,7 +386,7 @@ export default function ProjectsPage() {
             onChange={(e) => setRenameValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && confirmRename()}
             autoFocus
-            className="dark:border-dark-border dark:bg-dark-base"
+            className="bg-white/10 dark:bg-black/30 border-white/25 dark:border-white/10 text-white placeholder-white/50 focus-visible:ring-1 focus-visible:ring-indigo-500 rounded-xl"
           />
           <Button onClick={confirmRename}>Save</Button>
         </DialogContent>
@@ -399,13 +398,13 @@ export default function ProjectsPage() {
           <DialogHeader>
             <DialogTitle>Delete &ldquo;{deleting?.name}&rdquo;?</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">What should happen to tasks in this project?</p>
+          <p className="text-sm text-white/70">What should happen to tasks in this project?</p>
           <div className="grid gap-2">
             <button
               onClick={() => setDeleteMode("move")}
               className={cn(
-                "rounded-xl border p-3 text-left text-sm transition-colors hover:bg-accent dark:border-dark-border dark:hover:bg-dark-hover",
-                deleteMode === "move" ? "border-black dark:border-zinc-300 font-medium" : ""
+                "rounded-xl border p-3 text-left text-sm transition-all bg-white/10 dark:bg-black/35 hover:bg-white/20 dark:hover:bg-black/50 border-white/20 dark:border-white/10 text-white",
+                deleteMode === "move" ? "border-indigo-500/50 dark:border-indigo-500/50 bg-indigo-500/10 dark:bg-indigo-500/20 text-white font-medium" : ""
               )}
             >
               Move tasks to &ldquo;No Project&rdquo; (recommended)
@@ -413,15 +412,15 @@ export default function ProjectsPage() {
             <button
               onClick={() => setDeleteMode("tasks")}
               className={cn(
-                "rounded-xl border p-3 text-left text-sm transition-colors hover:bg-accent dark:border-dark-border dark:hover:bg-dark-hover",
-                deleteMode === "tasks" ? "border-black dark:border-zinc-300 font-medium" : ""
+                "rounded-xl border p-3 text-left text-sm transition-all bg-white/10 dark:bg-black/35 hover:bg-white/20 dark:hover:bg-black/50 border-white/20 dark:border-white/10 text-white",
+                deleteMode === "tasks" ? "border-indigo-500/50 dark:border-indigo-500/50 bg-indigo-500/10 dark:bg-indigo-500/20 text-white font-medium" : ""
               )}
             >
               Delete all associated tasks
             </button>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setDeleting(null)} className="flex-1 dark:border-dark-border">
+            <Button variant="outline" onClick={() => setDeleting(null)} className="flex-1 bg-white/15 dark:bg-black/25 hover:bg-white/25 dark:hover:bg-black/40 border-white/20 dark:border-white/10 text-white hover:text-white">
               Cancel
             </Button>
             <Button variant="destructive" onClick={confirmDelete} className="flex-1">
