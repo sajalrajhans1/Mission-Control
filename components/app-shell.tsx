@@ -53,7 +53,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { stickyNotes, notifications, isScreensaverActive, setIsScreensaverActive } = useData();
 
   const [activeWallpaper, setActiveWallpaper] = useState("/wallpapers/aurora_nordic.png");
-  const [showWallpaperPicker, setShowWallpaperPicker] = useState(false);
 
   useEffect(() => {
     const loadWallpaper = () => {
@@ -72,11 +71,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const handleSelectWallpaper = (path: string) => {
-    setActiveWallpaper(path);
-    localStorage.setItem("mc_wallpaper", path);
-    setShowWallpaperPicker(false);
-  };
+
 
   // --- Fullscreen State ---
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -375,7 +370,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       // Wallpapers picker: Command+W or Alt+W
       if ((e.altKey && key === "w") || (isMetaOrCtrl && key === "w")) {
         e.preventDefault();
-        setShowWallpaperPicker(prev => !prev);
+        router.push("/settings/wallpaper");
       }
       // Screensaver: Alt+S
       if (e.altKey && key === "s") {
@@ -718,7 +713,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <span>Activate Screensaver</span>
                     <span className="opacity-55 font-mono text-[9px]">⌥S</span>
                   </button>
-                  <button onClick={() => { setShowWallpaperPicker(true); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
+                  <button onClick={() => { router.push("/settings/wallpaper"); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
                     <span>Wallpapers...</span>
                     <span className="opacity-55 font-mono text-[9px]">⌘W</span>
                   </button>
@@ -928,11 +923,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           {/* Wallpaper preset selector */}
           <div className="relative w-10 h-10 flex-shrink-0 flex items-center justify-center group origin-bottom">
-            <button 
-              onClick={() => setShowWallpaperPicker(!showWallpaperPicker)}
+            <Link 
+              href="/settings/wallpaper"
               className={cn(
                 "p-2.5 rounded-2xl border shadow-md transition-all ease-out transform-gpu will-change-transform group-hover:scale-[1.28] group-hover:-translate-y-3 group-active:scale-95 origin-bottom",
-                showWallpaperPicker 
+                pathname === "/settings/wallpaper"
                   ? "bg-white/30 border-white/40" 
                   : "bg-white/10 dark:bg-white/5 border-white/10 group-hover:bg-white/25 group-hover:border-white/25"
               )}
@@ -942,38 +937,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               }}
             >
               <Laptop className="h-5 w-5 text-white" />
-            </button>
+            </Link>
             <span className="absolute -top-9 bg-black/75 text-[9px] text-white px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider pointer-events-none shadow">Wallpaper</span>
-
-            {showWallpaperPicker && (
-              <div className="absolute bottom-14 left-1/2 -translate-x-1/2 w-80 rounded-2xl border border-white/20 bg-slate-900/90 dark:bg-black/90 backdrop-blur-2xl p-3 shadow-2xl flex flex-col gap-2 z-50 animate-in slide-in-from-bottom-2 duration-150">
-                <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest text-center">Change Background</span>
-                <div className="grid grid-cols-3 gap-2 max-h-[320px] overflow-y-auto pr-1">
-                  {WALLPAPERS.map((wp) => {
-                    const isVideo = wp.path.endsWith(".mp4") || wp.path.includes(".m3u8");
-                    return (
-                      <button
-                        key={wp.name}
-                        onClick={() => handleSelectWallpaper(wp.path)}
-                        className={cn(
-                          "group/wp relative aspect-video rounded-lg overflow-hidden border transition-all hover:scale-105",
-                          activeWallpaper === wp.path ? "border-indigo-400 scale-102 ring-1 ring-indigo-400" : "border-white/10 hover:border-white/30"
-                        )}
-                        title={wp.name}
-                      >
-                        {isVideo ? (
-                          <WallpaperVideoPreview path={wp.path} />
-                        ) : (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={wp.path} alt={wp.name} className="w-full h-full object-cover" />
-                        )}
-                        <span className="absolute inset-x-0 bottom-0 bg-black/60 text-[8px] text-white py-0.5 truncate text-center opacity-0 group-hover/wp:opacity-100 transition-opacity">{wp.name}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Quick-add Note button */}
