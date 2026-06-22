@@ -754,15 +754,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 w-max max-w-[95%] animate-in slide-in-from-bottom-5 duration-500 select-none">
         <div className="relative flex items-end gap-3.5 bg-white/15 dark:bg-black/35 border border-white/25 dark:border-white/5 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[24px] px-4 pt-3.5 pb-2 hover:shadow-black/25 transition-all duration-300">
           
-          <Link href="/" className="flex flex-col items-center group relative hover:scale-[1.28] hover:-translate-y-3.5 active:scale-95 transition-all duration-200 ease-out origin-bottom">
+          <Link href="/" className="w-10 h-10 flex-shrink-0 relative flex items-center justify-center group origin-bottom">
             <div 
               className={cn(
-                "p-2.5 rounded-2xl border transition-all duration-200 shadow-md",
+                "p-2.5 rounded-2xl border shadow-md transition-all ease-out transform-gpu will-change-transform group-hover:scale-[1.28] group-hover:-translate-y-3 group-active:scale-95 origin-bottom",
                 pathname === "/" 
-                  ? "bg-white/40 dark:bg-white/15 border-white/40 dark:border-white/20 scale-105" 
-                  : "bg-white/10 dark:bg-white/5 border-white/10 hover:bg-white/25 hover:border-white/25"
+                  ? "bg-white/40 dark:bg-white/15 border-white/40 dark:border-white/20" 
+                  : "bg-white/10 dark:bg-white/5 border-white/10 group-hover:bg-white/25 group-hover:border-white/25"
               )}
-              style={{ WebkitBoxReflect: "below 2px linear-gradient(transparent 70%, rgba(255, 255, 255, 0.08))" }}
+              style={{ 
+                WebkitBoxReflect: "below 2px linear-gradient(transparent 70%, rgba(255, 255, 255, 0.08))",
+                transition: "transform 0.3s cubic-bezier(0.25, 1, 0.2, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease"
+              }}
             >
               <Home className="h-5 w-5 text-white" />
             </div>
@@ -776,16 +779,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Link 
                 key={item.href} 
                 href={item.href} 
-                className="flex flex-col items-center group relative hover:scale-[1.28] hover:-translate-y-3.5 active:scale-95 transition-all duration-200 ease-out origin-bottom"
+                className="w-10 h-10 flex-shrink-0 relative flex items-center justify-center group origin-bottom"
               >
                 <div 
                   className={cn(
-                    "p-2.5 rounded-2xl border transition-all duration-200 shadow-md",
+                    "p-2.5 rounded-2xl border shadow-md transition-all ease-out transform-gpu will-change-transform group-hover:scale-[1.28] group-hover:-translate-y-3 group-active:scale-95 origin-bottom",
                     isActive 
-                      ? "bg-white/40 dark:bg-white/15 border-white/40 dark:border-white/20 scale-105" 
-                      : "bg-white/10 dark:bg-white/5 border-white/10 hover:bg-white/25 hover:border-white/25"
+                      ? "bg-white/40 dark:bg-white/15 border-white/40 dark:border-white/20" 
+                      : "bg-white/10 dark:bg-white/5 border-white/10 group-hover:bg-white/25 group-hover:border-white/25"
                   )}
-                  style={{ WebkitBoxReflect: "below 2px linear-gradient(transparent 70%, rgba(255, 255, 255, 0.08))" }}
+                  style={{ 
+                    WebkitBoxReflect: "below 2px linear-gradient(transparent 70%, rgba(255, 255, 255, 0.08))",
+                    transition: "transform 0.3s cubic-bezier(0.25, 1, 0.2, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease"
+                  }}
                 >
                   <item.icon className="h-5 w-5 text-white" />
                 </div>
@@ -798,18 +804,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="h-10 w-px bg-white/20 shrink-0 self-center" />
 
           {/* Wallpaper preset selector */}
-          <div className="relative flex flex-col items-center">
+          <div className="relative w-10 h-10 flex-shrink-0 flex items-center justify-center group origin-bottom">
             <button 
               onClick={() => setShowWallpaperPicker(!showWallpaperPicker)}
               className={cn(
-                "p-2.5 rounded-2xl border transition-all duration-200 shadow-md relative flex flex-col items-center group hover:scale-[1.28] hover:-translate-y-3.5 active:scale-95 origin-bottom",
-                showWallpaperPicker ? "bg-white/30 border-white/40 scale-105" : "bg-white/10 dark:bg-white/5 border-white/10 hover:bg-white/25 hover:border-white/25"
+                "p-2.5 rounded-2xl border shadow-md transition-all ease-out transform-gpu will-change-transform group-hover:scale-[1.28] group-hover:-translate-y-3 group-active:scale-95 origin-bottom",
+                showWallpaperPicker 
+                  ? "bg-white/30 border-white/40" 
+                  : "bg-white/10 dark:bg-white/5 border-white/10 group-hover:bg-white/25 group-hover:border-white/25"
               )}
-              style={{ WebkitBoxReflect: "below 2px linear-gradient(transparent 70%, rgba(255, 255, 255, 0.08))" }}
+              style={{ 
+                WebkitBoxReflect: "below 2px linear-gradient(transparent 70%, rgba(255, 255, 255, 0.08))",
+                transition: "transform 0.3s cubic-bezier(0.25, 1, 0.2, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease"
+              }}
             >
               <Laptop className="h-5 w-5 text-white" />
-              <span className="absolute -top-9 bg-black/75 text-[9px] text-white px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider pointer-events-none shadow">Wallpaper</span>
             </button>
+            <span className="absolute -top-9 bg-black/75 text-[9px] text-white px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider pointer-events-none shadow">Wallpaper</span>
 
             {showWallpaperPicker && (
               <div className="absolute bottom-14 left-1/2 -translate-x-1/2 w-48 rounded-2xl border border-white/20 bg-slate-900/90 dark:bg-black/90 backdrop-blur-2xl p-3 shadow-2xl flex flex-col gap-2 z-50 animate-in slide-in-from-bottom-2 duration-150">
@@ -820,14 +831,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       key={wp.name}
                       onClick={() => handleSelectWallpaper(wp.path)}
                       className={cn(
-                        "group relative aspect-video rounded-lg overflow-hidden border transition-all hover:scale-105",
+                        "group/wp relative aspect-video rounded-lg overflow-hidden border transition-all hover:scale-105",
                         activeWallpaper === wp.path ? "border-indigo-400 scale-102 ring-1 ring-indigo-400" : "border-white/10 hover:border-white/30"
                       )}
                       title={wp.name}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={wp.path} alt={wp.name} className="w-full h-full object-cover" />
-                      <span className="absolute inset-x-0 bottom-0 bg-black/60 text-[8px] text-white py-0.5 truncate text-center opacity-0 group-hover:opacity-100 transition-opacity">{wp.name}</span>
+                      <span className="absolute inset-x-0 bottom-0 bg-black/60 text-[8px] text-white py-0.5 truncate text-center opacity-0 group-hover/wp:opacity-100 transition-opacity">{wp.name}</span>
                     </button>
                   ))}
                 </div>
@@ -836,15 +847,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Quick-add Note button */}
-          <button 
-            onClick={handleCreateNote}
-            className="p-2.5 rounded-2xl bg-white/10 dark:bg-white/5 border border-white/10 hover:bg-white/25 hover:border-white/25 hover:scale-[1.28] hover:-translate-y-3.5 active:scale-95 transition-all duration-200 ease-out origin-bottom shadow-md relative flex flex-col items-center group"
-            style={{ WebkitBoxReflect: "below 2px linear-gradient(transparent 70%, rgba(255, 255, 255, 0.08))" }}
-          >
-            <Plus className="h-5 w-5 text-white" />
+          <div className="relative w-10 h-10 flex-shrink-0 flex items-center justify-center group origin-bottom">
+            <button 
+              onClick={handleCreateNote}
+              className="p-2.5 rounded-2xl bg-white/10 dark:bg-white/5 border border-white/10 shadow-md transition-all ease-out transform-gpu will-change-transform group-hover:scale-[1.28] group-hover:-translate-y-3 group-active:scale-95 group-hover:bg-white/25 group-hover:border-white/25 origin-bottom"
+              style={{ 
+                WebkitBoxReflect: "below 2px linear-gradient(transparent 70%, rgba(255, 255, 255, 0.08))",
+                transition: "transform 0.3s cubic-bezier(0.25, 1, 0.2, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease"
+              }}
+            >
+              <Plus className="h-5 w-5 text-white" />
+            </button>
             <span className="absolute -top-9 bg-black/75 text-[9px] text-white px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider pointer-events-none shadow">Add Note</span>
-          </button>
-
+          </div>
         </div>
       </div>
 
