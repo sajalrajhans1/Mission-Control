@@ -88,6 +88,8 @@ type DataContextValue = {
   startAmbientSound: (type: "white" | "pink" | "brown" | "rain") => void;
   stopAmbientSound: () => void;
   getAudioContext: () => AudioContext;
+  isScreensaverActive: boolean;
+  setIsScreensaverActive: Dispatch<SetStateAction<boolean>>;
 };
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -196,6 +198,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const [activeUser, setActiveUser] = useState<"user1" | "user2" | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+  const [isScreensaverActive, setIsScreensaverActive] = useState<boolean>(false);
 
   // ─── Pomodoro Global States ───────────────────────────────────────────────────
   const [pomoMode, setPomoMode] = useState<"work" | "shortBreak" | "longBreak">("work");
@@ -963,7 +966,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       playAlarmSound,
       startAmbientSound,
       stopAmbientSound,
-      getAudioContext
+      getAudioContext,
+      isScreensaverActive,
+      setIsScreensaverActive
     }),
     [
       filteredProjects,
@@ -1016,7 +1021,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       getAudioContext,
       savePomoSettings,
       savePomoLogs,
-      savePomoCompletedCount
+      savePomoCompletedCount,
+      isScreensaverActive
     ]
   );
 

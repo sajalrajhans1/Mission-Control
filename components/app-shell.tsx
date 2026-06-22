@@ -24,7 +24,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { activeUser, activeUserName, login, logout, isPasswordSet } = useActiveUser();
   const names = useUserNames();
   const userColors = useUserColors();
-  const { stickyNotes, notifications } = useData();
+  const { stickyNotes, notifications, isScreensaverActive, setIsScreensaverActive } = useData();
 
   // --- Wallpapers Preset ---
   const WALLPAPERS = useMemo(() => [
@@ -309,11 +309,47 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         e.preventDefault();
         setShowWallpaperPicker(prev => !prev);
       }
+      // Screensaver: Alt+S
+      if (e.altKey && key === "s") {
+        e.preventDefault();
+        if (pathname !== "/") {
+          router.push("/");
+        }
+        setIsScreensaverActive(prev => !prev);
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeUser, lock, toggleTheme, toggleFullscreen, router, handleCreateNote, clearAllNotifications]);
+  }, [activeUser, lock, toggleTheme, toggleFullscreen, router, handleCreateNote, clearAllNotifications, pathname, setIsScreensaverActive]);
+
+  // Handle screensaver dismissal on user activity
+  useEffect(() => {
+    if (!isScreensaverActive) return;
+
+    let active = false;
+    const timeout = setTimeout(() => {
+      active = true;
+    }, 1000);
+
+    const handleExit = (e: Event) => {
+      if (!active && e.type === "mousemove") return;
+      setIsScreensaverActive(false);
+    };
+
+    window.addEventListener("mousemove", handleExit);
+    window.addEventListener("mousedown", handleExit);
+    window.addEventListener("keydown", handleExit);
+    window.addEventListener("touchstart", handleExit);
+
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener("mousemove", handleExit);
+      window.removeEventListener("mousedown", handleExit);
+      window.removeEventListener("keydown", handleExit);
+      window.removeEventListener("touchstart", handleExit);
+    };
+  }, [isScreensaverActive, setIsScreensaverActive]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -512,7 +548,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="absolute inset-0 bg-slate-900/5 dark:bg-black/20 backdrop-blur-[0.5px] pointer-events-none z-0" />
 
       {/* TOP SLIM macOS MENU BAR */}
-      <header className="fixed top-0 inset-x-0 h-8 z-40 flex items-center justify-between px-4 bg-white/70 dark:bg-[#1e1f22]/75 border-b border-slate-200/20 dark:border-white/5 backdrop-blur-xl text-[11px] font-medium text-slate-800 dark:text-dark-text select-none shadow-sm">
+      <header className={cn(
+        "fixed top-0 inset-x-0 h-8 z-40 flex items-center justify-between px-4 bg-white/70 dark:bg-[#1e1f22]/75 border-b border-slate-200/20 dark:border-white/5 backdrop-blur-xl text-[11px] font-medium text-slate-800 dark:text-dark-text select-none shadow-sm transition-all duration-500",
+        isScreensaverActive && "-translate-y-full opacity-0 pointer-events-none"
+      )}>
         {/* Left Side: Brand & active app name */}
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-1.5 font-bold hover:opacity-80 transition-opacity">
@@ -599,6 +638,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <button onClick={() => { toggleFullscreen(); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
                     <span>Toggle Fullscreen</span>
                     <span className="opacity-55 font-mono text-[9px]">⌥F</span>
+                  </button>
+                  <button onClick={() => { router.push("/"); setIsScreensaverActive(true); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
+                    <span>Activate Screensaver</span>
+                    <span className="opacity-55 font-mono text-[9px]">⌥S</span>
                   </button>
                   <button onClick={() => { setShowWallpaperPicker(true); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
                     <span>Wallpapers...</span>
@@ -751,7 +794,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* PERSISTENT BOTTOM macOS-STYLE DOCK */}
-      <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 w-max max-w-[95%] animate-in slide-in-from-bottom-5 duration-500 select-none">
+      <div className={cn(
+        "fixed bottom-3 left-1/2 -translate-x-1/2 z-40 w-max max-w-[95%] select-none transition-all duration-500",
+        isScreensaverActive 
+          ? "translate-y-[150%] opacity-0 pointer-events-none" 
+          : "animate-in slide-in-from-bottom-5 duration-500"
+      )}>
         <div className="relative flex items-end gap-3.5 bg-white/15 dark:bg-black/35 border border-white/25 dark:border-white/5 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[24px] px-4 pt-3.5 pb-2 hover:shadow-black/25 transition-all duration-300">
           
           <Link href="/" className="w-10 h-10 flex-shrink-0 relative flex items-center justify-center group origin-bottom">
@@ -900,6 +948,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-white/5 pb-2">
               <span className="opacity-80">Go to Desktop</span>
               <kbd className="px-2 py-0.5 bg-slate-200/50 dark:bg-white/10 rounded font-mono text-[10px]">⌘H / ⌥H</kbd>
+            </div>
+            <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-white/5 pb-2">
+              <span className="opacity-80">Activate Screensaver</span>
+              <kbd className="px-2 py-0.5 bg-slate-200/50 dark:bg-white/10 rounded font-mono text-[10px]">⌥S</kbd>
             </div>
             <div className="flex items-center justify-between pb-1">
               <span className="opacity-80">Change Wallpaper</span>

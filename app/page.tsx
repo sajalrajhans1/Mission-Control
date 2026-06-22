@@ -18,7 +18,7 @@ import type { Row, Json } from "@/lib/database.types";
 
 
 export default function HomePage() {
-  const { tasks, moneyEntries, stickyNotes, settings, onlineUsers, sendNotification } = useData();
+  const { tasks, moneyEntries, stickyNotes, settings, onlineUsers, sendNotification, isScreensaverActive, setIsScreensaverActive } = useData();
   const { activeUser, activeUserName } = useActiveUser();
   const { user1, user2 } = useUserNames();
   const userColors = useUserColors();
@@ -179,8 +179,49 @@ export default function HomePage() {
     });
   };
 
+  if (isScreensaverActive) {
+    return (
+      <div 
+        className="fixed inset-0 z-40 bg-transparent flex flex-col items-center justify-center select-none cursor-none animate-in fade-in duration-500"
+        onDoubleClick={() => setIsScreensaverActive(false)}
+      >
+        {/* Top/Center: macOS Clock & Date Widget (Scaled up for screensaver) */}
+        <div className="flex flex-col items-center justify-center text-center select-none scale-[1.35] sm:scale-[1.6] transition-transform duration-700 animate-in zoom-in-95 ease-out">
+          <span className="text-sm font-bold uppercase tracking-widest text-white/90 drop-shadow-md">
+            {dateString}
+          </span>
+          <h1 className="text-6xl sm:text-7xl font-extralight tracking-tighter text-white drop-shadow-lg mt-1 font-sans">
+            {timeString}
+          </h1>
+          <div className="mt-2 flex items-center gap-3 bg-black/25 dark:bg-black/35 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 text-white shadow-lg">
+            <span className="text-sm font-semibold tracking-wide">
+              {greeting}, {activeUserName}
+            </span>
+            <div className="h-3 w-px bg-white/20" />
+            <div className="relative flex h-2.5 w-2.5 shrink-0">
+              {isOtherUserOnline && (
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              )}
+              <span className={cn("relative inline-flex rounded-full h-2.5 w-2.5", isOtherUserOnline ? "bg-emerald-500" : "bg-white/40")}></span>
+            </div>
+            <span className="text-xs text-white/80 font-medium">
+              {otherUserName} is {isOtherUserOnline ? "online" : "offline"}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex-1 flex flex-col gap-8 pb-10">
+    <div 
+      className="flex-1 flex flex-col gap-8 pb-10"
+      onDoubleClick={(e) => {
+        if (e.target === e.currentTarget) {
+          setIsScreensaverActive(true);
+        }
+      }}
+    >
         
         {/* Top/Center: macOS Clock & Date Widget */}
         <div className="flex flex-col items-center justify-center text-center mt-4 mb-2 select-none animate-in fade-in slide-in-from-top-4 duration-500">
