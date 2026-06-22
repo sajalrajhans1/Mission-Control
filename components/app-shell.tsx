@@ -323,33 +323,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [activeUser, lock, toggleTheme, toggleFullscreen, router, handleCreateNote, clearAllNotifications, pathname, setIsScreensaverActive]);
 
-  // Handle screensaver dismissal on user activity
-  useEffect(() => {
-    if (!isScreensaverActive) return;
 
-    let active = false;
-    const timeout = setTimeout(() => {
-      active = true;
-    }, 1000);
-
-    const handleExit = (e: Event) => {
-      if (!active && e.type === "mousemove") return;
-      setIsScreensaverActive(false);
-    };
-
-    window.addEventListener("mousemove", handleExit);
-    window.addEventListener("mousedown", handleExit);
-    window.addEventListener("keydown", handleExit);
-    window.addEventListener("touchstart", handleExit);
-
-    return () => {
-      clearTimeout(timeout);
-      window.removeEventListener("mousemove", handleExit);
-      window.removeEventListener("mousedown", handleExit);
-      window.removeEventListener("keydown", handleExit);
-      window.removeEventListener("touchstart", handleExit);
-    };
-  }, [isScreensaverActive, setIsScreensaverActive]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

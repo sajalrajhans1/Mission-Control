@@ -183,7 +183,6 @@ export default function HomePage() {
     return (
       <div 
         className="fixed inset-0 z-40 bg-transparent flex flex-col items-center justify-center select-none cursor-none animate-in fade-in duration-500"
-        onDoubleClick={() => setIsScreensaverActive(false)}
       >
         {/* Top/Center: macOS Clock & Date Widget (Scaled up for screensaver) */}
         <div className="flex flex-col items-center justify-center text-center select-none scale-[1.35] sm:scale-[1.6] transition-transform duration-700 animate-in zoom-in-95 ease-out">
@@ -196,16 +195,6 @@ export default function HomePage() {
           <div className="mt-2 flex items-center gap-3 bg-black/25 dark:bg-black/35 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 text-white shadow-lg">
             <span className="text-sm font-semibold tracking-wide">
               {greeting}, {activeUserName}
-            </span>
-            <div className="h-3 w-px bg-white/20" />
-            <div className="relative flex h-2.5 w-2.5 shrink-0">
-              {isOtherUserOnline && (
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              )}
-              <span className={cn("relative inline-flex rounded-full h-2.5 w-2.5", isOtherUserOnline ? "bg-emerald-500" : "bg-white/40")}></span>
-            </div>
-            <span className="text-xs text-white/80 font-medium">
-              {otherUserName} is {isOtherUserOnline ? "online" : "offline"}
             </span>
           </div>
         </div>
