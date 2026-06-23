@@ -18,7 +18,7 @@ import type { Row, Json } from "@/lib/database.types";
 
 
 export default function HomePage() {
-  const { tasks, moneyEntries, stickyNotes, settings, onlineUsers, sendNotification, setIsScreensaverActive } = useData();
+  const { tasks, moneyEntries, stickyNotes, settings, onlineUsers, sendNotification, isScreensaverActive, setIsScreensaverActive } = useData();
   const { activeUser, activeUserName } = useActiveUser();
   const { user1, user2 } = useUserNames();
   const userColors = useUserColors();
@@ -179,7 +179,28 @@ export default function HomePage() {
     });
   };
 
-
+  if (isScreensaverActive) {
+    return (
+      <div 
+        className="fixed inset-0 z-40 bg-transparent flex flex-col items-center justify-center select-none cursor-none animate-in fade-in duration-500"
+      >
+        {/* Top/Center: macOS Clock & Date Widget (Scaled up for screensaver) */}
+        <div className="flex flex-col items-center justify-center text-center select-none scale-[1.35] sm:scale-[1.6] transition-transform duration-700 animate-in zoom-in-95 ease-out">
+          <span className="text-sm font-bold uppercase tracking-widest text-white/90 drop-shadow-md">
+            {dateString}
+          </span>
+          <h1 className="text-6xl sm:text-7xl font-extralight tracking-tighter text-white drop-shadow-lg mt-1 font-sans">
+            {timeString}
+          </h1>
+          <div className="mt-2 flex items-center gap-3 bg-black/25 dark:bg-black/35 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 text-white shadow-lg">
+            <span className="text-sm font-semibold tracking-wide">
+              {greeting}, {activeUserName}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div 
