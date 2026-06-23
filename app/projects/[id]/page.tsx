@@ -370,12 +370,12 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       </div>
 
       {/* Main Two Column layout */}
-      <div className="grid gap-6 lg:grid-cols-[1fr_420px] lg:h-[calc(100vh-220px)] lg:min-h-[600px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_420px] lg:h-[calc(100vh-275px)] lg:min-h-[450px]">
         {/* Left Hand Screen: Scope & Roadmap */}
         <div className="grid gap-6 content-start lg:flex lg:flex-col lg:h-full lg:min-h-0">
           {project.project_type === "client" ? (
             /* Project Scope Card */
-            <Card className="flex flex-col h-[600px] lg:h-full min-h-[500px] overflow-hidden bg-white/30 dark:bg-black/35 backdrop-blur-xl border border-white/25 dark:border-white/10 shadow-2xl rounded-3xl">
+            <Card className="flex flex-col h-[600px] lg:h-full min-h-[400px] overflow-hidden bg-white/30 dark:bg-black/35 backdrop-blur-xl border border-white/25 dark:border-white/10 shadow-2xl rounded-3xl">
               <CardHeader className="pb-3 border-b border-white/25 dark:border-white/10 bg-white/5 dark:bg-white/5 shrink-0">
                 <div className="flex items-center justify-between gap-4">
                   <CardTitle className="text-white text-base flex items-center gap-1.5 font-bold">
@@ -428,7 +428,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             </Card>
           ) : (
             /* Normal Project PRD specs */
-            <Card className="flex flex-col h-[600px] lg:h-full min-h-[500px] overflow-hidden bg-white/30 dark:bg-black/35 backdrop-blur-xl border border-white/25 dark:border-white/10 shadow-2xl rounded-3xl">
+            <Card className="flex flex-col h-[600px] lg:h-full min-h-[400px] overflow-hidden bg-white/30 dark:bg-black/35 backdrop-blur-xl border border-white/25 dark:border-white/10 shadow-2xl rounded-3xl">
               <CardHeader className="pb-3 border-b border-white/25 dark:border-white/10 bg-white/5 dark:bg-white/5 shrink-0">
                 <CardTitle className="text-white text-base flex items-center gap-1.5 font-bold">
                   <FileText className="h-4.5 w-4.5 text-zinc-400" />
@@ -448,7 +448,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         </div>
 
         {/* Right Hand Screen: Navigator Panel (Tabs) */}
-        <div className="flex flex-col h-[600px] lg:h-full min-h-[500px]">
+        <div className="flex flex-col h-[600px] lg:h-full min-h-[400px]">
           <Card className="flex flex-col h-full overflow-hidden bg-white/30 dark:bg-black/35 backdrop-blur-xl border border-white/25 dark:border-white/10 shadow-2xl rounded-3xl">
             {/* Navigator Tab Selector */}
             <div className="flex border-b border-white/25 dark:border-white/10 bg-white/5 dark:bg-white/5 overflow-x-auto scrollbar-none">
