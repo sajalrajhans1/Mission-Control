@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Brain, Folder, Home, LogOut, Settings, WalletCards, Lock, Calendar,
-  Maximize2, Minimize2, Laptop, FolderOpen, ListTodo, Plus, Clock
+  Maximize2, Minimize2, Laptop, FolderOpen, ListTodo, Plus, Clock, StickyNote, X
 } from "lucide-react";
 import { useActiveUser, useUserNames, useUserColors, useData } from "@/components/data-provider";
 import { GlobalSearch } from "@/components/global-search";
@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
+import type { Json } from "@/lib/database.types";
 
 interface HlsInstance {
   loadSource(src: string): void;
@@ -57,8 +58,99 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     pomoTimeLeft,
     pomoIsPlaying,
     pomoMode,
-    pomoSettings
+    pomoSettings,
+    settings
   } = useData();
+
+  const [isQuickNoteOpen, setIsQuickNoteOpen] = useState(false);
+  const [isShared, setIsShared] = useState(false);
+  const [noteText, setNoteText] = useState("");
+  const isFocusedRef = useRef(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // Initialize shared toggle preference and private note on mount/user change
+  useEffect(() => {
+    if (!activeUser) return;
+    const savedShared = localStorage.getItem(`mc_quick_note_is_shared_${activeUser}`) === "true";
+    setIsShared(savedShared);
+
+    if (!savedShared) {
+      setNoteText(localStorage.getItem(`mc_quick_note_private_${activeUser}`) || "");
+    }
+  }, [activeUser]);
+
+  // Sync state with settings table for shared notes, or localStorage for private notes
+  useEffect(() => {
+    if (isShared) {
+      const row = settings?.rows.find((r) => r.key === "quick_note_shared_content");
+      const dbVal = row ? (row.value as string) || "" : "";
+      if (!isFocusedRef.current) {
+        setNoteText(dbVal);
+      }
+    } else {
+      if (activeUser) {
+        setNoteText(localStorage.getItem(`mc_quick_note_private_${activeUser}`) || "");
+      }
+    }
+  }, [settings?.rows, isShared, activeUser]);
+
+  const sharedMeta = useMemo(() => {
+    if (!settings) return null;
+    const metaRow = settings.rows.find((r) => r.key === "quick_note_shared_meta");
+    return metaRow ? (metaRow.value as { updatedBy: string; updatedAt: string }) : null;
+  }, [settings]);
+
+  const saveNote = useCallback(async (text: string, shared: boolean) => {
+    if (!settings) return;
+    if (shared) {
+      if (!activeUser) return;
+      const row = settings.rows.find((r) => r.key === "quick_note_shared_content");
+      if (row) {
+        await settings.update(row.id, { value: text });
+      } else {
+        await settings.create({ key: "quick_note_shared_content", value: text });
+      }
+
+      const metaRow = settings.rows.find((r) => r.key === "quick_note_shared_meta");
+      const metaValue = {
+        updatedBy: activeUserName || "System",
+        updatedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      };
+      if (metaRow) {
+        await settings.update(metaRow.id, { value: metaValue as unknown as Json });
+      } else {
+        await settings.create({ key: "quick_note_shared_meta", value: metaValue as unknown as Json });
+      }
+    } else {
+      if (activeUser) {
+        localStorage.setItem(`mc_quick_note_private_${activeUser}`, text);
+      }
+    }
+  }, [activeUser, activeUserName, settings]);
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setNoteText(val);
+
+    if (!isShared) {
+      if (activeUser) {
+        localStorage.setItem(`mc_quick_note_private_${activeUser}`, val);
+      }
+    } else {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = setTimeout(() => {
+        saveNote(val, true);
+      }, 500);
+    }
+  };
+
+  const handleToggleShared = (shared: boolean) => {
+    setIsShared(shared);
+    if (activeUser) {
+      localStorage.setItem(`mc_quick_note_is_shared_${activeUser}`, String(shared));
+    }
+  };
 
   const isTimerActive = useMemo(() => {
     if (!pomoSettings) return false;
@@ -350,10 +442,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         e.preventDefault();
         toggleFullscreen();
       }
-      // New Task: Command+N or Alt+N
-      if ((isMetaOrCtrl && key === "n") || (e.altKey && key === "n")) {
+      // New Task: Command+N
+      if (isMetaOrCtrl && key === "n") {
         e.preventDefault();
         router.push("/tasks");
+      }
+      // Quick Note: Alt+N
+      if (e.altKey && key === "n") {
+        e.preventDefault();
+        setIsQuickNoteOpen((prev) => !prev);
       }
       // New Note: Command+D or Alt+D
       if ((isMetaOrCtrl && key === "d") || (e.altKey && key === "d")) {
@@ -662,6 +759,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <span>New Note</span>
                     <span className="opacity-55 font-mono text-[9px]">⌘D</span>
                   </button>
+                  <button onClick={() => { setIsQuickNoteOpen(true); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
+                    <span>Quick Note</span>
+                    <span className="opacity-55 font-mono text-[9px]">⌥N</span>
+                  </button>
                   <div className="h-px bg-slate-200/50 dark:bg-white/5 my-1" />
                   <button onClick={() => { lock(); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
                     <span>Lock Screen</span>
@@ -809,6 +910,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <span>{timerLabel}: {timerString}</span>
             </Link>
           )}
+
+          <button
+            onClick={() => setIsQuickNoteOpen((prev) => !prev)}
+            className={cn(
+              "h-6 w-6 rounded-lg flex items-center justify-center transition-all active:scale-95",
+              isQuickNoteOpen
+                ? "bg-indigo-500/20 text-indigo-400"
+                : "text-slate-650 hover:text-slate-900 dark:text-dark-text-secondary dark:hover:text-dark-text hover:bg-slate-950/5 dark:hover:bg-white/10"
+            )}
+            title="Toggle Quick Note (⌥N)"
+          >
+            <StickyNote className="h-3.5 w-3.5" />
+          </button>
 
           <GlobalSearch iconOnly />
           
@@ -972,6 +1086,78 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <QuickAdd />
+
+      {/* QUICK NOTE SLIDE-OVER DRAWER */}
+      <div
+        className={cn(
+          "fixed right-0 top-8 bottom-0 z-40 w-80 bg-white/80 dark:bg-[#1e1f22]/90 border-l border-slate-200/20 dark:border-white/5 backdrop-blur-2xl shadow-2xl transition-transform duration-300 ease-out p-4 flex flex-col gap-4",
+          isQuickNoteOpen ? "translate-x-0" : "translate-x-full"
+        )}
+      >
+        <div className="flex items-center justify-between">
+          <span className="font-bold text-xs uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-1.5">
+            <StickyNote className="h-3.5 w-3.5 text-indigo-500" />
+            Quick Note
+          </span>
+          <button
+            onClick={() => setIsQuickNoteOpen(false)}
+            className="p-1 rounded hover:bg-slate-200/50 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:text-dark-text-secondary dark:hover:text-white transition-colors"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+
+        {/* Private vs Shared toggle pill */}
+        <div className="flex bg-slate-100 dark:bg-black/25 p-1 rounded-xl border border-slate-200/50 dark:border-white/5 text-[10px]">
+          <button
+            onClick={() => handleToggleShared(false)}
+            className={cn(
+              "flex-1 py-1 rounded-lg font-bold transition-all",
+              !isShared
+                ? "bg-white dark:bg-white/10 text-indigo-650 dark:text-white shadow-sm"
+                : "text-slate-500 dark:text-dark-text-secondary hover:text-slate-800 dark:hover:text-white"
+            )}
+          >
+            Private
+          </button>
+          <button
+            onClick={() => handleToggleShared(true)}
+            className={cn(
+              "flex-1 py-1 rounded-lg font-bold transition-all",
+              isShared
+                ? "bg-white dark:bg-white/10 text-indigo-650 dark:text-white shadow-sm"
+                : "text-slate-500 dark:text-dark-text-secondary hover:text-slate-800 dark:hover:text-white"
+            )}
+          >
+            Shared
+          </button>
+        </div>
+
+        {/* Text Area */}
+        <textarea
+          ref={textareaRef}
+          value={noteText}
+          onChange={handleTextChange}
+          onFocus={() => { isFocusedRef.current = true; }}
+          onBlur={() => { isFocusedRef.current = false; saveNote(noteText, isShared); }}
+          placeholder={isShared ? "Type a shared note... Updates instantly for both users!" : "Type a private note... Stored securely on your device."}
+          className="flex-1 resize-none rounded-xl border border-slate-200/50 dark:border-white/10 bg-black/5 dark:bg-black/20 p-3.5 text-xs text-slate-850 dark:text-white placeholder-slate-400 dark:placeholder-white/20 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 dark:focus:ring-white/25 leading-relaxed font-sans"
+        />
+
+        {/* Status indicator */}
+        <div className="flex items-center justify-between text-[9px] text-slate-500 dark:text-dark-text-secondary font-medium">
+          <span>
+            {isShared 
+              ? sharedMeta ? `Shared note (${sharedMeta.updatedAt})` : "Shared note"
+              : "Private local note"}
+          </span>
+          {isShared && sharedMeta && (
+            <span className="truncate max-w-[120px]">
+              By {sharedMeta.updatedBy}
+            </span>
+          )}
+        </div>
+      </div>
 
       {/* Keyboard Shortcuts Dialog */}
       <Dialog open={showShortcutsHelp} onOpenChange={setShowShortcutsHelp}>

@@ -158,3 +158,12 @@ select {
   will-change: transform;
   backface-visibility: hidden;
 }
+
+/* Wiggle animation for customizable desktop widgets */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-0.5deg); }
+  50% { transform: rotate(0.5deg); }
+}
+.animate-wiggle {
+  animation: wiggle 0.25s ease-in-out infinite;
+}
