@@ -178,10 +178,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const loadWallpaper = () => {
-      const saved = localStorage.getItem("mc_wallpaper");
-      if (saved) {
-        setActiveWallpaper(saved);
-      }
+      const saved = activeUser ? localStorage.getItem(`mc_wallpaper_${activeUser}`) : null;
+      const finalWallpaper = saved || localStorage.getItem("mc_wallpaper") || "/wallpapers/aurora_nordic.png";
+      setActiveWallpaper(finalWallpaper);
     };
     loadWallpaper();
 
@@ -191,7 +190,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       window.removeEventListener("mc_wallpaper_changed", loadWallpaper);
       window.removeEventListener("storage", loadWallpaper);
     };
-  }, []);
+  }, [activeUser]);
 
 
 

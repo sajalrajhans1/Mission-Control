@@ -4,20 +4,24 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Check, Tv } from "lucide-react";
 import { WALLPAPERS } from "@/components/app-shell";
+import { useActiveUser } from "@/components/data-provider";
 import { cn } from "@/lib/utils";
 
 export default function WallpaperSettingsPage() {
+  const { activeUser } = useActiveUser();
   const [activeWallpaper, setActiveWallpaper] = useState("/wallpapers/aurora_nordic.png");
 
   useEffect(() => {
-    const saved = localStorage.getItem("mc_wallpaper");
-    if (saved) {
-      setActiveWallpaper(saved);
-    }
-  }, []);
+    const saved = activeUser ? localStorage.getItem(`mc_wallpaper_${activeUser}`) : null;
+    const finalWallpaper = saved || localStorage.getItem("mc_wallpaper") || "/wallpapers/aurora_nordic.png";
+    setActiveWallpaper(finalWallpaper);
+  }, [activeUser]);
 
   const handleSelectWallpaper = (path: string) => {
     setActiveWallpaper(path);
+    if (activeUser) {
+      localStorage.setItem(`mc_wallpaper_${activeUser}`, path);
+    }
     localStorage.setItem("mc_wallpaper", path);
     window.dispatchEvent(new Event("mc_wallpaper_changed"));
   };
