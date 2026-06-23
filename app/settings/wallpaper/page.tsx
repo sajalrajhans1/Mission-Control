@@ -9,11 +9,11 @@ import { cn } from "@/lib/utils";
 
 export default function WallpaperSettingsPage() {
   const { activeUser } = useActiveUser();
-  const [activeWallpaper, setActiveWallpaper] = useState("/wallpapers/aurora_nordic.png");
+  const [activeWallpaper, setActiveWallpaper] = useState("https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260302_085844_21a8f4b3-dea5-4ede-be16-d53f6973bb14.mp4");
 
   useEffect(() => {
     const saved = activeUser ? localStorage.getItem(`mc_wallpaper_${activeUser}`) : null;
-    const finalWallpaper = saved || localStorage.getItem("mc_wallpaper") || "/wallpapers/aurora_nordic.png";
+    const finalWallpaper = saved || localStorage.getItem("mc_wallpaper") || "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260302_085844_21a8f4b3-dea5-4ede-be16-d53f6973bb14.mp4";
     setActiveWallpaper(finalWallpaper);
   }, [activeUser]);
 
