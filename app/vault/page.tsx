@@ -138,7 +138,7 @@ function PromptsPanel({ search }: { search: string }) {
 
       {/* ── Create Preset Dialog ────────────────────────────────────────── */}
       <Dialog open={showCreate} onOpenChange={(open) => !open && setShowCreate(false)}>
-        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-dark-base border-zinc-200 dark:border-dark-border">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>New Preset Prompt</DialogTitle>
           </DialogHeader>
@@ -179,7 +179,7 @@ function PromptsPanel({ search }: { search: string }) {
 
       {/* ── Edit Preset Dialog ──────────────────────────────────────────── */}
       <Dialog open={Boolean(editingPrompt)} onOpenChange={(open) => !open && setEditingPrompt(null)}>
-        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-dark-base border-zinc-200 dark:border-dark-border">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Preset Prompt</DialogTitle>
           </DialogHeader>
@@ -230,7 +230,7 @@ function PromptsPanel({ search }: { search: string }) {
 
       {/* ── View Preset Dialog ────────────────────────────────────────── */}
       <Dialog open={Boolean(viewingPrompt)} onOpenChange={(open) => !open && setViewingPrompt(null)}>
-        <DialogContent className="max-w-lg rounded-2xl bg-white dark:bg-dark-base max-h-[85vh] flex flex-col p-6 border border-zinc-200 dark:border-dark-border">
+        <DialogContent className="max-w-lg flex flex-col">
           <DialogHeader className="border-b border-zinc-100 dark:border-dark-muted pb-3 flex flex-row items-center justify-between space-y-0 pr-6">
             <div className="flex flex-col gap-1 min-w-0 flex-1">
               <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-dark-text truncate">{viewingPrompt?.title}</DialogTitle>
@@ -365,7 +365,7 @@ function IdeasPanel({ search }: { search: string }) {
 
       {/* ── View Idea Dialog ─────────────────────────────────────────── */}
       <Dialog open={Boolean(viewingIdea)} onOpenChange={(open) => !open && setViewingIdea(null)}>
-        <DialogContent className="max-w-lg rounded-2xl bg-white dark:bg-dark-base max-h-[85vh] flex flex-col p-6 border border-zinc-200 dark:border-dark-border">
+        <DialogContent className="max-w-lg flex flex-col">
           <DialogHeader className="border-b border-zinc-100 dark:border-dark-muted pb-3 flex flex-col gap-1 min-w-0 pr-6">
             <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-dark-text truncate">{viewingIdea?.title}</DialogTitle>
             <div className="text-[10px] text-zinc-400 dark:text-dark-text0 font-medium">
@@ -383,7 +383,7 @@ function IdeasPanel({ search }: { search: string }) {
 
       {/* ── Create Idea Dialog ────────────────────────────────────────── */}
       <Dialog open={showCreate} onOpenChange={(open) => !open && setShowCreate(false)}>
-        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-dark-base border-zinc-200 dark:border-dark-border">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>New Startup Idea</DialogTitle>
           </DialogHeader>
@@ -416,7 +416,7 @@ function IdeasPanel({ search }: { search: string }) {
 
       {/* ── Edit Idea Dialog ──────────────────────────────────────────── */}
       <Dialog open={Boolean(editingIdea)} onOpenChange={(open) => !open && setEditingIdea(null)}>
-        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-dark-base border-zinc-200 dark:border-dark-border">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Idea</DialogTitle>
           </DialogHeader>
@@ -543,7 +543,7 @@ function ResourcesPanel({ search }: { search: string }) {
 
       {/* ── Create Resource Dialog ────────────────────────────────────── */}
       <Dialog open={showCreate} onOpenChange={(open) => !open && setShowCreate(false)}>
-        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-dark-base border-zinc-200 dark:border-dark-border">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>New Shared Resource</DialogTitle>
           </DialogHeader>
@@ -585,7 +585,7 @@ function ResourcesPanel({ search }: { search: string }) {
 
       {/* ── Edit Resource Dialog ──────────────────────────────────────── */}
       <Dialog open={Boolean(editingResource)} onOpenChange={(open) => !open && setEditingResource(null)}>
-        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-dark-base border-zinc-200 dark:border-dark-border">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Resource</DialogTitle>
           </DialogHeader>
@@ -788,7 +788,7 @@ function StickyNotesPanel({ search }: { search: string }) {
 
       {/* ── Create Sticky Note Dialog ─────────────────────────────────── */}
       <Dialog open={showCreate} onOpenChange={(open) => !open && setShowCreate(false)}>
-        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-dark-base border border-zinc-200 dark:border-dark-border">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>New Sticky Note</DialogTitle>
           </DialogHeader>
@@ -1084,7 +1084,7 @@ function DeliverablesPanel({ search }: { search: string }) {
       </div>
 
       <Dialog open={showCreate} onOpenChange={(open) => !open && setShowCreate(false)}>
-        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-dark-base border border-zinc-200 dark:border-dark-border">
+        <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>Log Work Deliverable</DialogTitle></DialogHeader>
           <div className="grid gap-3.5 pt-2 text-xs">
             <Field label="Deliverable Title">
@@ -1162,7 +1162,7 @@ function DeliverablesPanel({ search }: { search: string }) {
 
       <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
         {editingItem && (
-          <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-dark-base border border-zinc-200 dark:border-dark-border">
+          <DialogContent className="max-w-md">
             <DialogHeader><DialogTitle>Edit Logged Deliverable</DialogTitle></DialogHeader>
             <div className="grid gap-3.5 pt-2 text-xs">
               <Field label="Deliverable Title">
@@ -1351,7 +1351,7 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
 
       {/* ── View Custom Entry Dialog ──────────────────────────────────── */}
       <Dialog open={Boolean(viewingItem)} onOpenChange={(open) => !open && setViewingItem(null)}>
-        <DialogContent className="max-w-lg rounded-2xl bg-white dark:bg-dark-base max-h-[85vh] flex flex-col p-6 border border-zinc-200 dark:border-dark-border">
+        <DialogContent className="max-w-lg flex flex-col">
           <DialogHeader className="border-b border-zinc-100 dark:border-dark-muted pb-3 flex flex-row items-center justify-between space-y-0 pr-6">
             <div className="flex flex-col gap-1 min-w-0 flex-1">
               <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-dark-text truncate">{viewingItem?.title}</DialogTitle>
@@ -1391,7 +1391,7 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
 
       {/* ── Create Custom Entry Dialog ────────────────────────────────── */}
       <Dialog open={showCreate} onOpenChange={(open) => !open && setShowCreate(false)}>
-        <DialogContent className="max-w-md rounded-2xl bg-white dark:bg-dark-base border border-zinc-200 dark:border-dark-border">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>New Entry — {vault.name}</DialogTitle>
           </DialogHeader>
@@ -1424,7 +1424,7 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
 
       {/* ── Edit Custom Entry Dialog ──────────────────────────────────── */}
       <Dialog open={Boolean(editing)} onOpenChange={(open) => !open && setEditing(null)}>
-        <DialogContent className="max-w-md bg-white dark:bg-dark-base rounded-2xl border border-zinc-200 dark:border-dark-border">
+        <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>Edit entry</DialogTitle></DialogHeader>
           {editing && (
             <div className="grid gap-3.5 pt-2">
@@ -1626,7 +1626,7 @@ export default function VaultPage() {
 
       {/* ── Create vault dialog ────────────────────────────────────────── */}
       <Dialog open={showCreate} onOpenChange={(open) => { if (!open) { setShowCreate(false); setNewVaultName(""); } }}>
-        <DialogContent className="bg-white dark:bg-dark-base rounded-2xl max-w-sm border border-zinc-200 dark:border-dark-border">
+        <DialogContent className="max-w-sm">
           <DialogHeader><DialogTitle>New Vault</DialogTitle></DialogHeader>
           <div className="grid gap-3.5 pt-2">
             <Input
@@ -1647,7 +1647,7 @@ export default function VaultPage() {
 
       {/* ── Rename vault dialog ───────────────────────────────────────── */}
       <Dialog open={Boolean(renaming)} onOpenChange={(open) => !open && setRenaming(null)}>
-        <DialogContent className="bg-white dark:bg-dark-base rounded-2xl max-w-sm border border-zinc-200 dark:border-dark-border">
+        <DialogContent className="max-w-sm">
           <DialogHeader><DialogTitle>Rename vault</DialogTitle></DialogHeader>
           <div className="grid gap-3.5 pt-2">
             <Input
@@ -1667,7 +1667,7 @@ export default function VaultPage() {
 
       {/* ── Delete vault dialog ───────────────────────────────────────── */}
       <Dialog open={Boolean(deletingVault)} onOpenChange={(open) => !open && setDeletingVault(null)}>
-        <DialogContent className="bg-white dark:bg-dark-base rounded-2xl max-w-sm border border-zinc-200 dark:border-dark-border">
+        <DialogContent className="max-w-sm">
           <DialogHeader><DialogTitle>Delete &ldquo;{deletingVault?.name}&rdquo;?</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground leading-relaxed">
             This will permanently delete this vault and all its entries. This cannot be undone.

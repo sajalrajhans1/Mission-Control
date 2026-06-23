@@ -144,7 +144,7 @@ select {
 }
 
 /* GPU Hardware Acceleration for all Glassmorphism and Backdrop Blur layouts to eliminate scroll lag */
-[class*="backdrop-blur-"] {
+[class*="backdrop-blur-"]:not(.fixed):not(.absolute) {
   transform: translate3d(0, 0, 0);
   will-change: transform;
   backface-visibility: hidden;

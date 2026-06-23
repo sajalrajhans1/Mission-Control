@@ -11,22 +11,23 @@ export const DialogClose = DialogPrimitive.Close;
 
 export function DialogContent({
   className,
+  style,
   children,
   ...props
 }: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>) {
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/25 dark:bg-black/50 backdrop-blur-xs" />
+      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40 dark:bg-black/60 backdrop-blur-sm" />
       <DialogPrimitive.Content
-        style={{ transform: "translate3d(-50%, -50%, 0)" }}
+        style={{ transform: "translate3d(-50%, -50%, 0)", ...style }}
         className={cn(
-          "fixed left-1/2 top-1/2 z-50 grid max-h-[85vh] w-[min(560px,calc(100vw-32px))] gap-4 overflow-y-auto rounded-xl border border-zinc-200/50 dark:border-dark-border/50 bg-white/95 dark:bg-dark-base/95 p-5 shadow-soft dark:shadow-2xl backdrop-blur-md text-zinc-900 dark:text-dark-text",
+          "fixed left-1/2 top-1/2 z-50 grid max-h-[85vh] w-[min(560px,calc(100vw-32px))] gap-4 overflow-y-auto rounded-[24px] border border-white/20 dark:border-white/10 bg-white/35 dark:bg-black/35 p-6 shadow-2xl backdrop-blur-xl text-white",
           className
         )}
         {...props}
       >
         {children}
-        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-lg p-1 hover:bg-accent">
+        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-lg p-1 hover:bg-white/10 dark:hover:bg-white/10 text-white/70 hover:text-white transition-colors">
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>

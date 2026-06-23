@@ -1212,7 +1212,7 @@ export default function MoneyPage() {
 
       {/* ── Create Goal Dialog ────────────────────────────────────────── */}
       <Dialog open={showCreateGoal} onOpenChange={(open) => !open && setShowCreateGoal(false)}>
-        <DialogContent className="max-w-md bg-white/80 dark:bg-black/85 backdrop-blur-2xl border border-white/25 dark:border-white/10 rounded-3xl shadow-2xl">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>New Savings Goal</DialogTitle>
           </DialogHeader>
@@ -1246,7 +1246,7 @@ export default function MoneyPage() {
 
       {/* ── Deposit/Withdraw Dialog ────────────────────────────────────── */}
       <Dialog open={Boolean(adjustingGoal)} onOpenChange={(open) => !open && setAdjustingGoal(null)}>
-        <DialogContent className="max-w-md bg-white/80 dark:bg-black/85 backdrop-blur-2xl border border-white/25 dark:border-white/10 rounded-3xl shadow-2xl">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
               {adjustMode === "deposit" ? "Deposit to" : "Withdraw from"} {adjustingGoal?.title}

@@ -931,7 +931,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Keyboard Shortcuts Dialog */}
       <Dialog open={showShortcutsHelp} onOpenChange={setShowShortcutsHelp}>
-        <DialogContent className="max-w-md bg-white/80 dark:bg-[#1e1f22]/85 border border-slate-200/50 dark:border-white/10 shadow-2xl backdrop-blur-2xl text-slate-800 dark:text-dark-text">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-slate-900 dark:text-white">Keyboard Shortcuts</DialogTitle>
           </DialogHeader>
@@ -978,7 +978,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* About Dialog */}
       <Dialog open={showAboutDialog} onOpenChange={setShowAboutDialog}>
-        <DialogContent className="max-w-xs text-center bg-white/80 dark:bg-[#1e1f22]/85 border border-slate-200/50 dark:border-white/10 shadow-2xl backdrop-blur-2xl text-slate-800 dark:text-dark-text flex flex-col items-center p-6">
+        <DialogContent className="max-w-xs text-center flex flex-col items-center p-6">
           <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-tr from-indigo-500 to-purple-600 shadow-xl border border-white/20 mb-3 hover:scale-105 transition-transform duration-300">
             <Brain className="h-9 w-9 text-white" />
           </div>

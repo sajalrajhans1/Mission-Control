@@ -162,7 +162,7 @@ export default function SettingsPage() {
       {/* ── User Name ────────────────────────────────────────────────────── */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between text-zinc-900">
+          <CardTitle className="flex items-center justify-between text-white">
             Username
             {saved && <span className="text-sm font-normal text-green-600">Saved ✓</span>}
           </CardTitle>
@@ -203,7 +203,7 @@ export default function SettingsPage() {
       {/* ── Profile Color ────────────────────────────────────────────────── */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-zinc-900">Profile Color</CardTitle>
+          <CardTitle className="text-white">Profile Color</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
           <p className="text-sm text-muted-foreground">
@@ -233,7 +233,7 @@ export default function SettingsPage() {
       {/* ── Desktop Background ────────────────────────────────────────────── */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-zinc-900">Desktop Background</CardTitle>
+          <CardTitle className="text-white">Desktop Background</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
           <p className="text-sm text-muted-foreground">
@@ -251,7 +251,7 @@ export default function SettingsPage() {
       {activeUser && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-zinc-900">Security</CardTitle>
+            <CardTitle className="text-white">Security</CardTitle>
           </CardHeader>
           <CardContent className="max-w-xs grid gap-3">
             <Field label="Change Your Password">
@@ -278,7 +278,7 @@ export default function SettingsPage() {
       {/* ── Backup ───────────────────────────────────────────────────────── */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-zinc-900">Backup</CardTitle>
+          <CardTitle className="text-white">Backup</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
           <p className="text-sm text-muted-foreground">
