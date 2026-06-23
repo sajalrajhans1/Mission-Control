@@ -53,6 +53,12 @@ body {
   font-feature-settings: "rlig" 1, "calt" 1;
 }
 
+/* Premium typography for all screen headings */
+h1:not(.font-sans) {
+  font-family: var(--font-outfit), var(--font-inter), sans-serif;
+  letter-spacing: -0.02em;
+}
+
 button,
 input,
 textarea,
