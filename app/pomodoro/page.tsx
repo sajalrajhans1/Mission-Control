@@ -406,7 +406,7 @@ export default function PomodoroPage() {
       {/* Main Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-4 border-white/20 dark:border-white/10">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white text-wallpaper-safe">Pomodoro Focus Room</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Pomodoro Focus Room</h1>
         </div>
 
         {/* Action controls */}

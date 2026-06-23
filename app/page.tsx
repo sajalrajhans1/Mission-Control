@@ -186,10 +186,10 @@ export default function HomePage() {
       >
         {/* Top/Center: macOS Clock & Date Widget (Scaled up for screensaver) */}
         <div className="flex flex-col items-center justify-center text-center select-none scale-[1.35] sm:scale-[1.6] transition-transform duration-700 animate-in zoom-in-95 ease-out">
-          <span className="text-sm font-bold uppercase tracking-widest text-white text-wallpaper-safe">
+          <span className="text-sm font-bold uppercase tracking-widest text-white">
             {dateString}
           </span>
-          <h1 className="text-6xl sm:text-7xl font-extralight tracking-tighter text-white text-wallpaper-safe mt-1 font-sans">
+          <h1 className="text-6xl sm:text-7xl font-extralight tracking-tighter text-white mt-1 font-sans">
             {timeString}
           </h1>
           <div className="mt-2 flex items-center gap-3 bg-black/25 dark:bg-black/35 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 text-white shadow-lg">
@@ -213,10 +213,10 @@ export default function HomePage() {
     >
         {/* Top/Center: macOS Clock & Date Widget */}
         <div className="flex flex-col items-center justify-center text-center mt-4 mb-2 select-none animate-in fade-in slide-in-from-top-4 duration-500">
-          <span className="text-sm font-bold uppercase tracking-widest text-white text-wallpaper-safe">
+          <span className="text-sm font-bold uppercase tracking-widest text-white">
             {dateString}
           </span>
-          <h1 className="text-6xl sm:text-7xl font-extralight tracking-tighter text-white text-wallpaper-safe mt-1 font-sans">
+          <h1 className="text-6xl sm:text-7xl font-extralight tracking-tighter text-white mt-1 font-sans">
             {timeString}
           </h1>
           <div className="mt-2 flex items-center gap-3 bg-black/25 dark:bg-black/35 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 text-white shadow-lg">
@@ -242,7 +242,7 @@ export default function HomePage() {
           {/* Progress Widget (Glassmorphic) */}
           <Card className="lg:col-span-7 border border-white/25 dark:border-white/10 bg-white/25 dark:bg-black/35 backdrop-blur-xl p-5 shadow-2xl text-white dark:text-dark-text transition-all duration-300 rounded-2xl">
             <CardHeader className="p-0 mb-4">
-              <CardTitle className="flex items-center gap-2 text-white dark:text-dark-text drop-shadow-sm text-sm font-bold tracking-wider uppercase">
+              <CardTitle className="flex items-center gap-2 text-white dark:text-dark-text text-sm font-bold tracking-wider uppercase">
                 <TrendingUp className="h-4 w-4" />
                 Progress
               </CardTitle>
@@ -272,7 +272,7 @@ export default function HomePage() {
           <div className="lg:col-span-7 grid gap-6">
             <Card className="border border-white/25 dark:border-white/10 bg-white/25 dark:bg-black/35 backdrop-blur-xl p-5 shadow-2xl text-white dark:text-dark-text transition-all duration-300 rounded-2xl">
               <CardHeader className="p-0 mb-4">
-                <CardTitle className="flex items-center gap-2 text-white dark:text-dark-text drop-shadow-sm text-sm font-bold tracking-wider uppercase">
+                <CardTitle className="flex items-center gap-2 text-white dark:text-dark-text text-sm font-bold tracking-wider uppercase">
                   <WalletCards className="h-4 w-4" />
                   Money Overview
                 </CardTitle>
@@ -297,7 +297,7 @@ export default function HomePage() {
           {/* Shared Priority Notepad (Glassmorphic) */}
           <Card className="lg:col-span-5 border border-white/25 dark:border-white/10 bg-white/25 dark:bg-black/35 backdrop-blur-xl p-5 shadow-2xl text-white dark:text-dark-text flex flex-col justify-between h-full transition-all duration-300 rounded-2xl">
             <CardHeader className="p-0 mb-3">
-              <CardTitle className="flex items-center gap-2 text-white dark:text-dark-text drop-shadow-sm text-sm font-bold tracking-wider uppercase">
+              <CardTitle className="flex items-center gap-2 text-white dark:text-dark-text text-sm font-bold tracking-wider uppercase">
                 <ListTodo className="h-4 w-4 text-primary" />
                 Shared Priority List
               </CardTitle>
@@ -328,7 +328,7 @@ export default function HomePage() {
         {/* Scattered Sticky Notes Section */}
         <div className="grid gap-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold tracking-wider text-white uppercase drop-shadow-sm flex items-center gap-2">
+            <h2 className="text-2xl font-bold tracking-wider text-white uppercase flex items-center gap-2">
               <StickyNote className="h-5 w-5" />
               Sticky Notes
             </h2>

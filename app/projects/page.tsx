@@ -130,7 +130,7 @@ export default function ProjectsPage() {
     <div className="grid gap-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white text-wallpaper-safe">Projects</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-white">Projects</h1>
         </div>
         <Button variant="outline" size="sm" onClick={() => setShowArchived((v) => !v)} className="bg-white/15 dark:bg-black/25 hover:bg-white/25 dark:hover:bg-black/40 backdrop-blur border border-white/20 dark:border-white/10 text-white hover:text-white">
           {showArchived ? "Hide archived" : "Show archived"}
@@ -139,7 +139,7 @@ export default function ProjectsPage() {
 
       <Card className="bg-white/30 dark:bg-black/35 backdrop-blur-xl border border-white/25 dark:border-white/10 shadow-2xl rounded-3xl overflow-hidden">
         <CardHeader className="pb-3">
-          <CardTitle className="text-white text-wallpaper-safe font-bold">New Project</CardTitle>
+          <CardTitle className="text-white font-bold">New Project</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="flex gap-2">
@@ -314,7 +314,7 @@ export default function ProjectsPage() {
                       </span>
                     )}
                   </div>
-                  <CardTitle className="text-base text-white text-wallpaper-safe font-bold truncate">
+                  <CardTitle className="text-base text-white font-bold truncate">
                     {project.name}
                   </CardTitle>
                 </CardHeader>

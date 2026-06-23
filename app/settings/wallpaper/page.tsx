@@ -36,7 +36,7 @@ export default function WallpaperSettingsPage() {
         >
           <ArrowLeft className="h-4 w-4 text-wallpaper-safe" />
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight text-white text-wallpaper-safe">
+        <h1 className="text-2xl font-bold tracking-tight text-white">
           Wallpaper
         </h1>
       </div>
@@ -46,7 +46,7 @@ export default function WallpaperSettingsPage() {
         
         {/* Section 1: Static Wallpapers */}
         <div className="flex flex-col gap-4">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-white/80 text-wallpaper-safe">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-white/80">
             Desktop Pictures
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
@@ -89,7 +89,7 @@ export default function WallpaperSettingsPage() {
 
         {/* Section 2: Live Wallpapers */}
         <div className="flex flex-col gap-4">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-white/80 text-wallpaper-safe">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-white/80">
             Dynamic Wallpapers
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">

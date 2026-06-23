@@ -156,7 +156,7 @@ export default function SettingsPage() {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-white text-wallpaper-safe">Settings</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-white">Settings</h1>
       </div>
 
       {/* ── User Name ────────────────────────────────────────────────────── */}

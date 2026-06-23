@@ -435,7 +435,7 @@ export default function MoneyPage() {
     <div className="grid gap-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white text-wallpaper-safe">Money</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-white">Money</h1>
         </div>
       </div>
 

@@ -146,7 +146,7 @@ export default function TasksPage() {
     <div className="grid gap-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-white text-wallpaper-safe">Tasks</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-white">Tasks</h1>
       </div>
 
       {/* Main Spaces Navigation Tabs */}

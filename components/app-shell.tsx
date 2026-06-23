@@ -505,12 +505,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Dark glassmorphic mask */}
         <div className="absolute inset-0 bg-slate-900/40 dark:bg-black/50 backdrop-blur-2xl z-0" />
 
-        {/* iOS/macOS styled Large clock */}
-        <div className="flex flex-col items-center gap-1 mb-8 select-none animate-in fade-in slide-in-from-top-4 duration-500 text-white text-wallpaper-safe relative z-10">
-          <span className="text-[10px] uppercase tracking-widest font-extrabold text-white text-wallpaper-safe">
+        <div className="flex flex-col items-center gap-1 mb-8 select-none animate-in fade-in slide-in-from-top-4 duration-500 text-white relative z-10">
+          <span className="text-[10px] uppercase tracking-widest font-extrabold text-white">
             {dateStr}
           </span>
-          <h1 className="text-6xl font-light tracking-tighter font-sans text-white text-wallpaper-safe">
+          <h1 className="text-6xl font-light tracking-tighter font-sans text-white">
             {timeStr}
           </h1>
         </div>
@@ -528,7 +527,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="text-center">
-            <span className="text-xs font-extrabold text-white text-wallpaper-safe">
+            <span className="text-xs font-extrabold text-white">
               {activeUserName}
             </span>
             <p className="text-[9px] font-bold text-white/70 uppercase tracking-widest mt-0.5">

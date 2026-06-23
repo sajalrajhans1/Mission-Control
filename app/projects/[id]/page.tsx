@@ -338,7 +338,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 </span>
               )}
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-white text-wallpaper-safe flex flex-wrap items-center gap-2.5">
+            <h1 className="text-3xl font-bold tracking-tight text-white flex flex-wrap items-center gap-2.5">
               {project.name}
               {project.archived && (
                 <span className="text-xs bg-red-500/20 text-red-200 border border-red-500/30 px-2.5 py-0.5 rounded-full font-bold backdrop-blur-md shadow-sm">Archived</span>
