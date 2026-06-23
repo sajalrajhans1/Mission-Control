@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Brain, Folder, Home, LogOut, Settings, WalletCards, Lock, Calendar,
-  Maximize2, Minimize2, Laptop, FolderOpen, ListTodo, Plus, Clock, StickyNote, X
+  Maximize2, Minimize2, Laptop, FolderOpen, ListTodo, Plus, Clock, StickyNote, X, Sliders
 } from "lucide-react";
 import { useActiveUser, useUserNames, useUserColors, useData } from "@/components/data-provider";
 import { GlobalSearch } from "@/components/global-search";
@@ -909,6 +909,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Clock className={cn("h-3 w-3", pomoIsPlaying && "animate-pulse")} />
               <span>{timerLabel}: {timerString}</span>
             </Link>
+          )}
+
+          {pathname === "/" && (
+            <button
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent("toggle-desktop-edit-mode"));
+              }}
+              className="h-6 w-6 rounded-lg flex items-center justify-center text-slate-650 hover:text-slate-900 dark:text-dark-text-secondary dark:hover:text-dark-text hover:bg-slate-955/5 dark:hover:bg-white/10 transition-all active:scale-95"
+              title="Customize Widgets"
+            >
+              <Sliders className="h-3.5 w-3.5" />
+            </button>
           )}
 
           <button

@@ -105,6 +105,14 @@ export default function HomePage() {
     }
   }, [activeUser]);
 
+  useEffect(() => {
+    const handleToggleEdit = () => {
+      setIsEditMode((prev) => !prev);
+    };
+    window.addEventListener("toggle-desktop-edit-mode", handleToggleEdit);
+    return () => window.removeEventListener("toggle-desktop-edit-mode", handleToggleEdit);
+  }, []);
+
   const saveWidgets = (newWidgets: DesktopWidget[]) => {
     setWidgets(newWidgets);
     if (activeUser && typeof window !== "undefined") {
@@ -634,17 +642,6 @@ export default function HomePage() {
             {otherUserName} is {isOtherUserOnline ? "online" : "offline"}
           </span>
         </div>
-        
-        {/* Customize Widgets Trigger */}
-        {!isEditMode && (
-          <button
-            onClick={() => setIsEditMode(true)}
-            className="mt-3 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 text-white text-xs font-semibold backdrop-blur-md shadow transition-all active:scale-95 hover:scale-102"
-          >
-            <Sliders className="h-3.5 w-3.5" />
-            Customize Widgets
-          </button>
-        )}
       </div>
 
       {/* Widgets Grid (Sonoma Layout Gallery) */}
@@ -658,7 +655,7 @@ export default function HomePage() {
         ) : (
           visibleWidgets.map((widget) => {
             const sizeClass = getSizeClass(widget.size);
-            const wiggleClass = isEditMode ? "animate-wiggle relative" : "relative";
+            const wiggleClass = "relative";
 
             return (
               <div key={widget.id} className={cn(sizeClass, wiggleClass)}>
@@ -836,7 +833,7 @@ export default function HomePage() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-4 pb-24">
             {widgets.map((widget, idx) => {
               const isFirst = idx === 0;
               const isLast = idx === widgets.length - 1;
