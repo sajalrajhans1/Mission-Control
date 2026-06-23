@@ -92,15 +92,15 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const getMilestoneStyle = (m: Row<"project_milestones">) => {
     if (m.completed) {
       return {
-        colorClass: "bg-emerald-50/10 border-zinc-200/80 border-l-emerald-500 text-zinc-900 dark:bg-emerald-950/5 dark:border-dark-border dark:border-l-emerald-600 dark:text-dark-text",
-        badgeClass: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400",
+        colorClass: "bg-emerald-500/10 border-white/20 dark:border-white/10 border-l-emerald-500 text-white",
+        badgeClass: "bg-emerald-500/25 text-emerald-200 border border-emerald-400/20 backdrop-blur-sm",
         statusLabel: "Completed"
       };
     }
     if (!m.due_date) {
       return {
-        colorClass: "bg-zinc-50/20 border-zinc-200/80 border-l-zinc-400 text-zinc-800 dark:bg-dark-card/5 dark:border-dark-border dark:border-l-zinc-500 dark:text-dark-text",
-        badgeClass: "bg-zinc-100 text-zinc-600 dark:bg-dark-hover dark:text-dark-text-secondary",
+        colorClass: "bg-white/5 border-white/20 dark:border-white/10 border-l-white/30 text-white/90",
+        badgeClass: "bg-white/10 text-white/60 border border-white/10",
         statusLabel: ""
       };
     }
@@ -112,28 +112,28 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
     if (hoursDiff < 0) {
       return {
-        colorClass: "bg-red-50/10 border-zinc-200/80 border-l-red-500 text-zinc-900 dark:bg-red-950/5 dark:border-dark-border dark:border-l-red-600 dark:text-dark-text",
-        badgeClass: "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-400",
+        colorClass: "bg-red-500/10 border-white/20 dark:border-white/10 border-l-red-500 text-white",
+        badgeClass: "bg-red-500/25 text-red-200 border border-red-400/20 backdrop-blur-sm",
         statusLabel: "Overdue"
       };
     }
     if (hoursDiff <= 24) {
       return {
-        colorClass: "bg-red-50/10 border-zinc-200/80 border-l-red-500 text-zinc-900 dark:bg-red-950/5 dark:border-dark-border dark:border-l-red-600 dark:text-dark-text",
-        badgeClass: "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-400",
+        colorClass: "bg-red-500/10 border-white/20 dark:border-white/10 border-l-red-500 text-white",
+        badgeClass: "bg-red-500/25 text-red-200 border border-red-400/20 backdrop-blur-sm",
         statusLabel: "Close"
       };
     }
     if (hoursDiff <= 72) {
       return {
-        colorClass: "bg-orange-50/10 border-zinc-200/80 border-l-orange-500 text-zinc-900 dark:bg-orange-950/5 dark:border-dark-border dark:border-l-orange-600 dark:text-dark-text",
-        badgeClass: "bg-orange-100 text-orange-800 dark:bg-orange-950/40 dark:text-orange-400",
+        colorClass: "bg-orange-500/10 border-white/20 dark:border-white/10 border-l-orange-500 text-white",
+        badgeClass: "bg-orange-500/25 text-orange-200 border border-orange-400/20 backdrop-blur-sm",
         statusLabel: "Medium"
       };
     }
     return {
-      colorClass: "bg-amber-50/10 border-zinc-200/80 border-l-amber-500 text-zinc-900 dark:bg-amber-950/5 dark:border-dark-border dark:border-l-amber-600 dark:text-dark-text",
-      badgeClass: "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400",
+      colorClass: "bg-amber-500/10 border-white/20 dark:border-white/10 border-l-amber-500 text-white",
+      badgeClass: "bg-amber-500/25 text-amber-200 border border-amber-400/20 backdrop-blur-sm",
       statusLabel: "Far"
     };
   };
@@ -313,23 +313,23 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             <div className="flex flex-wrap items-center gap-2 mb-1">
               {/* Type Badge */}
               {project.project_type === "client" ? (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/30 dark:text-blue-400">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/25 text-blue-200 border border-blue-400/30 backdrop-blur-md shadow-sm">
                   <Briefcase className="h-3 w-3 shrink-0" />
                   Client Project
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-zinc-100 text-zinc-700 border border-zinc-200 dark:bg-dark-hover dark:text-dark-text-secondary">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white/10 text-white/90 border border-white/20 backdrop-blur-md shadow-sm">
                   Normal Project
                 </span>
               )}
               {/* Privacy Badge */}
               {project.is_private ? (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-400">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/25 text-amber-200 border border-amber-400/30 backdrop-blur-md shadow-sm">
                   <Lock className="h-3 w-3 shrink-0" />
                   Private Project
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/25 text-emerald-200 border border-emerald-400/30 backdrop-blur-md shadow-sm">
                   <Users className="h-3 w-3 shrink-0" />
                   Collaborative Project
                 </span>
@@ -338,7 +338,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             <h1 className="text-3xl font-bold tracking-tight text-white text-wallpaper-safe flex flex-wrap items-center gap-2.5">
               {project.name}
               {project.archived && (
-                <span className="text-xs bg-zinc-200 dark:bg-dark-hover text-zinc-750 dark:text-zinc-250 px-2.5 py-0.5 rounded-full font-medium">Archived</span>
+                <span className="text-xs bg-red-500/20 text-red-200 border border-red-500/30 px-2.5 py-0.5 rounded-full font-bold backdrop-blur-md shadow-sm">Archived</span>
               )}
             </h1>
           </div>
@@ -348,16 +348,16 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           <Button
             variant="outline"
             size="sm"
-            className="rounded-xl border dark:border-dark-border flex items-center gap-1.5 bg-white text-zinc-700 hover:text-zinc-950 dark:bg-dark-base dark:text-dark-text-secondary"
+            className="rounded-xl border border-white/25 dark:border-white/10 flex items-center gap-1.5 bg-white/15 dark:bg-black/25 hover:bg-white/25 dark:hover:bg-black/40 backdrop-blur text-white hover:text-white"
             onClick={() => projects.update(project.id, { is_private: !project.is_private })}
           >
-            {project.is_private ? <Unlock className="h-4 w-4 text-emerald-500 hover:scale-110 transition-transform" /> : <Lock className="h-4 w-4 text-amber-500 hover:scale-110 transition-transform" />}
+            {project.is_private ? <Unlock className="h-4 w-4 text-emerald-400 hover:scale-110 transition-transform" /> : <Lock className="h-4 w-4 text-amber-400 hover:scale-110 transition-transform" />}
             {project.is_private ? "Make Collaborative" : "Make Private"}
           </Button>
           <Button
             variant="outline"
             size="sm"
-            className="rounded-xl border dark:border-dark-border"
+            className="rounded-xl border border-white/25 dark:border-white/10 bg-white/15 dark:bg-black/25 hover:bg-white/25 dark:hover:bg-black/40 backdrop-blur text-white hover:text-white"
             onClick={() => projects.update(project.id, { archived: !project.archived })}
           >
             {project.archived ? <ArchiveRestore className="h-4 w-4 mr-2" /> : <Archive className="h-4 w-4 mr-2" />}
@@ -372,21 +372,21 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         <div className="grid gap-6 content-start lg:flex lg:flex-col lg:h-full lg:min-h-0">
           {project.project_type === "client" ? (
             /* Project Scope Card */
-            <Card className="flex flex-col h-[600px] lg:h-full min-h-[500px] overflow-hidden dark:bg-dark-card dark:border-dark-border">
-              <CardHeader className="pb-3 border-b bg-zinc-50/50 dark:bg-dark-card/50 dark:border-dark-border shrink-0">
+            <Card className="flex flex-col h-[600px] lg:h-full min-h-[500px] overflow-hidden bg-white/30 dark:bg-black/35 backdrop-blur-xl border border-white/25 dark:border-white/10 shadow-2xl rounded-3xl">
+              <CardHeader className="pb-3 border-b border-white/25 dark:border-white/10 bg-white/5 dark:bg-white/5 shrink-0">
                 <div className="flex items-center justify-between gap-4">
-                  <CardTitle className="text-zinc-900 dark:text-dark-text text-base flex items-center gap-1.5 font-bold">
-                    <FileText className="h-4.5 w-4.5 text-blue-500" />
+                  <CardTitle className="text-white text-base flex items-center gap-1.5 font-bold">
+                    <FileText className="h-4.5 w-4.5 text-blue-400" />
                     Project Scope
                   </CardTitle>
-                  <div className="flex border rounded-lg p-0.5 bg-white dark:bg-dark-base dark:border-dark-border text-xs shrink-0 shadow-sm">
+                  <div className="flex border border-white/25 dark:border-white/10 rounded-lg p-0.5 bg-white/10 dark:bg-black/25 backdrop-blur-md text-xs shrink-0 shadow-sm">
                     <button
                       onClick={() => setActiveScopeTab("briefing")}
                       className={cn(
                         "px-2.5 py-1 font-semibold rounded-md transition-all",
                         activeScopeTab === "briefing"
-                          ? "bg-zinc-200 dark:bg-dark-hover text-zinc-900 dark:text-dark-text"
-                          : "text-muted-foreground hover:text-zinc-700"
+                          ? "bg-white/30 dark:bg-white/15 text-white"
+                          : "text-white/70 hover:text-white"
                       )}
                     >
                       Client Briefing
@@ -396,8 +396,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                       className={cn(
                         "px-2.5 py-1 font-semibold rounded-md transition-all",
                         activeScopeTab === "prd"
-                          ? "bg-zinc-200 dark:bg-dark-hover text-zinc-900 dark:text-dark-text"
-                          : "text-muted-foreground hover:text-zinc-700"
+                          ? "bg-white/30 dark:bg-white/15 text-white"
+                          : "text-white/70 hover:text-white"
                       )}
                     >
                       PRD Specs
@@ -425,10 +425,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             </Card>
           ) : (
             /* Normal Project PRD specs */
-            <Card className="flex flex-col h-[600px] lg:h-full min-h-[500px] overflow-hidden dark:bg-dark-card dark:border-dark-border">
-              <CardHeader className="pb-3 border-b bg-zinc-50/50 dark:bg-dark-card/50 dark:border-dark-border shrink-0">
-                <CardTitle className="text-zinc-900 dark:text-dark-text text-base flex items-center gap-1.5 font-bold">
-                  <FileText className="h-4.5 w-4.5 text-zinc-500" />
+            <Card className="flex flex-col h-[600px] lg:h-full min-h-[500px] overflow-hidden bg-white/30 dark:bg-black/35 backdrop-blur-xl border border-white/25 dark:border-white/10 shadow-2xl rounded-3xl">
+              <CardHeader className="pb-3 border-b border-white/25 dark:border-white/10 bg-white/5 dark:bg-white/5 shrink-0">
+                <CardTitle className="text-white text-base flex items-center gap-1.5 font-bold">
+                  <FileText className="h-4.5 w-4.5 text-zinc-400" />
                   Product Requirements Document (PRD)
                 </CardTitle>
               </CardHeader>
@@ -446,18 +446,18 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
         {/* Right Hand Screen: Navigator Panel (Tabs) */}
         <div className="flex flex-col h-[600px] lg:h-full min-h-[500px]">
-          <Card className="flex flex-col h-full overflow-hidden dark:bg-dark-card dark:border-dark-border">
+          <Card className="flex flex-col h-full overflow-hidden bg-white/30 dark:bg-black/35 backdrop-blur-xl border border-white/25 dark:border-white/10 shadow-2xl rounded-3xl">
             {/* Navigator Tab Selector */}
-            <div className="flex border-b bg-zinc-50/50 dark:bg-dark-card/50 dark:border-dark-border overflow-x-auto scrollbar-none">
+            <div className="flex border-b border-white/25 dark:border-white/10 bg-white/5 dark:bg-white/5 overflow-x-auto scrollbar-none">
               {project.project_type === "client" && (
                 <button
                   onClick={() => setActiveTab("milestones")}
                   className={cn(
                     "flex-1 py-3 px-2.5 text-xs font-bold border-b-2 flex items-center justify-center gap-1.5 transition-colors shrink-0",
-                    activeTab === "milestones" ? "border-zinc-900 text-zinc-900 dark:border-zinc-50 dark:text-dark-text" : "border-transparent text-muted-foreground hover:text-zinc-700"
+                    activeTab === "milestones" ? "border-white text-white" : "border-transparent text-white/60 hover:text-white"
                   )}
                 >
-                  <Calendar className="h-3.5 w-3.5 text-blue-500" />
+                  <Calendar className="h-3.5 w-3.5 text-blue-400" />
                   Roadmap ({milestones.length})
                 </button>
               )}
@@ -465,7 +465,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 onClick={() => setActiveTab("tasks")}
                 className={cn(
                   "flex-1 py-3 px-2.5 text-xs font-bold border-b-2 flex items-center justify-center gap-1.5 transition-colors shrink-0",
-                  activeTab === "tasks" ? "border-zinc-900 text-zinc-900 dark:border-zinc-50 dark:text-dark-text" : "border-transparent text-muted-foreground hover:text-zinc-700"
+                  activeTab === "tasks" ? "border-white text-white" : "border-transparent text-white/60 hover:text-white"
                 )}
               >
                 <ListTodo className="h-3.5 w-3.5" />
@@ -475,7 +475,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 onClick={() => setActiveTab("docs")}
                 className={cn(
                   "flex-1 py-3 px-2.5 text-xs font-bold border-b-2 flex items-center justify-center gap-1.5 transition-colors shrink-0",
-                  activeTab === "docs" ? "border-zinc-900 text-zinc-900 dark:border-zinc-50 dark:text-dark-text" : "border-transparent text-muted-foreground hover:text-zinc-700"
+                  activeTab === "docs" ? "border-white text-white" : "border-transparent text-white/60 hover:text-white"
                 )}
               >
                 <PaperclipIcon className="h-3.5 w-3.5" />
@@ -485,7 +485,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 onClick={() => setActiveTab("chat")}
                 className={cn(
                   "flex-1 py-3 px-2.5 text-xs font-bold border-b-2 flex items-center justify-center gap-1.5 transition-colors shrink-0",
-                  activeTab === "chat" ? "border-zinc-900 text-zinc-900 dark:border-zinc-50 dark:text-dark-text" : "border-transparent text-muted-foreground hover:text-zinc-700"
+                  activeTab === "chat" ? "border-white text-white" : "border-transparent text-white/60 hover:text-white"
                 )}
               >
                 <MessageSquare className="h-3.5 w-3.5" />
@@ -493,8 +493,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               </button>
             </div>
 
-            {/* Tab Contents Panel */}
-            <div className={cn("flex-1 p-4 dark:bg-dark-base/20 min-h-0", (activeTab === "chat" || activeTab === "milestones") ? "flex flex-col gap-4" : "overflow-y-auto")}>
+            <div className={cn("flex-1 p-4 bg-transparent min-h-0", (activeTab === "chat" || activeTab === "milestones") ? "flex flex-col gap-4" : "overflow-y-auto")}>
               {/* MILESTONES TAB */}
               {activeTab === "milestones" && (
                 <div className="flex flex-col flex-1 min-h-0 justify-between">
@@ -517,35 +516,35 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     )}
 
                     {/* Quick Add Form */}
-                    <div className="border border-zinc-200 dark:border-dark-border p-4 rounded-xl bg-zinc-50/50 dark:bg-dark-base/20 shrink-0 space-y-3 shadow-sm">
-                      <h4 className="text-xs font-bold text-zinc-700 dark:text-dark-text-secondary flex items-center gap-1.5">
-                        <Plus className="h-3.5 w-3.5 text-zinc-500" />
+                    <div className="border border-white/25 dark:border-white/10 p-4 rounded-xl bg-white/10 dark:bg-black/20 shrink-0 space-y-3 shadow-sm">
+                      <h4 className="text-xs font-bold text-white/90 flex items-center gap-1.5">
+                        <Plus className="h-3.5 w-3.5 text-white/60" />
                         Add Milestone Checkpoint
                       </h4>
                       <div className="space-y-2.5">
                         <div className="grid gap-1">
-                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Title</span>
+                          <span className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Title</span>
                           <Input
                             value={milestoneTitle}
                             onChange={(e) => setMilestoneTitle(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && handleAddMilestone()}
                             placeholder="e.g. Deliver first UI prototypes..."
-                            className="h-9 text-xs bg-white dark:bg-dark-base border-zinc-200 rounded-lg shadow-sm"
+                            className="h-9 text-xs bg-white/10 dark:bg-black/20 border-white/25 dark:border-white/10 rounded-lg shadow-sm text-white placeholder-white/50 focus-visible:ring-1 focus-visible:ring-white/30"
                           />
                         </div>
                         <div className="grid gap-1">
-                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Due Date &amp; Time</span>
+                          <span className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Due Date &amp; Time</span>
                           <div className="flex gap-2">
                             <Input
                               type="datetime-local"
                               value={milestoneDueDate}
                               onChange={(e) => setMilestoneDueDate(e.target.value)}
-                              className="h-9 text-xs bg-white dark:bg-dark-base border-zinc-200 rounded-lg shadow-sm flex-1"
+                              className="h-9 text-xs bg-white/10 dark:bg-black/20 border-white/25 dark:border-white/10 rounded-lg shadow-sm flex-1 text-white focus-visible:ring-1 focus-visible:ring-white/30"
                             />
                             <Button 
                               onClick={handleAddMilestone} 
                               size="sm" 
-                              className="h-9 px-4 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-dark-text dark:hover:bg-zinc-200 dark:text-dark-base font-semibold text-xs shrink-0 transition-colors shadow"
+                              className="h-9 px-4 rounded-lg bg-white text-black hover:bg-white/90 font-semibold text-xs shrink-0 transition-colors shadow"
                             >
                               Add Checkpoint
                             </Button>
@@ -588,7 +587,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             
                             {/* Milestone Card with Dynamic Left-Border Accent */}
                             <div className={cn(
-                              "flex items-start justify-between gap-3 p-3 rounded-xl border border-l-4 bg-white dark:bg-dark-card/50 hover:shadow-soft transition-all shadow-sm",
+                              "flex items-start justify-between gap-3 p-3 rounded-xl border-l-4 hover:bg-white/15 dark:hover:bg-black/30 transition-all shadow-sm",
                               colorClass
                             )}>
                               <div className="min-w-0 flex-1">
@@ -653,14 +652,14 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               {/* TASKS TAB */}
               {activeTab === "tasks" && (
                 <div className="grid gap-4">
-                  <div className="grid gap-3 border border-zinc-200 dark:border-dark-border p-4 rounded-xl bg-zinc-50/50 dark:bg-dark-base/20">
+                  <div className="grid gap-3 border border-white/25 dark:border-white/10 p-4 rounded-xl bg-white/10 dark:bg-black/20">
                     <Field label="Task Title">
                       <Input
                         value={newTaskTitle}
                         onChange={(e) => setNewTaskTitle(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && addProjectTask()}
                         placeholder="Add deliverables..."
-                        className="bg-white dark:bg-dark-base border-zinc-200 dark:border-dark-border"
+                        className="bg-white/10 dark:bg-black/20 border-white/25 dark:border-white/10 text-white placeholder-white/50 focus-visible:ring-1 focus-visible:ring-white/30"
                       />
                     </Field>
                     <Field label="Task Note">
@@ -669,13 +668,13 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         onChange={(e) => setNewTaskNote(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && addProjectTask()}
                         placeholder="Important details..."
-                        className="bg-white dark:bg-dark-base border-zinc-200 dark:border-dark-border"
+                        className="bg-white/10 dark:bg-black/20 border-white/25 dark:border-white/10 text-white placeholder-white/50 focus-visible:ring-1 focus-visible:ring-white/30"
                       />
                     </Field>
                     <div className="grid gap-2 sm:grid-cols-2">
                       <Field label="Assignee">
                         <Select value={newTaskAssigned} onValueChange={setNewTaskAssigned}>
-                          <SelectTrigger className="bg-white dark:bg-dark-base border-zinc-200 dark:border-dark-border"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="bg-white/10 dark:bg-black/25 border-white/25 dark:border-white/10 text-white focus-visible:ring-1 focus-visible:ring-white/30"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value={names.user1}>{names.user1}</SelectItem>
                             <SelectItem value={names.user2}>{names.user2}</SelectItem>
@@ -685,7 +684,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                       </Field>
                       <Field label="Priority">
                         <Select value={newTaskPriority} onValueChange={(v) => setNewTaskPriority(v as typeof newTaskPriority)}>
-                          <SelectTrigger className="bg-white dark:bg-dark-base border-zinc-200 dark:border-dark-border"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="bg-white/10 dark:bg-black/25 border-white/25 dark:border-white/10 text-white focus-visible:ring-1 focus-visible:ring-white/30"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="Low">Low</SelectItem>
                             <SelectItem value="Medium">Medium</SelectItem>
@@ -694,7 +693,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         </Select>
                       </Field>
                     </div>
-                    <Button onClick={addProjectTask} className="w-full mt-1">
+                    <Button onClick={addProjectTask} className="w-full mt-1 bg-white text-black hover:bg-white/90 font-bold transition-all shadow rounded-xl h-9">
                       <Plus className="h-4 w-4 mr-2" />
                       Add Task
                     </Button>
@@ -714,22 +713,22 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               {/* DOCUMENTS TAB */}
               {activeTab === "docs" && (
                 <div className="grid gap-4">
-                  <div className="grid gap-3 border border-zinc-200 dark:border-dark-border p-4 rounded-xl bg-zinc-50/50 dark:bg-dark-base/20">
+                  <div className="grid gap-3 border border-white/25 dark:border-white/10 p-4 rounded-xl bg-white/10 dark:bg-black/20">
                     <div className="grid gap-2">
                       <Field label="Link Title">
-                        <Input value={docName} onChange={(e) => setDocName(e.target.value)} placeholder="Google Drive PRD..." className="bg-white dark:bg-dark-base border-zinc-200 dark:border-dark-border" />
+                        <Input value={docName} onChange={(e) => setDocName(e.target.value)} placeholder="Google Drive PRD..." className="bg-white/10 dark:bg-black/20 border-white/25 dark:border-white/10 text-white placeholder-white/50 focus-visible:ring-1 focus-visible:ring-white/30" />
                       </Field>
                       <Field label="Document Link URL">
-                        <Input value={docUrl} onChange={(e) => setDocUrl(e.target.value)} placeholder="https://drive.google.com/..." className="bg-white dark:bg-dark-base border-zinc-200 dark:border-dark-border" />
+                        <Input value={docUrl} onChange={(e) => setDocUrl(e.target.value)} placeholder="https://drive.google.com/..." className="bg-white/10 dark:bg-black/20 border-white/25 dark:border-white/10 text-white placeholder-white/50 focus-visible:ring-1 focus-visible:ring-white/30" />
                       </Field>
                     </div>
                     <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-                      <Button onClick={addDocLink} disabled={!docName.trim() || !docUrl.trim()} size="sm">
+                      <Button onClick={addDocLink} disabled={!docName.trim() || !docUrl.trim()} className="bg-white text-black hover:bg-white/90 font-bold transition-all shadow rounded-xl h-9 px-4 text-xs">
                         <Link2 className="h-4 w-4 mr-2" />
                         Attach Link
                       </Button>
-                      <label className="flex items-center gap-2 rounded-xl border px-3 py-1.5 cursor-pointer bg-white hover:bg-zinc-50 dark:bg-dark-base dark:hover:bg-dark-card text-xs font-semibold transition-colors">
-                        <Paperclip className="h-3.5 w-3.5 text-muted-foreground" />
+                      <label className="flex items-center gap-2 rounded-xl border border-white/25 dark:border-white/10 px-3 py-1.5 cursor-pointer bg-white/10 hover:bg-white/20 dark:bg-black/20 dark:hover:bg-black/35 text-xs font-semibold text-white transition-colors h-9 shadow">
+                        <Paperclip className="h-3.5 w-3.5 text-white/70" />
                         <span>Upload File</span>
                         <input type="file" accept="*/*" onChange={handleFileUpload} className="sr-only" />
                       </label>
@@ -738,7 +737,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
                   <div className="grid gap-2">
                     {filesList.map((file) => (
-                      <div key={file.id} className="flex items-center justify-between gap-3 p-3 rounded-xl border bg-white dark:bg-dark-card/30 dark:border-dark-border">
+                      <div key={file.id} className="flex items-center justify-between gap-3 p-3 rounded-xl border border-white/25 dark:border-white/10 bg-white/10 dark:bg-black/20 hover:bg-white/20 dark:hover:bg-black/30 transition-all">
                         <div className="min-w-0 flex-1 flex items-center gap-2">
                           <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                           <div className="min-w-0">
@@ -794,7 +793,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                           <div
                             className={cn(
                               "px-3.5 py-2 rounded-2xl text-sm leading-5 shadow-sm break-words",
-                              isMe ? "bg-zinc-900 text-white dark:bg-dark-text dark:text-dark-base rounded-tr-none" : "bg-zinc-100 text-zinc-800 dark:bg-dark-card dark:text-dark-text rounded-tl-none"
+                              isMe ? "bg-white/35 dark:bg-white/15 border border-white/20 dark:border-white/10 text-white rounded-tr-none" : "bg-white/15 dark:bg-black/35 border border-white/10 dark:border-white/5 text-white/95 rounded-tl-none"
                             )}
                           >
                             {msg.message}
@@ -803,9 +802,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                       );
                     })}
                     {chatHistory.length === 0 && (
-                      <div className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
+                      <div className="flex flex-col items-center justify-center py-10 text-center text-white/60">
                         <MessageSquare className="h-8 w-8 opacity-45 mb-1.5" />
-                        <p className="text-xs font-medium">No messages yet.</p>
+                        <p className="text-xs font-semibold">No messages yet.</p>
                         <p className="text-[10px] mt-0.5">Start the conversation about this project.</p>
                       </div>
                     )}
@@ -813,14 +812,14 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                   </div>
 
                   {/* Message Input Box */}
-                  <form onSubmit={sendMsg} className="flex gap-2 border-t pt-3 border-zinc-150 dark:border-dark-border bg-white dark:bg-dark-base mt-1 shrink-0">
+                  <form onSubmit={sendMsg} className="flex gap-2 border-t pt-3 border-white/25 dark:border-white/10 bg-transparent mt-1 shrink-0">
                     <Input
                       value={chatMessage}
                       onChange={(e) => setChatMessage(e.target.value)}
                       placeholder="Type a message..."
-                      className="rounded-xl flex-1 text-sm focus-visible:ring-1 dark:bg-dark-card dark:border-dark-border"
+                      className="rounded-xl flex-1 text-sm bg-white/10 dark:bg-black/30 border-white/20 dark:border-white/10 text-white placeholder-white/50 focus-visible:ring-1 focus-visible:ring-white/30"
                     />
-                    <Button type="submit" size="icon" className="rounded-xl shrink-0" disabled={!chatMessage.trim()}>
+                    <Button type="submit" size="icon" className="rounded-xl shrink-0 bg-white text-black hover:bg-white/90" disabled={!chatMessage.trim()}>
                       <Send className="h-4 w-4" />
                     </Button>
                   </form>
