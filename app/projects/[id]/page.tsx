@@ -306,8 +306,11 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       {/* Header Navigator */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-4">
         <div className="flex items-center gap-3">
-          <Link href="/projects" className="p-2 hover:bg-zinc-100 dark:hover:bg-dark-hover rounded-xl transition-colors shrink-0">
-            <ArrowLeft className="h-5 w-5 text-zinc-650 dark:text-zinc-350" />
+          <Link 
+            href="/projects" 
+            className="p-2 rounded-xl bg-white/10 dark:bg-black/35 border border-white/20 dark:border-white/10 text-white hover:bg-white/20 dark:hover:bg-white/10 transition-all shadow-md backdrop-blur-md shrink-0"
+          >
+            <ArrowLeft className="h-5 w-5 text-wallpaper-safe" />
           </Link>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-1">

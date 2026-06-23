@@ -507,10 +507,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* iOS/macOS styled Large clock */}
         <div className="flex flex-col items-center gap-1 mb-8 select-none animate-in fade-in slide-in-from-top-4 duration-500 text-white text-wallpaper-safe relative z-10">
-          <span className="text-[10px] uppercase tracking-widest font-extrabold text-zinc-200/90">
+          <span className="text-[10px] uppercase tracking-widest font-extrabold text-white text-wallpaper-safe">
             {dateStr}
           </span>
-          <h1 className="text-6xl font-light tracking-tighter font-sans">
+          <h1 className="text-6xl font-light tracking-tighter font-sans text-white text-wallpaper-safe">
             {timeStr}
           </h1>
         </div>

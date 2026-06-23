@@ -46,7 +46,7 @@ export default function WallpaperSettingsPage() {
         
         {/* Section 1: Static Wallpapers */}
         <div className="flex flex-col gap-4">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-white/50 text-wallpaper-safe">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-white/80 text-wallpaper-safe">
             Desktop Pictures
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
@@ -78,7 +78,7 @@ export default function WallpaperSettingsPage() {
                       </div>
                     )}
                   </div>
-                  <span className="text-xs text-center text-white/70 group-hover:text-white transition-colors truncate px-1 text-wallpaper-safe">
+                  <span className="text-xs text-center text-white/90 group-hover:text-white transition-colors truncate px-1 text-wallpaper-safe">
                     {wp.name}
                   </span>
                 </div>
@@ -89,7 +89,7 @@ export default function WallpaperSettingsPage() {
 
         {/* Section 2: Live Wallpapers */}
         <div className="flex flex-col gap-4">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-white/50 text-wallpaper-safe">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-white/80 text-wallpaper-safe">
             Dynamic Wallpapers
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
@@ -130,7 +130,7 @@ export default function WallpaperSettingsPage() {
                       </div>
                     )}
                   </div>
-                  <span className="text-xs text-center text-white/70 group-hover:text-white transition-colors truncate px-1 text-wallpaper-safe">
+                  <span className="text-xs text-center text-white/90 group-hover:text-white transition-colors truncate px-1 text-wallpaper-safe">
                     {wp.name}
                   </span>
                 </div>
