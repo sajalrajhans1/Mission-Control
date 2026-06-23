@@ -644,16 +644,9 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Widgets Grid (Sonoma Layout Gallery) */}
-      <div className="grid gap-6 lg:grid-cols-12">
-        {visibleWidgets.length === 0 ? (
-          <div className="col-span-12 py-12 rounded-2xl border border-dashed border-white/20 bg-white/10 dark:bg-black/15 backdrop-blur-md flex flex-col items-center justify-center text-white/70 shadow-lg">
-            <Sliders className="h-10 w-10 mb-2 opacity-50 text-indigo-400" />
-            <p className="text-sm">No widgets visible on desktop.</p>
-            <p className="text-xs text-white/50 mt-1">Add widgets using the customization panel below.</p>
-          </div>
-        ) : (
-          visibleWidgets.map((widget) => {
+      {visibleWidgets.length > 0 && (
+        <div className="grid gap-6 lg:grid-cols-12">
+          {visibleWidgets.map((widget) => {
             const sizeClass = getSizeClass(widget.size);
             const wiggleClass = "relative";
 
@@ -675,9 +668,9 @@ export default function HomePage() {
                 {renderWidget(widget.id)}
               </div>
             );
-          })
-        )}
-      </div>
+          })}
+        </div>
+      )}
 
       {/* Scattered Sticky Notes Section */}
       <div className="grid gap-6">
