@@ -164,9 +164,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [selectedProfile, setSelectedProfile] = useState<"user1" | "user2" | null>(null);
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState<string | null>(null);
-  const [isLocked, setIsLocked] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
   const [shake, setShake] = useState(false);
+  const [showAuthInputs, setShowAuthInputs] = useState(false);
+
+  const isOverlayActive = !activeUser || isScreensaverActive;
+
+  // Reset showAuthInputs when overlay changes
+  useEffect(() => {
+    if (isOverlayActive) {
+      setShowAuthInputs(false);
+    }
+  }, [isOverlayActive]);
+
+  // Activate input fields on keypress or click
+  useEffect(() => {
+    if (isOverlayActive && !showAuthInputs) {
+      const handleWakeUp = () => {
+        setShowAuthInputs(true);
+      };
+      window.addEventListener("keydown", handleWakeUp);
+      window.addEventListener("click", handleWakeUp);
+      return () => {
+        window.removeEventListener("keydown", handleWakeUp);
+        window.removeEventListener("click", handleWakeUp);
+      };
+    }
+  }, [isOverlayActive, showAuthInputs]);
 
   const shellVideoRef = useRef<HTMLVideoElement>(null);
   const lockVideoRef = useRef<HTMLVideoElement>(null);
@@ -206,19 +230,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         };
       }
     }
-  }, [activeWallpaper, isLocked]);
+  }, [activeWallpaper, isScreensaverActive]);
 
-  // Initialize lock state from sessionStorage
+  // Initialize screensaver state from sessionStorage
   useEffect(() => {
-    const locked = sessionStorage.getItem("mc_locked") === "true";
-    if (locked) {
-      setIsLocked(true);
+    const screensaver = sessionStorage.getItem("mc_screensaver") === "true";
+    if (screensaver) {
+      setIsScreensaverActive(true);
     }
-  }, []);
+  }, [setIsScreensaverActive]);
 
-  // Enforce fullscreen when locked
+  // Enforce fullscreen when screensaver is active
   useEffect(() => {
-    if (!isLocked) return;
+    if (!isScreensaverActive) return;
 
     const enterFullscreen = () => {
       if (!document.fullscreenElement) {
@@ -231,7 +255,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     // Attempt immediate fullscreen
     enterFullscreen();
 
-    // Re-request on any user click or key press while locked
+    // Re-request on any user click or key press while screensaver is active
     const handleInteraction = () => {
       enterFullscreen();
     };
@@ -243,7 +267,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       document.removeEventListener("click", handleInteraction);
       document.removeEventListener("keydown", handleInteraction);
     };
-  }, [isLocked]);
+  }, [isScreensaverActive]);
 
   // --- Top Status Bar Interactive Menu Dropdowns ---
   const [activeMenu, setActiveMenu] = useState<"File" | "Edit" | "View" | "Go" | "Help" | null>(null);
@@ -293,16 +317,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Workspace Lock trigger
+  // Workspace screensaver lock trigger
   const lock = useCallback(() => {
     if (!activeUser) return;
-    sessionStorage.setItem("mc_locked", "true");
-    setIsLocked(true);
+    sessionStorage.setItem("mc_screensaver", "true");
+    setIsScreensaverActive(true);
     setPassword("");
     setUnlockError(null);
-  }, [activeUser]);
+  }, [activeUser, setIsScreensaverActive]);
 
-  // Keyboard shortcuts listener (⌥L, ⌥T, ⌥F, ⌘N, ⌘D, ⌘K, ⌘H, ⌘W)
+  // Keyboard shortcuts listener (⌥S, ⌥T, ⌥F, ⌘N, ⌘D, ⌘K, ⌘H, ⌘W)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!activeUser) return;
@@ -310,11 +334,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       const key = e.key.toLowerCase();
       const isMetaOrCtrl = e.metaKey || e.ctrlKey;
 
-      // Lock Screen: Alt+L or Command+L
-      if ((e.altKey && key === "l") || (isMetaOrCtrl && key === "l")) {
-        e.preventDefault();
-        lock();
-      }
       // Toggle Fullscreen: Alt+F
       if (e.altKey && key === "f") {
         e.preventDefault();
@@ -348,16 +367,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       // Screensaver: Alt+S
       if (e.altKey && key === "s") {
         e.preventDefault();
-        if (pathname !== "/") {
-          router.push("/");
+        if (!isOverlayActive) {
+          lock();
         }
-        setIsScreensaverActive(prev => !prev);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeUser, lock, toggleFullscreen, router, handleCreateNote, clearAllNotifications, pathname, setIsScreensaverActive]);
+  }, [activeUser, lock, toggleFullscreen, router, handleCreateNote, clearAllNotifications, setIsScreensaverActive, isOverlayActive]);
 
 
 
@@ -381,8 +399,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const res = await login(activeUser, password);
     if (res.success) {
       setPassword("");
-      setIsLocked(false);
-      sessionStorage.removeItem("mc_locked");
+      setIsScreensaverActive(false);
+      sessionStorage.removeItem("mc_screensaver");
     } else {
       setUnlockError("Incorrect password.");
       setShake(true);
@@ -390,94 +408,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   };
 
-  if (!activeUser) {
-    const uName = selectedProfile === "user1" ? names.user1 : selectedProfile === "user2" ? names.user2 : "";
-    const isFirstTime = selectedProfile ? !isPasswordSet(selectedProfile) : false;
+  const isVideo = activeWallpaper.endsWith(".mp4") || activeWallpaper.includes(".m3u8");
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f5f5f7]/60 dark:bg-dark-base/60 backdrop-blur-2xl px-4 transition-colors duration-300">
-        <div className="w-full max-w-[320px] flex flex-col items-center gap-5 p-6 rounded-3xl bg-white/70 dark:bg-dark-card/60 border border-zinc-200/50 dark:border-dark-border/50 shadow-2xl backdrop-blur-md transition-all duration-300 relative z-10">
-          <div className="text-center w-full">
-            <h2 className="text-xl font-light tracking-widest text-zinc-900 dark:text-dark-text uppercase">
-              MISSION CONTROL
-            </h2>
-            <p className="mt-1 text-[10px] text-zinc-500 dark:text-dark-text-secondary">
-              {selectedProfile
-                ? isFirstTime
-                  ? `Set a password for ${uName}`
-                  : `Enter password for ${uName}`
-                : "Select profile to unlock workspace"}
-            </p>
-          </div>
-          <div className="w-full">
-            {!selectedProfile ? (
-              <div className="flex flex-col gap-3">
-                <Button
-                  variant="outline"
-                  className="h-14 justify-start gap-4 rounded-2xl text-xs font-semibold border-zinc-200/50 dark:border-dark-border bg-white/50 dark:bg-dark-base/50 hover:bg-zinc-100 dark:hover:bg-dark-card text-zinc-900 dark:text-dark-text transition-all duration-200"
-                  onClick={() => setSelectedProfile("user1")}
-                >
-                  <div
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-white font-extrabold text-sm shrink-0"
-                    style={{ backgroundColor: userColors.user1 }}
-                  >
-                    {names.user1[0].toUpperCase()}
-                  </div>
-                  {names.user1}
-                </Button>
-                <Button
-                  variant="outline"
-                  className="h-14 justify-start gap-4 rounded-2xl text-xs font-semibold border-zinc-200/50 dark:border-dark-border bg-white/50 dark:bg-dark-base/50 hover:bg-zinc-100 dark:hover:bg-dark-card text-zinc-900 dark:text-dark-text transition-all duration-200"
-                  onClick={() => setSelectedProfile("user2")}
-                >
-                  <div
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-white font-extrabold text-sm shrink-0"
-                    style={{ backgroundColor: userColors.user2 }}
-                  >
-                    {names.user2[0].toUpperCase()}
-                  </div>
-                  {names.user2}
-                </Button>
-              </div>
-            ) : (
-              <form onSubmit={handleLogin} className="flex flex-col gap-3">
-                <Input
-                  type="password"
-                  placeholder={isFirstTime ? "Create new password" : "Password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoFocus
-                  className="h-9 text-xs text-center rounded-xl bg-zinc-100/50 dark:bg-dark-base/50 border-zinc-200/40 dark:border-dark-border text-zinc-900 dark:text-dark-text placeholder-zinc-400 focus-visible:ring-1 focus-visible:ring-dark-border focus-visible:border-dark-border"
-                />
-                {authError && <p className="text-[10px] text-destructive text-center font-bold animate-pulse">{authError}</p>}
-                <div className="flex gap-2 mt-1">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="flex-1 rounded-xl h-9 text-xs text-zinc-500 dark:text-dark-text-secondary hover:bg-zinc-100 dark:hover:bg-dark-card"
-                    onClick={() => {
-                      setSelectedProfile(null);
-                      setPassword("");
-                      setAuthError(null);
-                    }}
-                  >
-                    Back
-                  </Button>
-                  <Button type="submit" className="flex-1 rounded-xl h-9 text-xs bg-zinc-900 dark:bg-dark-text hover:bg-zinc-800 dark:hover:bg-dark-text/90 text-white dark:text-dark-base font-bold shadow transition-all active:scale-[0.98]">
-                    {isFirstTime ? "Set" : "Unlock"}
-                  </Button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (isOverlayActive) {
+    const uName = activeUser ? activeUserName : selectedProfile === "user1" ? names.user1 : selectedProfile === "user2" ? names.user2 : "";
+    const isFirstTime = (!activeUser && selectedProfile) ? !isPasswordSet(selectedProfile) : false;
+    const color = activeUser ? (activeUser === "user1" ? userColors.user1 : userColors.user2) : (selectedProfile === "user1" ? userColors.user1 : userColors.user2);
 
-  if (isLocked) {
-    const color = activeUser === "user1" ? userColors.user1 : userColors.user2;
-    const isVideo = activeWallpaper.endsWith(".mp4") || activeWallpaper.includes(".m3u8");
     return (
       <div 
         className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-cover bg-center px-4 transition-all duration-500"
@@ -505,66 +444,119 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Dark glassmorphic mask */}
         <div className="absolute inset-0 bg-slate-900/40 dark:bg-black/50 backdrop-blur-2xl z-0" />
 
-        {/* iOS/macOS styled Large clock */}
-        <div className="flex flex-col items-center gap-1 mb-8 select-none animate-in fade-in slide-in-from-top-4 duration-500 text-white text-wallpaper-safe relative z-10">
-          <span className="text-[10px] uppercase tracking-widest font-extrabold text-zinc-200/90">
+        {/* iOS/macOS styled Large clock (Screensaver style) */}
+        <div className="flex flex-col items-center gap-1 mb-8 select-none animate-in fade-in slide-in-from-top-4 duration-500 text-white text-wallpaper-safe relative z-10 text-center scale-110 sm:scale-125">
+          <span className="text-[10px] uppercase tracking-widest font-extrabold text-zinc-200/90 drop-shadow-md">
             {dateStr}
           </span>
-          <h1 className="text-6xl font-light tracking-tighter font-sans">
+          <h1 className="text-6xl font-light tracking-tighter font-sans drop-shadow-lg">
             {timeStr}
           </h1>
+          {(!showAuthInputs && activeUser) && (
+            <div className="mt-2 flex items-center gap-3 bg-black/25 dark:bg-black/35 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 text-white shadow-lg text-xs font-semibold tracking-wide animate-in fade-in duration-300">
+              {greeting}, {activeUserName}
+            </div>
+          )}
         </div>
 
-        <div className={cn(
-          "w-full max-w-[280px] flex flex-col items-center gap-5 p-6 rounded-3xl bg-white/20 dark:bg-black/25 border border-white/20 shadow-2xl backdrop-blur-xl transition-all duration-300 relative z-10",
-          shake && "animate-shake"
-        )}>
-          {/* Avatar */}
-          <div 
-            className="flex h-20 w-20 items-center justify-center rounded-full text-white font-extrabold text-2xl shadow-inner border border-white/10 hover:scale-105 transition-transform" 
-            style={{ backgroundColor: color }}
-          >
-            {activeUserName ? activeUserName[0].toUpperCase() : "M"}
-          </div>
+        {/* Dynamic bottom section: either profile selector or password entry */}
+        {showAuthInputs ? (
+          (!activeUser && !selectedProfile) ? (
+            <div className="flex flex-col items-center gap-4 relative z-10 animate-in fade-in duration-300">
+              <span className="text-xs font-bold text-white/80 uppercase tracking-widest">Select user to unlock</span>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setSelectedProfile("user1")}
+                  className="flex flex-col items-center gap-2 group focus:outline-none"
+                >
+                  <div 
+                    className="flex h-16 w-16 items-center justify-center rounded-full text-white font-extrabold text-xl shadow-lg border border-white/20 hover:scale-110 group-hover:scale-110 transition-transform duration-200 animate-in fade-in zoom-in-90"
+                    style={{ backgroundColor: userColors.user1 }}
+                  >
+                    {names.user1[0].toUpperCase()}
+                  </div>
+                  <span className="text-xs font-bold text-white/80 group-hover:text-white transition-colors">{names.user1}</span>
+                </button>
+                <button
+                  onClick={() => setSelectedProfile("user2")}
+                  className="flex flex-col items-center gap-2 group focus:outline-none"
+                >
+                  <div 
+                    className="flex h-16 w-16 items-center justify-center rounded-full text-white font-extrabold text-xl shadow-lg border border-white/20 hover:scale-110 group-hover:scale-110 transition-transform duration-200 animate-in fade-in zoom-in-90"
+                    style={{ backgroundColor: userColors.user2 }}
+                  >
+                    {names.user2[0].toUpperCase()}
+                  </div>
+                  <span className="text-xs font-bold text-white/80 group-hover:text-white transition-colors">{names.user2}</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className={cn("w-full max-w-[280px] flex flex-col items-center gap-4 relative z-10 animate-in fade-in duration-300", shake && "animate-shake")}>
+              <div 
+                className="flex h-16 w-16 items-center justify-center rounded-full text-white font-extrabold text-xl shadow-lg border border-white/20 hover:scale-105 transition-transform" 
+                style={{ backgroundColor: color }}
+              >
+                {uName ? uName[0].toUpperCase() : "M"}
+              </div>
+              
+              <div className="text-center">
+                <span className="text-sm font-bold text-white">
+                  {uName}
+                </span>
+                <p className="text-[9px] font-extrabold text-white/60 uppercase tracking-widest mt-0.5">
+                  {isScreensaverActive ? "Screensaver" : "Enter Password"}
+                </p>
+              </div>
 
-          <div className="text-center">
-            <span className="text-xs font-extrabold text-white text-wallpaper-safe">
-              {activeUserName}
-            </span>
-            <p className="text-[9px] font-bold text-white/70 uppercase tracking-widest mt-0.5">
-              Locked
-            </p>
+              <form onSubmit={activeUser ? handleUnlock : handleLogin} className="w-full flex flex-col gap-2">
+                <Input
+                  type="password"
+                  placeholder={isFirstTime ? "Create new password" : "Password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoFocus
+                  className="h-9 text-xs text-center rounded-xl bg-white/10 dark:bg-black/20 border-white/20 text-white placeholder-white/50 focus-visible:ring-1 focus-visible:ring-white/40 focus-visible:border-white/40 shadow-inner animate-in fade-in duration-300"
+                />
+                {authError && <p className="text-[10px] text-red-400 text-center font-bold animate-pulse">{authError}</p>}
+                {unlockError && <p className="text-[10px] text-red-400 text-center font-bold animate-pulse">{unlockError}</p>}
+                
+                <div className="flex gap-2 w-full mt-1">
+                  {!activeUser && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="flex-1 h-9 rounded-xl text-xs text-white/70 hover:text-white hover:bg-white/10"
+                      onClick={() => {
+                        setSelectedProfile(null);
+                        setPassword("");
+                        setAuthError(null);
+                      }}
+                    >
+                      Back
+                    </Button>
+                  )}
+                  <Button 
+                    type="submit" 
+                    className={cn(
+                      "rounded-xl h-9 font-bold text-xs transition-all active:scale-[0.98] shadow",
+                      !activeUser ? "flex-1 bg-white hover:bg-white/90 text-black" : "w-full bg-white hover:bg-white/90 text-black"
+                    )}
+                  >
+                    {isFirstTime ? "Set" : "Unlock"}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          )
+        ) : (
+          <div className="absolute bottom-12 text-white/40 text-[10px] tracking-widest uppercase font-extrabold animate-pulse relative z-10">
+            Press any key or click to unlock
           </div>
-
-          {/* Form */}
-          <form onSubmit={handleUnlock} className="w-full flex flex-col gap-3">
-            <Input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoFocus
-              className="h-9 text-xs text-center rounded-xl bg-white/10 dark:bg-black/20 border-white/20 text-white placeholder-white/50 focus-visible:ring-1 focus-visible:ring-white/40 focus-visible:border-white/40"
-            />
-            {unlockError && (
-              <p className="text-[10px] text-red-400 text-center font-bold animate-pulse">
-                {unlockError}
-              </p>
-            )}
-            
-            <Button 
-              type="submit" 
-              className="h-9 rounded-xl bg-white hover:bg-white/90 text-slate-900 dark:bg-white dark:hover:bg-white/90 dark:text-black font-bold text-xs transition-all active:scale-[0.98] mt-1 shadow"
-            >
-              Unlock
-            </Button>
-          </form>
-        </div>
+        )}
       </div>
     );
   }
-
-  const isVideo = activeWallpaper.endsWith(".mp4") || activeWallpaper.includes(".m3u8");
 
   return (
     <div className="min-h-screen relative flex flex-col justify-between overflow-hidden transition-colors duration-500 ease-in-out">
@@ -635,8 +627,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   </button>
                   <div className="h-px bg-slate-200/50 dark:bg-white/5 my-1" />
                   <button onClick={() => { lock(); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
-                    <span>Lock Screen</span>
-                    <span className="opacity-55 font-mono text-[9px]">⌥L</span>
+                    <span>Activate Screensaver</span>
+                    <span className="opacity-55 font-mono text-[9px]">⌥S</span>
                   </button>
                 </div>
               )}
@@ -686,7 +678,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <span>Toggle Fullscreen</span>
                     <span className="opacity-55 font-mono text-[9px]">⌥F</span>
                   </button>
-                  <button onClick={() => { router.push("/"); setIsScreensaverActive(true); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
+                  <button onClick={() => { lock(); closeMenu(); }} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600 hover:text-white dark:hover:text-white rounded-lg flex items-center justify-between">
                     <span>Activate Screensaver</span>
                     <span className="opacity-55 font-mono text-[9px]">⌥S</span>
                   </button>
@@ -780,11 +772,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
           </button>
 
-          {/* Lock workspace */}
+          {/* Activate screensaver */}
           <button
             onClick={lock}
             className="h-6 w-6 rounded-lg flex items-center justify-center text-slate-655 hover:text-slate-900 dark:text-dark-text-secondary dark:hover:text-dark-text hover:bg-slate-950/5 dark:hover:bg-white/10 transition-all active:scale-95"
-            title="Lock Workspace"
+            title="Activate Screensaver"
           >
             <Lock className="h-3.5 w-3.5" />
           </button>
@@ -936,14 +928,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <DialogTitle className="text-base font-bold text-slate-900 dark:text-white">Keyboard Shortcuts</DialogTitle>
           </DialogHeader>
           <div className="grid gap-3 text-xs mt-2">
-            <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-white/5 pb-2">
-              <span className="opacity-80">Lock Workspace</span>
-              <kbd className="px-2 py-0.5 bg-slate-200/50 dark:bg-white/10 rounded font-mono text-[10px]">⌥L / ⌘L</kbd>
-            </div>
-            <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-white/5 pb-2">
-              <span className="opacity-80">Toggle Dark Theme</span>
-              <kbd className="px-2 py-0.5 bg-slate-200/50 dark:bg-white/10 rounded font-mono text-[10px]">⌥T</kbd>
-            </div>
+
             <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-white/5 pb-2">
               <span className="opacity-80">Toggle Fullscreen</span>
               <kbd className="px-2 py-0.5 bg-slate-200/50 dark:bg-white/10 rounded font-mono text-[10px]">⌥F</kbd>
