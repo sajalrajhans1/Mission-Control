@@ -291,13 +291,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const shellVideoRef = useRef<HTMLVideoElement>(null);
   const lockVideoRef = useRef<HTMLVideoElement>(null);
+  const loginVideoRef = useRef<HTMLVideoElement>(null);
 
   // Handle HLS live stream wallpaper binding (using hls.js)
   useEffect(() => {
     const isVideo = activeWallpaper.endsWith(".mp4") || activeWallpaper.includes(".m3u8");
     if (!isVideo || !activeWallpaper.includes(".m3u8")) return;
 
-    const video = lockVideoRef.current || shellVideoRef.current;
+    const video = lockVideoRef.current || loginVideoRef.current || shellVideoRef.current;
     if (!video) return;
 
     if (video.canPlayType("application/vnd.apple.mpegurl")) {
@@ -497,6 +498,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       setSelectedProfile(null);
     } else {
       setAuthError(res.error || "Failed to log in.");
+      setShake(true);
+      setTimeout(() => setShake(false), 400);
     }
   };
 
@@ -519,83 +522,198 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   if (!activeUser) {
     const uName = selectedProfile === "user1" ? names.user1 : selectedProfile === "user2" ? names.user2 : "";
     const isFirstTime = selectedProfile ? !isPasswordSet(selectedProfile) : false;
+    const isVideo = activeWallpaper.endsWith(".mp4") || activeWallpaper.includes(".m3u8");
 
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f5f5f7]/60 dark:bg-dark-base/60 backdrop-blur-2xl px-4 transition-colors duration-300">
-        <div className="w-full max-w-[320px] flex flex-col items-center gap-5 p-6 rounded-3xl bg-white/70 dark:bg-dark-card/60 border border-zinc-200/50 dark:border-dark-border/50 shadow-2xl backdrop-blur-md transition-all duration-300 relative z-10">
-          <div className="text-center w-full">
-            <h2 className="text-xl font-light tracking-widest text-zinc-900 dark:text-dark-text uppercase">
-              MISSION CONTROL
-            </h2>
-            <p className="mt-1 text-[10px] text-zinc-500 dark:text-dark-text-secondary">
-              {selectedProfile
-                ? isFirstTime
-                  ? `Set a password for ${uName}`
-                  : `Enter password for ${uName}`
-                : "Select profile to unlock workspace"}
-            </p>
-          </div>
-          <div className="w-full">
-            {!selectedProfile ? (
-              <div className="flex flex-col gap-3">
-                <Button
-                  variant="outline"
-                  className="h-14 justify-start gap-4 rounded-2xl text-xs font-semibold border-zinc-200/50 dark:border-dark-border bg-white/50 dark:bg-dark-base/50 hover:bg-zinc-100 dark:hover:bg-dark-card text-zinc-900 dark:text-dark-text transition-all duration-200"
-                  onClick={() => setSelectedProfile("user1")}
-                >
-                  <div
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-white font-extrabold text-sm shrink-0"
-                    style={{ backgroundColor: userColors.user1 }}
-                  >
-                    {names.user1[0].toUpperCase()}
-                  </div>
-                  {names.user1}
-                </Button>
-                <Button
-                  variant="outline"
-                  className="h-14 justify-start gap-4 rounded-2xl text-xs font-semibold border-zinc-200/50 dark:border-dark-border bg-white/50 dark:bg-dark-base/50 hover:bg-zinc-100 dark:hover:bg-dark-card text-zinc-900 dark:text-dark-text transition-all duration-200"
-                  onClick={() => setSelectedProfile("user2")}
-                >
-                  <div
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-white font-extrabold text-sm shrink-0"
-                    style={{ backgroundColor: userColors.user2 }}
-                  >
-                    {names.user2[0].toUpperCase()}
-                  </div>
-                  {names.user2}
-                </Button>
+      <div 
+        className="min-h-screen w-full relative flex items-center justify-center bg-cover bg-center overflow-hidden"
+        style={!isVideo ? {
+          backgroundImage: `url(${activeWallpaper})`,
+        } : undefined}
+      >
+        {isVideo && (
+          <video 
+            ref={loginVideoRef}
+            key={activeWallpaper}
+            className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none transform-gpu"
+            style={{ 
+              transform: "scale(1.01) translate3d(0,0,0)",
+              backfaceVisibility: "hidden"
+            }}
+            autoPlay
+            muted
+            loop
+            playsInline
+          >
+            <source src={activeWallpaper} type={activeWallpaper.includes(".m3u8") ? "application/x-mpegURL" : "video/mp4"} />
+          </video>
+        )}
+        {/* Dark glassmorphic mask */}
+        <div className="absolute inset-0 bg-slate-900/40 dark:bg-black/50 backdrop-blur-2xl z-0" />
+
+        {/* 50-50 Split Container */}
+        <div className="relative z-10 flex flex-col lg:flex-row w-full max-w-5xl min-h-[550px] mx-4 lg:mx-8 rounded-[36px] overflow-hidden bg-white/5 dark:bg-black/20 border border-white/20 dark:border-white/10 shadow-2xl backdrop-blur-md">
+          
+          {/* Left Column: Mission Control Showcase */}
+          <div className="hidden lg:flex lg:flex-col lg:w-1/2 p-12 border-r border-white/10 bg-white/5 dark:bg-black/10 flex flex-col justify-between relative overflow-hidden select-none">
+            {/* Glowing gradient background shapes */}
+            <div className="absolute -top-12 -left-12 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="flex-1 flex flex-col justify-center gap-8 relative z-10">
+              <div className="space-y-3">
+                <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
+                  MISSION CONTROL
+                </h1>
+                <p className="text-sm font-semibold text-white/80 leading-relaxed max-w-md">
+                  A private operating system built to streamline your tasks, track financial progress, map client roadmaps, and secure notes in a unified desktop environment.
+                </p>
               </div>
-            ) : (
-              <form onSubmit={handleLogin} className="flex flex-col gap-3">
-                <Input
-                  type="password"
-                  placeholder={isFirstTime ? "Create new password" : "Password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoFocus
-                  className="h-9 text-xs text-center rounded-xl bg-zinc-100/50 dark:bg-dark-base/50 border-zinc-200/40 dark:border-dark-border text-zinc-900 dark:text-dark-text placeholder-zinc-400 focus-visible:ring-1 focus-visible:ring-dark-border focus-visible:border-dark-border"
-                />
-                {authError && <p className="text-[10px] text-destructive text-center font-bold animate-pulse">{authError}</p>}
-                <div className="flex gap-2 mt-1">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="flex-1 rounded-xl h-9 text-xs text-zinc-500 dark:text-dark-text-secondary hover:bg-zinc-100 dark:hover:bg-dark-card"
-                    onClick={() => {
-                      setSelectedProfile(null);
-                      setPassword("");
-                      setAuthError(null);
-                    }}
-                  >
-                    Back
-                  </Button>
-                  <Button type="submit" className="flex-1 rounded-xl h-9 text-xs bg-zinc-900 dark:bg-dark-text hover:bg-zinc-800 dark:hover:bg-dark-text/90 text-white dark:text-dark-base font-bold shadow transition-all active:scale-[0.98]">
-                    {isFirstTime ? "Set" : "Unlock"}
-                  </Button>
+
+              {/* Showcase items */}
+              <div className="space-y-4 max-w-md">
+                <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-white/10 dark:bg-black/20 border border-white/10 transition-all hover:bg-white/15 dark:hover:bg-black/30 hover:translate-x-1 duration-200">
+                  <span className="text-xl shrink-0">📱</span>
+                  <div>
+                    <h3 className="text-xs font-extrabold text-white">Sonoma Desktop Widgets</h3>
+                    <p className="text-[10px] text-white/60 mt-0.5 leading-relaxed">Customize checklists, calendars, and notes directly on your desktop layout with sizing and reordering options.</p>
+                  </div>
                 </div>
-              </form>
-            )}
+
+                <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-white/10 dark:bg-black/20 border border-white/10 transition-all hover:bg-white/15 dark:hover:bg-black/30 hover:translate-x-1 duration-200">
+                  <span className="text-xl shrink-0">⏱️</span>
+                  <div>
+                    <h3 className="text-xs font-extrabold text-white">Anti-Throttling Timer</h3>
+                    <p className="text-[10px] text-white/60 mt-0.5 leading-relaxed">Ticking background Pomodoro worker that runs accurately even when your browser tab is minimized or out of focus.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-white/10 dark:bg-black/20 border border-white/10 transition-all hover:bg-white/15 dark:hover:bg-black/30 hover:translate-x-1 duration-200">
+                  <span className="text-xl shrink-0">🔒</span>
+                  <div>
+                    <h3 className="text-xs font-extrabold text-white">Collaborative Vault & DMs</h3>
+                    <p className="text-[10px] text-white/60 mt-0.5 leading-relaxed">Collaborate on team channels, share encrypted database vaults, and coordinate milestone deliverables.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-white/5 text-[10px] text-white/40 font-semibold uppercase tracking-wider relative z-10">
+              Operating System Version 1.25.0
+            </div>
           </div>
+
+          {/* Right Column: Profile Selection and Authentication */}
+          <div className="flex-1 flex flex-col items-center justify-center p-8 lg:p-12 relative overflow-hidden">
+            <div className="absolute -top-12 -right-12 w-48 h-48 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className={cn(
+              "w-full max-w-[320px] flex flex-col items-center gap-6 p-8 rounded-3xl bg-white/10 dark:bg-black/25 border border-white/20 dark:border-white/10 shadow-2xl backdrop-blur-xl relative z-10 transition-all duration-300",
+              shake && "animate-shake"
+            )}>
+              <div className="text-center w-full">
+                {/* Mobile-only logo display */}
+                <h2 className="lg:hidden text-xl font-extrabold tracking-widest bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent uppercase mb-2">
+                  MISSION CONTROL
+                </h2>
+                <h3 className="text-sm font-extrabold text-white tracking-wide uppercase">
+                  {selectedProfile ? "Verify Identity" : "Select Profile"}
+                </h3>
+                <p className="mt-1 text-[10px] font-medium text-white/60">
+                  {selectedProfile
+                    ? isFirstTime
+                      ? `Create password for ${uName}`
+                      : `Enter password for ${uName}`
+                    : "Unlock your secure operating space"}
+                </p>
+              </div>
+
+              <div className="w-full">
+                {!selectedProfile ? (
+                  <div className="flex flex-col gap-3">
+                    <Button
+                      variant="outline"
+                      className="h-14 justify-start gap-4 rounded-2xl text-xs font-bold border-white/20 dark:border-white/10 bg-white/10 dark:bg-black/20 hover:bg-white/20 dark:hover:bg-black/35 text-white transition-all duration-200 shadow-md group"
+                      onClick={() => setSelectedProfile("user1")}
+                    >
+                      <div
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-white font-extrabold text-sm shrink-0 shadow-lg group-hover:scale-105 transition-transform"
+                        style={{ backgroundColor: userColors.user1 }}
+                      >
+                        {names.user1[0].toUpperCase()}
+                      </div>
+                      <span className="truncate">{names.user1}</span>
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      className="h-14 justify-start gap-4 rounded-2xl text-xs font-bold border-white/20 dark:border-white/10 bg-white/10 dark:bg-black/20 hover:bg-white/20 dark:hover:bg-black/35 text-white transition-all duration-200 shadow-md group"
+                      onClick={() => setSelectedProfile("user2")}
+                    >
+                      <div
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-white font-extrabold text-sm shrink-0 shadow-lg group-hover:scale-105 transition-transform"
+                        style={{ backgroundColor: userColors.user2 }}
+                      >
+                        {names.user2[0].toUpperCase()}
+                      </div>
+                      <span className="truncate">{names.user2}</span>
+                    </Button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleLogin} className="flex flex-col gap-3.5">
+                    {/* Selected Profile Mini Avatar */}
+                    <div className="flex items-center gap-3 p-2 rounded-2xl bg-white/5 border border-white/10 w-full mb-1">
+                      <div
+                        className="flex h-7 w-7 items-center justify-center rounded-full text-white font-extrabold text-xs shrink-0 shadow-sm"
+                        style={{ backgroundColor: selectedProfile === "user1" ? userColors.user1 : userColors.user2 }}
+                      >
+                        {uName[0].toUpperCase()}
+                      </div>
+                      <span className="text-xs font-bold text-white truncate">{uName}</span>
+                    </div>
+
+                    <Input
+                      type="password"
+                      placeholder={isFirstTime ? "Create new password" : "Password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      autoFocus
+                      className="h-9 text-xs text-center rounded-xl bg-white/10 dark:bg-black/20 border-white/20 text-white placeholder-white/40 focus-visible:ring-1 focus-visible:ring-white/40 focus-visible:border-white/40"
+                    />
+                    
+                    {authError && (
+                      <p className="text-[10px] text-red-400 text-center font-bold animate-pulse">
+                        {authError}
+                      </p>
+                    )}
+                    
+                    <div className="flex gap-2 mt-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="flex-1 rounded-xl h-9 text-xs text-white/70 hover:bg-white/10 hover:text-white"
+                        onClick={() => {
+                          setSelectedProfile(null);
+                          setPassword("");
+                          setAuthError(null);
+                        }}
+                      >
+                        Back
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        className="flex-1 rounded-xl h-9 text-xs bg-white hover:bg-white/90 text-black font-extrabold shadow transition-all active:scale-[0.98]"
+                      >
+                        {isFirstTime ? "Set" : "Unlock"}
+                      </Button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     );
