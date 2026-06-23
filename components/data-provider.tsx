@@ -235,7 +235,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const ambientSourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
   const ambientGainNodeRef = useRef<GainNode | null>(null);
   const tickerOscillatorIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const workerRef = useRef<Worker | null>(null);
+  const expectedEndTimeRef = useRef<number | null>(null);
 
   // Derivations for active targets
   const activeFocusTask = useMemo(() => {
@@ -547,27 +548,106 @@ export function DataProvider({ children }: { children: ReactNode }) {
     };
   }, [pomoAmbientSoundType, pomoIsMuted, pomoAmbientVolume, startAmbientSound, stopAmbientSound]);
 
-  // Main countdown interval ticking loop (Global background execution)
+  // Initialize Web Worker for background Pomodoro ticking
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const workerCode = `
+      let timerId = null;
+      self.onmessage = function(e) {
+        if (e.data === 'start') {
+          if (timerId) clearInterval(timerId);
+          timerId = setInterval(() => {
+            self.postMessage('tick');
+          }, 1000);
+        } else if (e.data === 'stop') {
+          if (timerId) {
+            clearInterval(timerId);
+            timerId = null;
+          }
+        }
+      };
+    `;
+    const blob = new Blob([workerCode], { type: "application/javascript" });
+    const url = URL.createObjectURL(blob);
+    const worker = new Worker(url);
+    workerRef.current = worker;
+
+    return () => {
+      worker.terminate();
+      URL.revokeObjectURL(url);
+    };
+  }, []);
+
+  // Synchronize playing state with the Web Worker and track end timestamp
   useEffect(() => {
     if (pomoIsPlaying) {
-      timerIntervalRef.current = setInterval(() => {
-        setPomoTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearInterval(timerIntervalRef.current!);
+      if (expectedEndTimeRef.current === null) {
+        expectedEndTimeRef.current = Date.now() + pomoTimeLeft * 1000;
+      }
+      if (workerRef.current) {
+        workerRef.current.postMessage("start");
+      }
+    } else {
+      expectedEndTimeRef.current = null;
+      if (workerRef.current) {
+        workerRef.current.postMessage("stop");
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pomoIsPlaying]);
+
+  // Handle worker ticking and calculate precise elapsed time
+  useEffect(() => {
+    if (!workerRef.current) return;
+
+    workerRef.current.onmessage = (e) => {
+      if (e.data === "tick") {
+        if (pomoIsPlaying && expectedEndTimeRef.current !== null) {
+          const now = Date.now();
+          const remaining = Math.max(0, Math.ceil((expectedEndTimeRef.current - now) / 1000));
+          setPomoTimeLeft(remaining);
+
+          if (remaining <= 0) {
+            expectedEndTimeRef.current = null;
+            if (workerRef.current) {
+              workerRef.current.postMessage("stop");
+            }
             setPomoIsPlaying(false);
             playAlarmSound();
             handleSessionCompleted();
-            return 0;
           }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    }
+        }
+      }
+    };
+  }, [pomoIsPlaying, playAlarmSound, handleSessionCompleted]);
+
+  // Handle tab refocus/visibility change to immediately synchronize elapsed time
+  useEffect(() => {
+    const handleSync = () => {
+      if (pomoIsPlaying && expectedEndTimeRef.current !== null) {
+        const now = Date.now();
+        const remaining = Math.max(0, Math.ceil((expectedEndTimeRef.current - now) / 1000));
+        setPomoTimeLeft(remaining);
+
+        if (remaining <= 0) {
+          expectedEndTimeRef.current = null;
+          if (workerRef.current) {
+            workerRef.current.postMessage("stop");
+          }
+          setPomoIsPlaying(false);
+          playAlarmSound();
+          handleSessionCompleted();
+        }
+      }
+    };
+
+    window.addEventListener("visibilitychange", handleSync);
+    window.addEventListener("focus", handleSync);
 
     return () => {
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      window.removeEventListener("visibilitychange", handleSync);
+      window.removeEventListener("focus", handleSync);
     };
   }, [pomoIsPlaying, playAlarmSound, handleSessionCompleted]);
 

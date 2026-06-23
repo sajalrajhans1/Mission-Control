@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Brain, Folder, Home, LogOut, Settings, WalletCards, Lock, Calendar,
-  GripHorizontal, X, Play, Pause, Tv, SkipForward,
   Maximize2, Minimize2, Laptop, FolderOpen, ListTodo, Plus, Clock
 } from "lucide-react";
 import { useActiveUser, useUserNames, useUserColors, useData } from "@/components/data-provider";
@@ -50,7 +49,38 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { activeUser, activeUserName, login, logout, isPasswordSet } = useActiveUser();
   const names = useUserNames();
   const userColors = useUserColors();
-  const { stickyNotes, notifications, isScreensaverActive, setIsScreensaverActive } = useData();
+  const {
+    stickyNotes,
+    notifications,
+    isScreensaverActive,
+    setIsScreensaverActive,
+    pomoTimeLeft,
+    pomoIsPlaying,
+    pomoMode,
+    pomoSettings
+  } = useData();
+
+  const isTimerActive = useMemo(() => {
+    if (!pomoSettings) return false;
+    const totalSeconds = pomoMode === "work"
+      ? pomoSettings.work * 60
+      : pomoMode === "shortBreak"
+        ? pomoSettings.shortBreak * 60
+        : pomoSettings.longBreak * 60;
+    return pomoTimeLeft < totalSeconds || pomoIsPlaying;
+  }, [pomoTimeLeft, pomoIsPlaying, pomoMode, pomoSettings]);
+
+  const timerString = useMemo(() => {
+    const minutes = Math.floor(pomoTimeLeft / 60).toString().padStart(2, "0");
+    const seconds = (pomoTimeLeft % 60).toString().padStart(2, "0");
+    return `${minutes}:${seconds}`;
+  }, [pomoTimeLeft]);
+
+  const timerLabel = useMemo(() => {
+    if (pomoMode === "work") return "Focus";
+    if (pomoMode === "shortBreak") return "Short Break";
+    return "Long Break";
+  }, [pomoMode]);
 
   const [activeWallpaper, setActiveWallpaper] = useState("/wallpapers/aurora_nordic.png");
 
@@ -764,6 +794,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* Right Side: mock widget elements, clock, and system buttons */}
         <div className="flex items-center gap-2.5">
+          {pathname !== "/pomodoro" && isTimerActive && (
+            <Link
+              href="/pomodoro"
+              className={cn(
+                "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono tracking-wider transition-all select-none border shadow-sm",
+                pomoIsPlaying
+                  ? "bg-indigo-500/15 text-indigo-200 border-indigo-500/25 hover:bg-indigo-500/25"
+                  : "bg-amber-500/15 text-amber-200 border-amber-500/25 hover:bg-amber-500/25"
+              )}
+              title="Return to Pomodoro Focus Room"
+            >
+              <Clock className={cn("h-3 w-3", pomoIsPlaying && "animate-pulse")} />
+              <span>{timerLabel}: {timerString}</span>
+            </Link>
+          )}
+
           <GlobalSearch iconOnly />
           
           <NotificationsMenu slim />
@@ -926,7 +972,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <QuickAdd />
-      <FloatingPomodoro />
 
       {/* Keyboard Shortcuts Dialog */}
       <Dialog open={showShortcutsHelp} onOpenChange={setShowShortcutsHelp}>
@@ -995,359 +1040,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function FloatingPomodoro() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const data = useData();
-  const {
-    pomoMode: mode,
-    pomoIsPlaying: isPlaying,
-    pomoTimeLeft: timeLeft,
-    pomoSettings: settings,
-    pomoFocusType: focusType,
-    pomoTaskId,
-    pomoBlockId,
-    setPomoIsPlaying: setIsPlaying,
-    setPomoTimeLeft: setTimeLeft,
-    setPomoMode: setMode,
-    tasks,
-    timetableBlocks,
-    getAudioContext
-  } = data;
 
-  const [isDismissed, setIsDismissed] = useState(false);
-  const [position, setPosition] = useState({ x: 24, y: 24 });
-  const [isDragging, setIsDragging] = useState(false);
-  const dragRef = useRef<HTMLDivElement>(null);
-  const dragStartOffset = useRef({ x: 0, y: 0 });
-
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [isPiPAvailable, setIsPiPAvailable] = useState(false);
-  const [isPiPActive, setIsPiPActive] = useState(false);
-
-  // Reset dismissed state when navigating to /pomodoro page
-  useEffect(() => {
-    if (pathname === "/pomodoro") {
-      setIsDismissed(false);
-    }
-  }, [pathname]);
-
-  // Check if PiP is available on mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const video = document.createElement("video");
-      setIsPiPAvailable(
-        "documentPictureInPicture" in window || 
-        (video.requestPictureInPicture && typeof video.requestPictureInPicture === "function")
-      );
-    }
-  }, []);
-
-  const totalSeconds = useMemo(() => {
-    if (mode === "work") return settings.work * 60;
-    if (mode === "shortBreak") return settings.shortBreak * 60;
-    return settings.longBreak * 60;
-  }, [mode, settings]);
-
-  const activeFocusTask = useMemo(() => {
-    return tasks.rows.find((t) => t.id === pomoTaskId);
-  }, [tasks.rows, pomoTaskId]);
-
-  const activeFocusBlock = useMemo(() => {
-    return timetableBlocks?.rows.find((b) => b.id === pomoBlockId);
-  }, [timetableBlocks?.rows, pomoBlockId]);
-
-  const focusTitle = useMemo(() => {
-    if (mode === "work") {
-      if (focusType === "task" && activeFocusTask) return activeFocusTask.title;
-      if (focusType === "block" && activeFocusBlock) return activeFocusBlock.title;
-      return "General Focus";
-    }
-    return mode === "shortBreak" ? "Short Break" : "Long Break";
-  }, [mode, focusType, activeFocusTask, activeFocusBlock]);
-
-  // Render timer on offscreen canvas for Picture-in-Picture window
-  useEffect(() => {
-    if (!isPiPActive) return;
-
-    const canvas = canvasRef.current || document.createElement("canvas");
-    if (!canvasRef.current) {
-      canvas.width = 240;
-      canvas.height = 240;
-      canvasRef.current = canvas;
-    }
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const draw = () => {
-      ctx.fillStyle = "#09090b";
-      ctx.fillRect(0, 0, 240, 240);
-
-      const progress = timeLeft / totalSeconds;
-      const angle = -Math.PI / 2 + 2 * Math.PI * progress;
-
-      // Draw background progress circle
-      ctx.beginPath();
-      ctx.arc(120, 110, 85, 0, 2 * Math.PI);
-      ctx.strokeStyle = "#27272a";
-      ctx.lineWidth = 14;
-      ctx.stroke();
-
-      // Draw active progress circle
-      ctx.beginPath();
-      ctx.arc(120, 110, 85, -Math.PI / 2, angle);
-      ctx.strokeStyle = mode === "work" ? "#6366f1" : "#10b981";
-      ctx.lineWidth = 14;
-      ctx.lineCap = "round";
-      ctx.stroke();
-
-      // Time Text
-      const m = Math.floor(timeLeft / 60).toString().padStart(2, "0");
-      const s = (timeLeft % 60).toString().padStart(2, "0");
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 38px monospace";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(`${m}:${s}`, 120, 100);
-
-      // Mode Status
-      ctx.fillStyle = mode === "work" ? "#818cf8" : "#34d399";
-      ctx.font = "bold 12px sans-serif";
-      ctx.fillText((mode === "work" ? "FOCUSING" : "BREAK").toUpperCase(), 120, 140);
-
-      // Focus Label Title
-      ctx.fillStyle = "#a1a1aa";
-      ctx.font = "11px sans-serif";
-      const cleanTitle = focusTitle.length > 22 ? focusTitle.substring(0, 20) + "..." : focusTitle;
-      ctx.fillText(cleanTitle, 120, 205);
-    };
-
-    draw();
-    const interval = setInterval(draw, 250);
-    return () => clearInterval(interval);
-  }, [timeLeft, totalSeconds, mode, focusTitle, isPiPActive]);
-
-  // Handle PiP toggle triggers
-  const handleTogglePiP = async () => {
-    try {
-      if (isPiPActive) {
-        if (document.pictureInPictureElement) {
-          await document.exitPictureInPicture();
-        }
-        setIsPiPActive(false);
-        return;
-      }
-
-      const canvas = canvasRef.current || document.createElement("canvas");
-      canvas.width = 240;
-      canvas.height = 240;
-      canvasRef.current = canvas;
-
-      const video = videoRef.current || document.createElement("video");
-      video.muted = true;
-      video.playsInline = true;
-
-      const stream = canvas.captureStream(5);
-      video.srcObject = stream;
-      videoRef.current = video;
-
-      video.onloadedmetadata = async () => {
-        try {
-          await video.play();
-          await video.requestPictureInPicture();
-          setIsPiPActive(true);
-        } catch (err) {
-          console.error("Error playing video for PiP:", err);
-        }
-      };
-
-      video.addEventListener("enterpictureinpicture", () => {
-        setIsPiPActive(true);
-      });
-      
-      video.addEventListener("leavepictureinpicture", () => {
-        setIsPiPActive(false);
-        if (videoRef.current) {
-          const s = videoRef.current.srcObject as MediaStream;
-          if (s) {
-            s.getTracks().forEach((track) => track.stop());
-          }
-          videoRef.current.srcObject = null;
-        }
-      });
-
-    } catch (error) {
-      console.error("Failed to start PiP timer:", error);
-    }
-  };
-
-  // Draggable calculations
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLElement;
-    if (target.closest("button") || target.closest("input") || target.closest("a")) return;
-
-    e.preventDefault();
-    setIsDragging(true);
-    dragStartOffset.current = {
-      x: e.clientX + position.x,
-      y: window.innerHeight - e.clientY - position.y
-    };
-    if (dragRef.current) {
-      dragRef.current.setPointerCapture(e.pointerId);
-    }
-  };
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging) return;
-    const newX = dragStartOffset.current.x - e.clientX;
-    const newY = window.innerHeight - e.clientY - dragStartOffset.current.y;
-    
-    // Clamp coordinates inside browser viewport
-    const clampedX = Math.max(12, Math.min(window.innerWidth - 240, newX));
-    const clampedY = Math.max(12, Math.min(window.innerHeight - 130, newY));
-    
-    setPosition({ x: clampedX, y: clampedY });
-  };
-
-  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (isDragging) {
-      setIsDragging(false);
-      if (dragRef.current) {
-        dragRef.current.releasePointerCapture(e.pointerId);
-      }
-    }
-  };
-
-  // Skip logic
-  const handleSkipMode = () => {
-    setIsPlaying(false);
-    if (mode === "work") {
-      const nextMode = (data.pomoCompletedCount + 1) % settings.longBreakInterval === 0 ? "longBreak" : "shortBreak";
-      setMode(nextMode);
-      setTimeLeft(nextMode === "shortBreak" ? settings.shortBreak * 60 : settings.longBreak * 60);
-    } else {
-      setMode("work");
-      setTimeLeft(settings.work * 60);
-    }
-  };
-
-  // Hide the floating widget on the main /pomodoro page, or if closed, or if not running
-  const isTimerActive = timeLeft < totalSeconds || isPlaying;
-  if (pathname === "/pomodoro" || isDismissed || !isTimerActive) return null;
-
-  const minutes = Math.floor(timeLeft / 60).toString().padStart(2, "0");
-  const seconds = (timeLeft % 60).toString().padStart(2, "0");
-  const progressPercent = (timeLeft / totalSeconds) * 100;
-
-  return (
-    <div
-      ref={dragRef}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      style={{
-        right: `${position.x}px`,
-        bottom: `${position.y}px`,
-        touchAction: "none"
-      }}
-      className={cn(
-        "fixed z-50 w-[220px] rounded-2xl bg-dark-card/90 text-white border border-dark-border p-3 shadow-2xl backdrop-blur-md select-none transition-shadow",
-        isDragging ? "shadow-dark-base/80 cursor-grabbing ring-1 ring-dark-muted" : "cursor-grab hover:shadow-dark-base/50"
-      )}
-    >
-      {/* Top Drag bar / controls */}
-      <div className="flex items-center justify-between gap-2 mb-1.5 text-dark-text-secondary">
-        <GripHorizontal className="h-3.5 w-3.5 opacity-50 text-dark-text-secondary/60 shrink-0" />
-        
-        {/* Simple inline progress bar */}
-        <div className="flex-1 h-1 bg-dark-hover rounded-full overflow-hidden">
-          <div
-            className={cn(
-              "h-full rounded-full transition-all duration-300",
-              mode === "work" ? "bg-indigo-500" : "bg-emerald-500"
-            )}
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-
-        <button
-          onClick={() => setIsDismissed(true)}
-          className="h-4 w-4 text-dark-text-secondary hover:text-white transition-colors flex items-center justify-center rounded hover:bg-dark-hover"
-          title="Dismiss Widget"
-        >
-          <X className="h-2.5 w-2.5" />
-        </button>
-      </div>
-
-      {/* Main content click navigates back to timer page */}
-      <div
-        onClick={() => router.push("/pomodoro")}
-        className="cursor-pointer group flex flex-col items-center py-1"
-        title="Open Pomodoro Settings"
-      >
-        <span className="font-mono text-3xl font-bold tracking-tight group-hover:text-dark-text transition-colors">
-          {minutes}:{seconds}
-        </span>
-        <div className="flex items-center gap-1.5 mt-0.5">
-          <span
-            className={cn(
-              "h-2 w-2 rounded-full",
-              isPlaying ? "animate-pulse" : "opacity-60",
-              mode === "work" ? "bg-indigo-500" : "bg-emerald-500"
-            )}
-          />
-          <span className="text-[10px] font-bold uppercase tracking-wider text-dark-text-secondary group-hover:text-dark-text">
-            {mode === "work" ? "Focus" : "Break"}
-          </span>
-        </div>
-        <p className="text-[9px] text-dark-text-secondary/80 text-center truncate max-w-full px-2 mt-1 leading-normal font-medium group-hover:text-dark-text-secondary">
-          {focusTitle}
-        </p>
-      </div>
-
-      {/* Bottom Button Row */}
-      <div className="flex items-center justify-center gap-2 mt-2 pt-2 border-t border-dark-border/80">
-        <button
-          onClick={() => { getAudioContext(); setIsPlaying(!isPlaying); }}
-          className={cn(
-            "h-7 w-7 rounded-lg flex items-center justify-center transition-colors border",
-            isPlaying 
-              ? "bg-dark-hover border-dark-muted text-white hover:bg-dark-muted" 
-              : "bg-zinc-100 dark:bg-dark-card border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text-secondary hover:bg-white dark:hover:bg-dark-hover"
-          )}
-          title={isPlaying ? "Pause Timer" : "Start Timer"}
-        >
-          {isPlaying ? <Pause className="h-3 w-3 fill-current" /> : <Play className="h-3 w-3 fill-current" />}
-        </button>
-
-        <button
-          onClick={handleSkipMode}
-          className="h-7 w-7 rounded-lg bg-dark-hover border border-dark-muted text-dark-text-secondary hover:text-white flex items-center justify-center transition-colors"
-          title="Skip Cycle"
-        >
-          <SkipForward className="h-3 w-3" />
-        </button>
-
-        {isPiPAvailable && (
-          <button
-            onClick={handleTogglePiP}
-            className={cn(
-              "h-7 w-7 rounded-lg border flex items-center justify-center transition-colors",
-              isPiPActive
-                ? "bg-indigo-950 border-indigo-800 text-indigo-400"
-                : "bg-dark-hover border-dark-muted text-dark-text-secondary hover:text-white"
-            )}
-            title={isPiPActive ? "Close Floating Timer (PiP)" : "Float Timer (PiP)"}
-          >
-            <Tv className="h-3 w-3" />
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
 
 export function WallpaperVideoPreview({ path }: { path: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
