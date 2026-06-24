@@ -897,10 +897,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
         const currentPartner = activeUser === "user1" ? activePartner : (activeUser === "user2" ? "user2" : "user3");
 
+        if (authorClean === cleanU1) {
+          const bodyText = item.body || "";
+          if (bodyText.includes("[share:user2]")) {
+            return currentPartner === "user2";
+          }
+          if (bodyText.includes("[share:user3]")) {
+            return currentPartner === "user3";
+          }
+          return true; // Default to showing to both workspaces
+        }
+
         if (currentPartner === "user2") {
-          return authorClean === cleanU1 || authorClean === cleanU2;
+          return authorClean === cleanU2;
         } else {
-          return authorClean === cleanU1 || authorClean === cleanU3;
+          return authorClean === cleanU3;
         }
       })
     };
@@ -1143,7 +1154,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       prompts,
       ideas,
       resources,
-      stickyNotes,
+      stickyNotes: filteredStickyNotes,
       moneyEntries,
       savingsGoals,
       dailyLogs,
@@ -1213,7 +1224,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       prompts,
       ideas,
       resources,
-      stickyNotes,
+      filteredStickyNotes,
       moneyEntries,
       savingsGoals,
       dailyLogs,

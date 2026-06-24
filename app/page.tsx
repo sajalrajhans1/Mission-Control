@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { AutosaveTextarea } from "@/components/autosize-textarea";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useData, useUserNames, useActiveUser, useUserColors } from "@/components/data-provider";
 import { currentMonthRange, formatMoney, cn } from "@/lib/utils";
 import type { Row, Json } from "@/lib/database.types";
@@ -31,6 +32,17 @@ const DEFAULT_WIDGETS: DesktopWidget[] = [
   { id: "mini-pomo", title: "Mini Focus Timer", visible: false, size: "small", order: 3 },
   { id: "mini-schedule", title: "Today's Schedule", visible: false, size: "small", order: 4 },
 ];
+
+const getNoteCleanBody = (body: string) => {
+  return (body || "").replace(/\s*\[share:(user2|user3|both)\]/g, "");
+};
+
+const getNoteShareSetting = (body: string): "both" | "user2" | "user3" => {
+  if (!body) return "both";
+  if (body.includes("[share:user2]")) return "user2";
+  if (body.includes("[share:user3]")) return "user3";
+  return "both";
+};
 
 export default function HomePage() {
   const { 
@@ -284,14 +296,15 @@ export default function HomePage() {
   }, [monthEntries, myKey, otherKey]);
 
   const progress = useMemo(() => {
-    return [user1, partnerUserName].map((person) => {
+    const list = activeUser === "user1" ? [user1, partnerUserName] : [partnerUserName, user1];
+    return list.map((person) => {
       const owned = tasks.rows.filter(
         (task) => task.assigned_to === person || task.assigned_to === "Both"
       );
       const done = owned.filter((task) => task.completed).length;
       return { person, done, total: owned.length, percent: owned.length ? (done / owned.length) * 100 : 0 };
     });
-  }, [tasks.rows, user1, partnerUserName]);
+  }, [tasks.rows, activeUser, user1, partnerUserName]);
 
   const handleCreateNote = async () => {
     await stickyNotes.create({
@@ -778,9 +791,11 @@ export default function HomePage() {
                 </div>
                 <div className="flex-1 text-xs leading-relaxed text-white/95 pr-1">
                   <AutosaveTextarea
-                    value={item.body}
-                    onSave={(body) => {
-                      stickyNotes.update(item.id, { body });
+                    value={getNoteCleanBody(item.body)}
+                    onSave={(newBody) => {
+                      const shareSetting = getNoteShareSetting(item.body);
+                      const suffix = shareSetting === "both" ? "" : ` [share:${shareSetting}]`;
+                      stickyNotes.update(item.id, { body: newBody.trim() + suffix });
                     }}
                     minHeight={100}
                     readOnly={!isCreator}
@@ -791,10 +806,31 @@ export default function HomePage() {
                   <span className="flex items-center gap-1.5 font-semibold min-w-0 flex-1 truncate">
                     <span
                       className="h-2 w-2 rounded-full shrink-0"
-                      style={{ backgroundColor: item.author === user1 ? userColors.user1 : userColors.user2 }}
+                      style={{ backgroundColor: item.author === user1 ? userColors.user1 : (item.author === user3 ? userColors.user3 : userColors.user2) }}
                     />
                     <span className="truncate">{item.author}</span>
                   </span>
+
+                  {activeUser === "user1" && item.author === user1 && !item.is_private && (
+                    <Select
+                      value={getNoteShareSetting(item.body)}
+                      onValueChange={(val) => {
+                        const cleanBody = getNoteCleanBody(item.body);
+                        const suffix = val === "both" ? "" : ` [share:${val}]`;
+                        stickyNotes.update(item.id, { body: cleanBody.trim() + suffix });
+                      }}
+                    >
+                      <SelectTrigger className="h-5 w-fit border-none bg-transparent hover:bg-white/10 text-[9px] font-bold text-white/70 hover:text-white rounded px-1.5 flex gap-1 focus:ring-0 focus:ring-offset-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900/95 backdrop-blur-xl border-white/10 text-white text-[10px] rounded-lg">
+                        <SelectItem value="both">Share: Everyone</SelectItem>
+                        <SelectItem value="user2">Share: {user2}</SelectItem>
+                        <SelectItem value="user3">Share: {user3}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+
                   {item.is_private && (
                     <span className="flex items-center gap-0.5 text-[8px] text-amber-300 bg-amber-955/65 px-1.5 py-0.5 rounded font-bold border border-amber-900/40 shrink-0 mx-1">
                       <Lock className="h-2 w-2" />
