@@ -44,14 +44,16 @@ type DataContextValue = {
   workDeliverables: ReturnType<typeof useRealtimeTable<"work_deliverables">>;
   taskCardPositions: ReturnType<typeof useRealtimeTable<"task_card_positions">>;
   taskCardConnections: ReturnType<typeof useRealtimeTable<"task_card_connections">>;
-  activeUser: "user1" | "user2" | null;
+  activeUser: "user1" | "user2" | "user3" | null;
   activeUserName: string;
+  activePartner: "user2" | "user3";
+  setActivePartner: (partner: "user2" | "user3") => void;
   onlineUsers: string[];
-  login: (user: "user1" | "user2", password?: string) => Promise<{ success: boolean; error?: string }>;
+  login: (user: "user1" | "user2" | "user3", password?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  setPassword: (user: "user1" | "user2", newPassword?: string) => Promise<void>;
-  isPasswordSet: (user: "user1" | "user2") => boolean;
-  sendNotification: (forUser: "user1" | "user2", title: string, body: string) => Promise<void>;
+  setPassword: (user: "user1" | "user2" | "user3", newPassword?: string) => Promise<void>;
+  isPasswordSet: (user: "user1" | "user2" | "user3") => boolean;
+  sendNotification: (forUser: "user1" | "user2" | "user3", title: string, body: string) => Promise<void>;
   
   // Pomodoro Timer context fields
   pomoMode: "work" | "shortBreak" | "longBreak";
@@ -105,7 +107,10 @@ const DEFAULT_VAULTS: Insert<"vaults">[] = [
 
 const DEFAULT_SETTINGS: Insert<"settings">[] = [
   { key: "user1_name", value: "Phoenix" },
-  { key: "user2_name", value: "Friend" }
+  { key: "user2_name", value: "Friend" },
+  { key: "user3_name", value: "Mr. Bill" },
+  { key: "user3_password", value: "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5" },
+  { key: "user3_color", value: "#10b981" }
 ];
 
 // Helper to hash password on client
@@ -127,7 +132,8 @@ function getUserNamesFromRows(rows: Row<"settings">[]) {
   };
   return {
     user1: find("user1_name", "Phoenix"),
-    user2: find("user2_name", "Friend")
+    user2: find("user2_name", "Friend"),
+    user3: find("user3_name", "Mr. Bill")
   };
 }
 
@@ -196,9 +202,32 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const taskCardPositions = useRealtimeTable("task_card_positions", { column: "card_id", ascending: true });
   const taskCardConnections = useRealtimeTable("task_card_connections", { column: "created_at", ascending: true });
 
-  const [activeUser, setActiveUser] = useState<"user1" | "user2" | null>(null);
+  const [activeUser, setActiveUser] = useState<"user1" | "user2" | "user3" | null>(null);
+  const [activePartner, setActivePartnerState] = useState<"user2" | "user3">("user2");
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [isScreensaverActive, setIsScreensaverActive] = useState<boolean>(false);
+
+  const setActivePartner = useCallback((partner: "user2" | "user3") => {
+    setActivePartnerState(partner);
+    sessionStorage.setItem("mc_partner", partner);
+  }, []);
+
+  // Sync active partner from sessionStorage if exists
+  useEffect(() => {
+    const savedPartner = sessionStorage.getItem("mc_partner");
+    if (savedPartner === "user2" || savedPartner === "user3") {
+      setActivePartnerState(savedPartner);
+    }
+  }, []);
+
+  // Ensure activePartner is correct when switching activeUser
+  useEffect(() => {
+    if (activeUser === "user3") {
+      setActivePartnerState("user3");
+    } else if (activeUser === "user2") {
+      setActivePartnerState("user2");
+    }
+  }, [activeUser]);
 
   // ─── Pomodoro Global States ───────────────────────────────────────────────────
   const [pomoMode, setPomoMode] = useState<"work" | "shortBreak" | "longBreak">("work");
@@ -228,7 +257,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [pomoIsZenMode, setPomoIsZenMode] = useState<boolean>(false);
 
   const names = useMemo(() => getUserNamesFromRows(settings.rows), [settings.rows]);
-  const activeUserName = activeUser === "user1" ? names.user1 : activeUser === "user2" ? names.user2 : "";
+  const activeUserName = activeUser === "user1" ? names.user1 : activeUser === "user2" ? names.user2 : activeUser === "user3" ? names.user3 : "";
 
   // Web Audio Context & Synthesizer Nodes Refs
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -655,9 +684,33 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const filteredProjects = useMemo(() => {
     return {
       ...projects,
-      rows: projects.rows.filter((p) => !p.is_private || p.created_by === activeUser)
+      rows: projects.rows.filter((p) => {
+        // If private, only the owner can see it
+        if (p.is_private) {
+          if (activeUser === "user1") {
+            return p.created_by === "user1";
+          }
+          return p.created_by === activeUser;
+        }
+
+        // Collaborative projects:
+        if (activeUser === "user1") {
+          if (activePartner === "user2") {
+            return p.created_by === "user2" || p.created_by === "user1_user2" || p.created_by === "user1";
+          } else {
+            return p.created_by === "user3" || p.created_by === "user1_user3";
+          }
+        }
+        if (activeUser === "user2") {
+          return p.created_by === "user2" || p.created_by === "user1_user2" || p.created_by === "user1";
+        }
+        if (activeUser === "user3") {
+          return p.created_by === "user3" || p.created_by === "user1_user3";
+        }
+        return false;
+      })
     };
-  }, [projects, activeUser]);
+  }, [projects, activeUser, activePartner]);
 
   const filteredTasks = useMemo(() => {
     return {
@@ -670,35 +723,50 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
 
         // 2. Project-level privacy
-        if (!t.project_id) return true;
-        const p = projects.rows.find((proj) => proj.id === t.project_id);
-        if (!p) return false;
-        return !p.is_private || p.created_by === activeUser;
+        if (t.project_id) {
+          const p = filteredProjects.rows.find((proj) => proj.id === t.project_id);
+          if (!p) return false;
+        }
+
+        // 3. Collaborative/Direct task filtering
+        const assigneeClean = (t.assigned_to || "").trim().toLowerCase();
+        const cleanU1 = (names.user1 || "").trim().toLowerCase();
+        const cleanU2 = (names.user2 || "").trim().toLowerCase();
+        const cleanU3 = (names.user3 || "").trim().toLowerCase();
+        const creatorClean = (t.created_by || "").trim().toLowerCase();
+
+        const currentPartner = activeUser === "user1" ? activePartner : (activeUser === "user2" ? "user2" : "user3");
+
+        if (currentPartner === "user2") {
+          const isMrBillTask = creatorClean === cleanU3 || assigneeClean === cleanU3;
+          return !isMrBillTask;
+        } else {
+          const isSamarthTask = creatorClean === cleanU2 || assigneeClean === cleanU2;
+          return !isSamarthTask;
+        }
       })
     };
-  }, [tasks, projects.rows, activeUser, activeUserName]);
+  }, [tasks, filteredProjects.rows, activeUser, activeUserName, activePartner, names]);
 
   const filteredProjectFiles = useMemo(() => {
     return {
       ...projectFiles,
       rows: projectFiles.rows.filter((f) => {
-        const p = projects.rows.find((proj) => proj.id === f.project_id);
-        if (!p) return false;
-        return !p.is_private || p.created_by === activeUser;
+        const p = filteredProjects.rows.find((proj) => proj.id === f.project_id);
+        return !!p;
       })
     };
-  }, [projectFiles, projects.rows, activeUser]);
+  }, [projectFiles, filteredProjects.rows]);
 
   const filteredMilestones = useMemo(() => {
     return {
       ...projectMilestones,
       rows: projectMilestones.rows.filter((m) => {
-        const p = projects.rows.find((proj) => proj.id === m.project_id);
-        if (!p) return false;
-        return !p.is_private || p.created_by === activeUser;
+        const p = filteredProjects.rows.find((proj) => proj.id === m.project_id);
+        return !!p;
       })
     };
-  }, [projectMilestones, projects.rows, activeUser]);
+  }, [projectMilestones, filteredProjects.rows]);
 
   const filteredTimetableBlocks = useMemo(() => {
     return {
@@ -723,14 +791,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
         // Project-level visibility (if this position represents a project card)
         if (pos.card_id !== "general") {
-          const p = projects.rows.find((proj) => proj.id === pos.card_id);
+          const p = filteredProjects.rows.find((proj) => proj.id === pos.card_id);
           if (!p) return false;
-          if (p.is_private && p.created_by !== activeUser) return false;
         }
         return true;
       })
     };
-  }, [taskCardPositions, projects.rows, activeUser]);
+  }, [taskCardPositions, filteredProjects.rows, activeUser]);
 
   const filteredConnections = useMemo(() => {
     return {
@@ -742,18 +809,106 @@ export function DataProvider({ children }: { children: ReactNode }) {
         // Both source and target must be visible projects (or 'general')
         const isCardVisible = (cardId: string) => {
           if (cardId === "general") return true;
-          const p = projects.rows.find((proj) => proj.id === cardId);
-          if (!p) return false;
-          return !p.is_private || p.created_by === activeUser;
+          const p = filteredProjects.rows.find((proj) => proj.id === cardId);
+          return !!p;
         };
         return isCardVisible(conn.source_id) && isCardVisible(conn.target_id);
       })
     };
-  }, [taskCardConnections, projects.rows, activeUser]);
+  }, [taskCardConnections, filteredProjects.rows, activeUser]);
+
+  const filteredVaults = useMemo(() => {
+    return {
+      ...vaults,
+      rows: vaults.rows.filter((v) => {
+        if (v.is_default || !v.created_by) return true;
+        const creator = (v.created_by || "").trim().toLowerCase();
+        const cleanU1 = (names.user1 || "").trim().toLowerCase();
+        const cleanU2 = (names.user2 || "").trim().toLowerCase();
+        const cleanU3 = (names.user3 || "").trim().toLowerCase();
+        
+        const currentPartner = activeUser === "user1" ? activePartner : (activeUser === "user2" ? "user2" : "user3");
+
+        if (currentPartner === "user2") {
+          return creator === cleanU1 || creator === cleanU2;
+        } else {
+          return creator === cleanU1 || creator === cleanU3;
+        }
+      })
+    };
+  }, [vaults, activeUser, activePartner, names]);
+
+  const filteredVaultItems = useMemo(() => {
+    const visibleVaultIds = new Set(filteredVaults.rows.map((v) => v.id));
+    return {
+      ...vaultItems,
+      rows: vaultItems.rows.filter((item) => visibleVaultIds.has(item.vault_id))
+    };
+  }, [vaultItems, filteredVaults.rows]);
+
+  const filteredMoneyEntries = useMemo(() => {
+    return {
+      ...moneyEntries,
+      rows: moneyEntries.rows.filter((e) => {
+        if (activeUser === "user1") {
+          return e.added_by === "user1" || e.request_to === activePartner || e.added_by === activePartner;
+        }
+        if (activeUser === "user2") {
+          return e.added_by === "user2" || e.request_to === "user2";
+        }
+        if (activeUser === "user3") {
+          return e.added_by === "user3" || e.request_to === "user3";
+        }
+        return false;
+      })
+    };
+  }, [moneyEntries, activeUser, activePartner]);
+
+  const filteredSavingsGoals = useMemo(() => {
+    return {
+      ...savingsGoals,
+      rows: savingsGoals.rows.filter((g) => {
+        if (activeUser === "user1") {
+          return g.created_by === "user1" || g.created_by === activePartner;
+        }
+        if (activeUser === "user2") {
+          return g.created_by === "user1" || g.created_by === "user2";
+        }
+        if (activeUser === "user3") {
+          return g.created_by === "user1" || g.created_by === "user3";
+        }
+        return false;
+      })
+    };
+  }, [savingsGoals, activeUser, activePartner]);
+
+  const filteredStickyNotes = useMemo(() => {
+    return {
+      ...stickyNotes,
+      rows: stickyNotes.rows.filter((item) => {
+        if (item.is_private) {
+          return (item.author || "").trim().toLowerCase() === (activeUserName || "").trim().toLowerCase();
+        }
+
+        const authorClean = (item.author || "").trim().toLowerCase();
+        const cleanU1 = (names.user1 || "").trim().toLowerCase();
+        const cleanU2 = (names.user2 || "").trim().toLowerCase();
+        const cleanU3 = (names.user3 || "").trim().toLowerCase();
+
+        const currentPartner = activeUser === "user1" ? activePartner : (activeUser === "user2" ? "user2" : "user3");
+
+        if (currentPartner === "user2") {
+          return authorClean === cleanU1 || authorClean === cleanU2;
+        } else {
+          return authorClean === cleanU1 || authorClean === cleanU3;
+        }
+      })
+    };
+  }, [stickyNotes, activeUser, activeUserName, activePartner, names]);
 
   useEffect(() => {
     const saved = sessionStorage.getItem("mc_session");
-    if (saved === "user1" || saved === "user2") {
+    if (saved === "user1" || saved === "user2" || saved === "user3") {
       setActiveUser(saved);
     }
   }, []);
@@ -901,7 +1056,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [vaults.loading, vaults.rows.length, settings.loading, settings.rows]);
 
   const login = useCallback(
-    async (user: "user1" | "user2", password?: string) => {
+    async (user: "user1" | "user2" | "user3", password?: string) => {
       const key = `${user}_password`;
       const row = settings.rows.find((r) => r.key === key);
       const storedHash = row ? (typeof row.value === "string" ? row.value : null) : null;
@@ -941,7 +1096,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setPassword = useCallback(
-    async (user: "user1" | "user2", newPassword?: string) => {
+    async (user: "user1" | "user2" | "user3", newPassword?: string) => {
       const key = `${user}_password`;
       const row = settings.rows.find((r) => r.key === key);
       const hash = newPassword ? await sha256(newPassword.trim()) : null;
@@ -955,7 +1110,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   );
 
   const isPasswordSet = useCallback(
-    (user: "user1" | "user2") => {
+    (user: "user1" | "user2" | "user3") => {
       const key = `${user}_password`;
       const row = settings.rows.find((r) => r.key === key);
       return Boolean(row && row.value);
@@ -964,7 +1119,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   );
 
   const sendNotification = useCallback(
-    async (forUser: "user1" | "user2", title: string, body: string) => {
+    async (forUser: "user1" | "user2" | "user3", title: string, body: string) => {
       if (!isSupabaseConfigured || !supabase) return;
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1005,6 +1160,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       taskCardConnections: filteredConnections,
       activeUser,
       activeUserName,
+      activePartner,
+      setActivePartner,
       onlineUsers,
       login,
       logout,
@@ -1073,6 +1230,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       filteredConnections,
       activeUser,
       activeUserName,
+      activePartner,
+      setActivePartner,
       onlineUsers,
       login,
       logout,
@@ -1138,7 +1297,8 @@ export function useUserColors() {
     };
     return {
       user1: find("user1_color", "#6366f1"), // Indigo default
-      user2: find("user2_color", "#f97316")  // Orange default
+      user2: find("user2_color", "#f97316"), // Orange default
+      user3: find("user3_color", "#10b981")  // Emerald default
     };
   }, [settings.rows]);
 }

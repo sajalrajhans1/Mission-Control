@@ -16,10 +16,10 @@ import { cn } from "@/lib/utils";
 const subFilters = ["All", "Today", "Upcoming", "Completed"] as const;
 
 export default function TasksPage() {
-  const { tasks, projects, activeUserName, activeUser, sendNotification } = useData();
-  const { user1, user2 } = useUserNames();
+  const { tasks, projects, activeUserName, activeUser, sendNotification, activePartner } = useData();
+  const { user1, user2, user3 } = useUserNames();
 
-  const [activeSpace, setActiveSpace] = useState<"user1" | "user2" | "collab">("user1");
+  const [activeSpace, setActiveSpace] = useState<"user1" | "user2" | "user3" | "collab">("user1");
   const [subFilter, setSubFilter] = useState<(typeof subFilters)[number]>("All");
 
   const [title, setTitle] = useState("");
@@ -32,22 +32,47 @@ export default function TasksPage() {
   const today = todayISO();
   const activeProjects = projects.rows.filter((p) => !p.archived);
 
+  const partnerUserKey = useMemo(() => {
+    return activeUser === "user1" ? activePartner : (activeUser === "user2" ? "user2" : "user3");
+  }, [activeUser, activePartner]);
+
+  const partnerUserName = useMemo(() => {
+    return partnerUserKey === "user3" ? user3 : user2;
+  }, [partnerUserKey, user2, user3]);
+
   // Set default tab to current active user on load
   useEffect(() => {
-    if (activeUser === "user2") {
+    if (activeUser === "user3") {
+      setActiveSpace("user3");
+      setAssignedTo(user3);
+    } else if (activeUser === "user2") {
       setActiveSpace("user2");
       setAssignedTo(user2);
     } else {
       setActiveSpace("user1");
       setAssignedTo(user1);
     }
-  }, [activeUser, user1, user2]);
+  }, [activeUser, user1, user2, user3]);
+
+  // Handle auto-switching tabs when Sajal switches active partner
+  useEffect(() => {
+    if (activeUser === "user1") {
+      if (activeSpace === "user2" && activePartner === "user3") {
+        setActiveSpace("user3");
+        setAssignedTo(user3);
+      } else if (activeSpace === "user3" && activePartner === "user2") {
+        setActiveSpace("user2");
+        setAssignedTo(user2);
+      }
+    }
+  }, [activePartner, activeUser, activeSpace, user2, user3]);
 
   // Adjust default assignee when switching tabs
-  const handleSpaceChange = (space: "user1" | "user2" | "collab") => {
+  const handleSpaceChange = (space: "user1" | "user2" | "user3" | "collab") => {
     setActiveSpace(space);
     if (space === "user1") setAssignedTo(user1);
     else if (space === "user2") setAssignedTo(user2);
+    else if (space === "user3") setAssignedTo(user3);
     else setAssignedTo("Both");
   };
 
@@ -55,8 +80,9 @@ export default function TasksPage() {
   const targetAssigneeName = useMemo(() => {
     if (activeSpace === "user1") return user1;
     if (activeSpace === "user2") return user2;
+    if (activeSpace === "user3") return user3;
     return "Both";
-  }, [activeSpace, user1, user2]);
+  }, [activeSpace, user1, user2, user3]);
 
   // Filter tasks that are APPROVED and belong to the activeSpace
   const approvedTasks = useMemo(() => {
@@ -79,17 +105,17 @@ export default function TasksPage() {
   // Get tasks AWAITING APPROVAL in the activeSpace
   // Scenario A: Logged-in user is the assignee -> they must approve or decline
   const incomingRequests = useMemo(() => {
-    const spaceUser = activeSpace === "user1" ? user1 : activeSpace === "user2" ? user2 : null;
+    const spaceUser = activeSpace === "user1" ? user1 : activeSpace === "user2" ? user2 : activeSpace === "user3" ? user3 : null;
     if (!spaceUser || (activeUserName || "").trim().toLowerCase() !== spaceUser.trim().toLowerCase()) return [];
     const spaceUserLower = spaceUser.trim().toLowerCase();
     return tasks.rows.filter(
       (task) => (task.assigned_to || "").trim().toLowerCase() === spaceUserLower && task.approved === false
     );
-  }, [tasks.rows, activeSpace, activeUserName, user1, user2]);
+  }, [tasks.rows, activeSpace, activeUserName, user1, user2, user3]);
 
   // Scenario B: Logged-in user is the creator but assigned to other -> show as pending status
   const pendingRequests = useMemo(() => {
-    const spaceUser = activeSpace === "user1" ? user1 : activeSpace === "user2" ? user2 : null;
+    const spaceUser = activeSpace === "user1" ? user1 : activeSpace === "user2" ? user2 : activeSpace === "user3" ? user3 : null;
     if (!spaceUser || (activeUserName || "").trim().toLowerCase() === spaceUser.trim().toLowerCase()) return [];
     const spaceUserLower = spaceUser.trim().toLowerCase();
     const activeUserNameLower = (activeUserName || "").trim().toLowerCase();
@@ -99,7 +125,7 @@ export default function TasksPage() {
         task.approved === false &&
         (task.created_by || "").trim().toLowerCase() === activeUserNameLower
     );
-  }, [tasks.rows, activeSpace, activeUserName, user1, user2]);
+  }, [tasks.rows, activeSpace, activeUserName, user1, user2, user3]);
 
   const createTask = async () => {
     if (!title.trim()) return;
@@ -120,7 +146,7 @@ export default function TasksPage() {
       approved
     });
 
-    const otherUserKey = activeUser === "user1" ? "user2" : "user1";
+    const otherUserKey = activeUser === "user1" ? activePartner : "user1";
     if (assignedTo === "Both") {
       sendNotification(
         otherUserKey,
@@ -128,7 +154,7 @@ export default function TasksPage() {
         `${activeUserName} created: ${title.trim()}`
       );
     } else {
-      const targetUser = assignedTo === user1 ? "user1" : "user2";
+      const targetUser = assignedTo === user1 ? "user1" : (assignedTo === user2 ? "user2" : "user3");
       if (targetUser === otherUserKey) {
         sendNotification(
           otherUserKey,
@@ -163,15 +189,15 @@ export default function TasksPage() {
           {user1}&apos;s Tasks
         </button>
         <button
-          onClick={() => handleSpaceChange("user2")}
+          onClick={() => handleSpaceChange(partnerUserKey)}
           className={cn(
             "py-2 px-5 font-semibold text-xs rounded-xl transition-all duration-200",
-            activeSpace === "user2"
+            activeSpace === partnerUserKey
               ? "bg-white/45 dark:bg-white/15 border-white/45 dark:border-white/20 text-zinc-900 dark:text-white shadow-sm"
               : "text-slate-600 dark:text-dark-text-secondary hover:text-zinc-900 dark:hover:text-white"
           )}
         >
-          {user2}&apos;s Tasks
+          {partnerUserName}&apos;s Tasks
         </button>
         <button
           onClick={() => handleSpaceChange("collab")}
@@ -217,7 +243,7 @@ export default function TasksPage() {
               </SelectTrigger>
               <SelectContent className="bg-white/95 dark:bg-[#1e1f22]/95 backdrop-blur-xl border-white/20 dark:border-white/10 text-slate-800 dark:text-white rounded-xl">
                 <SelectItem value={user1}>{user1}</SelectItem>
-                <SelectItem value={user2}>{user2}</SelectItem>
+                <SelectItem value={partnerUserName}>{partnerUserName}</SelectItem>
                 <SelectItem value="Both">Both</SelectItem>
               </SelectContent>
             </Select>
@@ -295,7 +321,7 @@ export default function TasksPage() {
                     className="h-8 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all active:scale-95"
                     onClick={async () => {
                       await tasks.update(task.id, { approved: true });
-                      const otherUserKey = activeUser === "user1" ? "user2" : "user1";
+                      const otherUserKey = activeUser === "user1" ? activePartner : "user1";
                       sendNotification(
                          otherUserKey,
                          "Task Request Approved",
@@ -335,7 +361,7 @@ export default function TasksPage() {
                   <span className="font-medium">{task.title}</span>
                   {task.note && <span className="italic text-slate-500 dark:text-dark-text-secondary ml-2">• Note: {task.note}</span>}
                 </div>
-                <span className="text-slate-500 dark:text-dark-text-secondary italic font-medium">Awaiting {activeSpace === "user1" ? user2 : user1}&apos;s approval</span>
+                <span className="text-slate-500 dark:text-dark-text-secondary italic font-medium">Awaiting {activeSpace === "user1" ? partnerUserName : user1}&apos;s approval</span>
               </div>
             ))}
           </CardContent>

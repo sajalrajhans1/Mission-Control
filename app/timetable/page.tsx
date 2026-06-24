@@ -85,7 +85,7 @@ function minutesToTimeString(totalMinutes: number): string {
 
 export default function TimetablePage() {
   const { timetableBlocks, tasks, activeUser } = useData();
-  const { user1, user2 } = useUserNames();
+  const { user1, user2, user3 } = useUserNames();
 
   // Navigation State
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
@@ -175,6 +175,7 @@ export default function TimetablePage() {
   const myPendingTasks = useMemo(() => {
     const cleanU1 = (user1 || "").trim().toLowerCase();
     const cleanU2 = (user2 || "").trim().toLowerCase();
+    const cleanU3 = (user3 || "").trim().toLowerCase();
 
     return tasks.rows.filter((t) => {
       const assigneeClean = (t.assigned_to || "").trim().toLowerCase();
@@ -182,7 +183,8 @@ export default function TimetablePage() {
         assigneeClean === "both" ||
         assigneeClean === activeUser ||
         (activeUser === "user1" && assigneeClean === cleanU1) ||
-        (activeUser === "user2" && assigneeClean === cleanU2);
+        (activeUser === "user2" && assigneeClean === cleanU2) ||
+        (activeUser === "user3" && assigneeClean === cleanU3);
 
       if (!isAssigned) return false;
 
@@ -192,7 +194,7 @@ export default function TimetablePage() {
       }
       return !t.completed;
     });
-  }, [tasks.rows, activeUser, user1, user2]);
+  }, [tasks.rows, activeUser, user1, user2, user3]);
 
   // Check if a day has already passed (ignores current day)
   const isPastDay = (day: Date) => {
@@ -493,7 +495,7 @@ export default function TimetablePage() {
           completed_user1: nextVal,
           completed: nextVal && !!task.completed_user2
         });
-      } else if (activeUser === "user2") {
+      } else if (activeUser === "user2" || activeUser === "user3") {
         const nextVal = !task.completed_user2;
         await tasks.update(taskId, {
           completed_user2: nextVal,

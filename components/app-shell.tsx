@@ -59,7 +59,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     pomoIsPlaying,
     pomoMode,
     pomoSettings,
-    settings
+    settings,
+    activePartner,
+    setActivePartner
   } = useData();
 
   const [isQuickNoteOpen, setIsQuickNoteOpen] = useState(false);
@@ -80,10 +82,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   }, [activeUser]);
 
+  const noteKey = useMemo(() => {
+    if (activeUser === "user1") {
+      return `quick_note_shared_content_user1_${activePartner}`;
+    }
+    return activeUser === "user2" ? "quick_note_shared_content_user1_user2" : "quick_note_shared_content_user1_user3";
+  }, [activeUser, activePartner]);
+
+  const metaKey = useMemo(() => {
+    if (activeUser === "user1") {
+      return `quick_note_shared_meta_user1_${activePartner}`;
+    }
+    return activeUser === "user2" ? "quick_note_shared_meta_user1_user2" : "quick_note_shared_meta_user1_user3";
+  }, [activeUser, activePartner]);
+
   // Sync state with settings table for shared notes, or localStorage for private notes
   useEffect(() => {
     if (isShared) {
-      const row = settings?.rows.find((r) => r.key === "quick_note_shared_content");
+      const row = settings?.rows.find((r) => r.key === noteKey) ||
+        (noteKey === "quick_note_shared_content_user1_user2" ? settings?.rows.find((r) => r.key === "quick_note_shared_content") : undefined);
       const dbVal = row ? (row.value as string) || "" : "";
       if (!isFocusedRef.current) {
         setNoteText(dbVal);
@@ -93,26 +110,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         setNoteText(localStorage.getItem(`mc_quick_note_private_${activeUser}`) || "");
       }
     }
-  }, [settings?.rows, isShared, activeUser]);
+  }, [settings?.rows, isShared, activeUser, noteKey]);
 
   const sharedMeta = useMemo(() => {
     if (!settings) return null;
-    const metaRow = settings.rows.find((r) => r.key === "quick_note_shared_meta");
+    const metaRow = settings.rows.find((r) => r.key === metaKey) ||
+      (metaKey === "quick_note_shared_meta_user1_user2" ? settings.rows.find((r) => r.key === "quick_note_shared_meta") : undefined);
     return metaRow ? (metaRow.value as { updatedBy: string; updatedAt: string }) : null;
-  }, [settings]);
+  }, [settings, metaKey]);
 
   const saveNote = useCallback(async (text: string, shared: boolean) => {
     if (!settings) return;
     if (shared) {
       if (!activeUser) return;
-      const row = settings.rows.find((r) => r.key === "quick_note_shared_content");
+      const row = settings.rows.find((r) => r.key === noteKey) ||
+        (noteKey === "quick_note_shared_content_user1_user2" ? settings.rows.find((r) => r.key === "quick_note_shared_content") : undefined);
       if (row) {
         await settings.update(row.id, { value: text });
       } else {
-        await settings.create({ key: "quick_note_shared_content", value: text });
+        await settings.create({ key: noteKey, value: text });
       }
 
-      const metaRow = settings.rows.find((r) => r.key === "quick_note_shared_meta");
+      const metaRow = settings.rows.find((r) => r.key === metaKey) ||
+        (metaKey === "quick_note_shared_meta_user1_user2" ? settings.rows.find((r) => r.key === "quick_note_shared_meta") : undefined);
       const metaValue = {
         updatedBy: activeUserName || "System",
         updatedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
@@ -120,14 +140,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       if (metaRow) {
         await settings.update(metaRow.id, { value: metaValue as unknown as Json });
       } else {
-        await settings.create({ key: "quick_note_shared_meta", value: metaValue as unknown as Json });
+        await settings.create({ key: metaKey, value: metaValue as unknown as Json });
       }
     } else {
       if (activeUser) {
         localStorage.setItem(`mc_quick_note_private_${activeUser}`, text);
       }
     }
-  }, [activeUser, activeUserName, settings]);
+  }, [activeUser, activeUserName, settings, noteKey, metaKey]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
@@ -282,7 +302,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
 
   // Auth/Login & Lock State
-  const [selectedProfile, setSelectedProfile] = useState<"user1" | "user2" | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<"user1" | "user2" | "user3" | null>(null);
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState<string | null>(null);
   const [isLocked, setIsLocked] = useState(false);
@@ -520,7 +540,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   if (!activeUser) {
-    const uName = selectedProfile === "user1" ? names.user1 : selectedProfile === "user2" ? names.user2 : "";
+    const uName = selectedProfile === "user1" ? names.user1 : selectedProfile === "user2" ? names.user2 : selectedProfile === "user3" ? names.user3 : "";
     const isFirstTime = selectedProfile ? !isPasswordSet(selectedProfile) : false;
     const isVideo = activeWallpaper.endsWith(".mp4") || activeWallpaper.includes(".m3u8");
 
@@ -620,6 +640,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     </div>
                     <span className="truncate">{names.user2}</span>
                   </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-12 justify-start gap-4 rounded-xl text-xs font-bold border-white/15 dark:border-white/10 bg-white/5 dark:bg-black/20 hover:bg-white/10 dark:hover:bg-black/35 text-white transition-all duration-200 shadow group"
+                    onClick={() => setSelectedProfile("user3")}
+                  >
+                    <div
+                      className="flex h-7 w-7 items-center justify-center rounded-full text-white font-extrabold text-[10px] shrink-0 shadow transition-transform group-hover:scale-105"
+                      style={{ backgroundColor: userColors.user3 }}
+                    >
+                      {names.user3[0].toUpperCase()}
+                    </div>
+                    <span className="truncate">{names.user3}</span>
+                  </Button>
                 </div>
               ) : (
                 <form onSubmit={handleLogin} className="flex flex-col gap-3.5">
@@ -627,7 +661,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <div className="flex items-center gap-3 p-2 rounded-xl bg-white/5 border border-white/10 w-full mb-1">
                     <div
                       className="flex h-7 w-7 items-center justify-center rounded-full text-white font-extrabold text-xs shrink-0 shadow-sm"
-                      style={{ backgroundColor: selectedProfile === "user1" ? userColors.user1 : userColors.user2 }}
+                      style={{ backgroundColor: selectedProfile === "user1" ? userColors.user1 : selectedProfile === "user2" ? userColors.user2 : userColors.user3 }}
                     >
                       {uName[0].toUpperCase()}
                     </div>
@@ -680,7 +714,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   if (isLocked) {
-    const color = activeUser === "user1" ? userColors.user1 : userColors.user2;
+    const color = activeUser === "user1" ? userColors.user1 : activeUser === "user2" ? userColors.user2 : userColors.user3;
     const isVideo = activeWallpaper.endsWith(".mp4") || activeWallpaper.includes(".m3u8");
     return (
       <div 
@@ -1048,11 +1082,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <div className="h-3.5 w-px bg-slate-350 dark:bg-white/10 mx-1" />
 
+          {/* Workspace Partner Selector (Only for user1 / Sajal) */}
+          {activeUser === "user1" && (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-black/10 dark:bg-white/5 border border-slate-200/40 dark:border-white/10 shadow-sm backdrop-blur-md">
+              <span className="text-[9px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest font-mono">Space:</span>
+              <select
+                value={activePartner}
+                onChange={(e) => setActivePartner(e.target.value as "user2" | "user3")}
+                className="bg-transparent text-[10px] font-bold text-slate-800 dark:text-white border-none outline-none cursor-pointer p-0 focus:ring-0"
+              >
+                <option value="user2" className="bg-[#1e1f22] text-white font-bold">{names.user2}</option>
+                <option value="user3" className="bg-[#1e1f22] text-white font-bold">{names.user3}</option>
+              </select>
+            </div>
+          )}
+
           {/* User profile */}
           <div className="flex items-center gap-1.5 cursor-default">
             <div
               className="flex h-5 w-5 items-center justify-center rounded-full text-white text-[10px] font-bold shadow shadow-black/20"
-              style={{ backgroundColor: activeUser === "user1" ? userColors.user1 : userColors.user2 }}
+              style={{ backgroundColor: activeUser === "user1" ? userColors.user1 : activeUser === "user2" ? userColors.user2 : userColors.user3 }}
               title={activeUserName}
             >
               {(activeUserName ? activeUserName[0] : "").toUpperCase()}

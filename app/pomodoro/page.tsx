@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils";
 export default function PomodoroPage() {
   const data = useData();
   const { tasks, activeUser, timetableBlocks } = data;
-  const { user1, user2 } = useUserNames();
+  const { user1, user2, user3 } = useUserNames();
 
   const {
     pomoMode: mode,
@@ -88,6 +88,7 @@ export default function PomodoroPage() {
   const myPendingTasks = useMemo(() => {
     const cleanU1 = (user1 || "").trim().toLowerCase();
     const cleanU2 = (user2 || "").trim().toLowerCase();
+    const cleanU3 = (user3 || "").trim().toLowerCase();
 
     return tasks.rows.filter((t) => {
       const assigneeClean = (t.assigned_to || "").trim().toLowerCase();
@@ -95,7 +96,8 @@ export default function PomodoroPage() {
         assigneeClean === "both" ||
         assigneeClean === activeUser ||
         (activeUser === "user1" && assigneeClean === cleanU1) ||
-        (activeUser === "user2" && assigneeClean === cleanU2);
+        (activeUser === "user2" && assigneeClean === cleanU2) ||
+        (activeUser === "user3" && assigneeClean === cleanU3);
 
       if (!isAssigned) return false;
 
@@ -104,7 +106,7 @@ export default function PomodoroPage() {
       }
       return !t.completed;
     });
-  }, [tasks.rows, activeUser, user1, user2]);
+  }, [tasks.rows, activeUser, user1, user2, user3]);
 
   // Sync selected task title
   const activeFocusTask = useMemo(() => {
@@ -149,7 +151,7 @@ export default function PomodoroPage() {
           completed_user1: nextVal,
           completed: nextVal && !!task.completed_user2
         });
-      } else if (activeUser === "user2") {
+      } else if (activeUser === "user2" || activeUser === "user3") {
         const nextVal = !task.completed_user2;
         await tasks.update(selectedTaskId, {
           completed_user2: nextVal,

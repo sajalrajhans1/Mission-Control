@@ -34,10 +34,13 @@ type ChatMessage = {
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: projectId } = React.use(params);
   const router = useRouter();
-  const { projects, tasks, projectFiles, projectMilestones, settings, sendNotification, activeUser } = useData();
+  const { projects, tasks, projectFiles, projectMilestones, settings, sendNotification, activeUser, activePartner } = useData();
   const { activeUserName } = useActiveUser();
   const names = useUserNames();
   const userColors = useUserColors();
+
+  const partnerUserKey = activeUser === "user1" ? activePartner : (activeUser === "user2" ? "user2" : "user3");
+  const partnerUserName = partnerUserKey === "user3" ? names.user3 : names.user2;
 
   const [activeTab, setActiveTab] = useState<Tab>("tasks");
 
@@ -207,7 +210,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       file_data: null,
       uploaded_by: activeUserName || "User"
     });
-    const otherUserKey = activeUser === "user1" ? "user2" : "user1";
+    const otherUserKey = activeUser === "user1" ? activePartner : "user1";
     sendNotification(
       otherUserKey,
       "New Project Document",
@@ -232,7 +235,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         url: null,
         uploaded_by: activeUserName || "User"
       });
-      const otherUserKey = activeUser === "user1" ? "user2" : "user1";
+      const otherUserKey = activeUser === "user1" ? activePartner : "user1";
       sendNotification(
         otherUserKey,
         "New Project Document",
@@ -258,7 +261,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       note: newTaskNote.trim(),
       approved: newTaskAssigned === "Both" || newTaskAssigned === activeUserName
     });
-    const otherUserKey = activeUser === "user1" ? "user2" : "user1";
+    const otherUserKey = activeUser === "user1" ? activePartner : "user1";
     if (newTaskAssigned === "Both") {
       sendNotification(
         otherUserKey,
@@ -266,7 +269,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         `${activeUserName} created: ${newTaskTitle.trim()}`
       );
     } else {
-      const targetUser = newTaskAssigned === names.user1 ? "user1" : "user2";
+      const targetUser = newTaskAssigned === names.user1 ? "user1" : (newTaskAssigned === names.user2 ? "user2" : "user3");
       if (targetUser === otherUserKey) {
         sendNotification(
           otherUserKey,
@@ -680,7 +683,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                           <SelectTrigger className="bg-white/10 dark:bg-black/25 border-white/25 dark:border-white/10 text-white focus-visible:ring-1 focus-visible:ring-white/30"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value={names.user1}>{names.user1}</SelectItem>
-                            <SelectItem value={names.user2}>{names.user2}</SelectItem>
+                            <SelectItem value={partnerUserName}>{partnerUserName}</SelectItem>
                             <SelectItem value="Both">Both</SelectItem>
                           </SelectContent>
                         </Select>

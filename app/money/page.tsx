@@ -12,7 +12,7 @@ import { Field } from "@/components/field";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { useData, useUserNames, useActiveUser } from "@/components/data-provider";
+import { useData, useUserNames } from "@/components/data-provider";
 import { cn, todayISO } from "@/lib/utils";
 import type { Row } from "@/lib/database.types";
 
@@ -30,9 +30,11 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export default function MoneyPage() {
-  const { moneyEntries, savingsGoals, sendNotification } = useData();
-  const { activeUser, activeUserName } = useActiveUser();
+  const { moneyEntries, savingsGoals, sendNotification, activeUser, activeUserName, activePartner } = useData();
   const names = useUserNames();
+
+  const partnerUserKey = activeUser === "user1" ? activePartner : (activeUser === "user2" ? "user2" : "user3");
+  const partnerUserName = partnerUserKey === "user3" ? names.user3 : names.user2;
 
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("0");
@@ -136,11 +138,11 @@ export default function MoneyPage() {
 
   // Active user details
   const myKey = activeUser || "user1";
-  const otherKey = myKey === "user1" ? "user2" : "user1";
+  const otherKey = myKey === "user1" ? activePartner : "user1";
 
   // Calculate wallet totals
   const getWalletTotal = (userKey: string) => {
-    const otherUserKey = userKey === "user1" ? "user2" : "user1";
+    const otherUserKey = userKey === "user1" ? activePartner : "user1";
 
     const userIncome = allEntries
       .filter((e) => e.added_by === userKey && e.type === "Income" && !e.is_request)
@@ -497,11 +499,11 @@ export default function MoneyPage() {
         <Card className="relative overflow-hidden bg-white/35 dark:bg-black/35 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-2xl rounded-3xl">
           <CardHeader>
             <CardTitle className="text-base text-zinc-900 dark:text-dark-text font-bold">
-              {names.user2}&apos;s Wallet {myKey === "user2" && <span className="text-xs font-normal text-green-600">(You)</span>}
+              {partnerUserName}&apos;s Wallet {myKey === partnerUserKey && <span className="text-xs font-normal text-green-600">(You)</span>}
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
-            {myKey === "user2" ? (
+            {myKey === partnerUserKey ? (
               <>
                 <div className="text-3xl font-extrabold text-zinc-900 dark:text-dark-text">
                   {formatVal(myWalletTotal)}
@@ -539,7 +541,7 @@ export default function MoneyPage() {
                   <Lock className="h-5 w-5 text-slate-500 dark:text-dark-text-secondary" />
                 </div>
                 <p className="mt-3 text-sm font-semibold text-zinc-800 dark:text-white">Balance &amp; History Private</p>
-                <p className="text-xs text-slate-500 dark:text-dark-text-secondary mt-0.5">Visible only to {names.user2}</p>
+                <p className="text-xs text-slate-500 dark:text-dark-text-secondary mt-0.5">Visible only to {partnerUserName}</p>
               </div>
             )}
           </CardContent>
@@ -568,7 +570,7 @@ export default function MoneyPage() {
                       <div className="flex justify-between items-start gap-2 mb-1">
                         <h4 className="font-bold text-sm text-zinc-800 dark:text-white truncate">{goal.title}</h4>
                         <span className="text-[10px] bg-white/20 dark:bg-black/20 text-slate-700 dark:text-dark-text-secondary px-1.5 py-0.5 rounded font-medium shrink-0 border border-white/10">
-                          by {goal.created_by === "user1" ? names.user1 : names.user2}
+                          by {goal.created_by === "user1" ? names.user1 : partnerUserName}
                         </span>
                       </div>
                       <div className="flex justify-between items-baseline mt-2 text-xs">
@@ -648,7 +650,7 @@ export default function MoneyPage() {
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold text-zinc-800 dark:text-white truncate">{e.description}</p>
                       <p className="text-xs text-slate-500 dark:text-dark-text-secondary">
-                        Requested by {e.added_by === "user1" ? names.user1 : names.user2} • {e.entry_date}
+                        Requested by {e.added_by === "user1" ? names.user1 : partnerUserName} • {e.entry_date}
                       </p>
                     </div>
                     <div className="flex gap-2 shrink-0 ml-3">
@@ -733,7 +735,7 @@ export default function MoneyPage() {
                           <div className="min-w-0 flex-1">
                             <p className="font-semibold text-zinc-800 dark:text-white truncate">{e.description}</p>
                             <p className="text-xs text-slate-500 dark:text-dark-text-secondary mt-0.5">
-                              {e.paid_by === "user1" ? names.user1 : names.user2} claims to have paid
+                              {e.paid_by === "user1" ? names.user1 : partnerUserName} claims to have paid
                             </p>
                           </div>
                           <div className="text-right shrink-0">
@@ -786,7 +788,7 @@ export default function MoneyPage() {
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold text-zinc-800 dark:text-white truncate">{e.description}</p>
                           <p className="text-xs text-slate-500 dark:text-dark-text-secondary mt-0.5">
-                            Owed to {e.added_by === "user1" ? names.user1 : names.user2} • {e.entry_date}
+                            Owed to {e.added_by === "user1" ? names.user1 : partnerUserName} • {e.entry_date}
                           </p>
                           {paidSoFar > 0 && (
                             <p className="text-[10px] text-emerald-600 font-bold mt-1">
@@ -888,7 +890,7 @@ export default function MoneyPage() {
                       <div className="min-w-0 flex-1">
                         <p className="font-semibold text-zinc-800 dark:text-white truncate">{e.description}</p>
                         <p className="text-xs text-amber-605 dark:text-amber-400 font-bold mt-0.5">
-                          Paid {formatVal(e.paid_amount || 0)} — waiting for {e.added_by === "user1" ? names.user1 : names.user2} to confirm
+                          Paid {formatVal(e.paid_amount || 0)} — waiting for {e.added_by === "user1" ? names.user1 : partnerUserName} to confirm
                         </p>
                       </div>
                       <div className="shrink-0 ml-3 flex items-center gap-1.5 text-amber-600">
@@ -916,7 +918,7 @@ export default function MoneyPage() {
                       <div className="min-w-0 flex-1">
                         <p className="font-semibold truncate text-zinc-700 dark:text-white">{e.description}</p>
                         <p className="text-xs text-slate-500 dark:text-dark-text-secondary mt-0.5">
-                          Waiting for {e.request_to === "user1" ? names.user1 : names.user2} to pay
+                          Waiting for {e.request_to === "user1" ? names.user1 : partnerUserName} to pay
                         </p>
                         {paidSoFar > 0 && (
                           <p className="text-[10px] text-emerald-600 font-semibold mt-0.5">
@@ -943,7 +945,7 @@ export default function MoneyPage() {
         <CardHeader>
           <CardTitle className="text-base text-zinc-900 dark:text-dark-text font-bold flex items-center gap-2">
             <Send className="h-4 w-4 text-violet-500" />
-            Send Money to {otherKey === "user1" ? names.user1 : names.user2}
+            Send Money to {otherKey === "user1" ? names.user1 : partnerUserName}
           </CardTitle>
           <p className="text-xs text-muted-foreground mt-0.5">Proactively pay your partner — for split bills, dues, or anything they forgot to request.</p>
         </CardHeader>

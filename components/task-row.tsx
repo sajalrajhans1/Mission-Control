@@ -37,10 +37,15 @@ function getDueDateLabel(dueDateStr: string) {
 }
 
 export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact?: boolean }) {
-  const { tasks, projects, sendNotification } = useData();
-  const { activeUser, activeUserName } = useActiveUser();
-  const { user1, user2 } = useUserNames();
+  const { tasks, projects, sendNotification, activeUser, activePartner } = useData();
+  const { activeUserName } = useActiveUser();
+  const { user1, user2, user3 } = useUserNames();
   const userColors = useUserColors();
+
+  const partnerUserKey = activeUser === "user1" ? activePartner : (activeUser === "user2" ? "user2" : "user3");
+  const partnerUserName = partnerUserKey === "user3" ? user3 : user2;
+  const partnerColor = partnerUserKey === "user3" ? userColors.user3 : userColors.user2;
+  const partnerInit = partnerUserName ? (partnerUserName.length > 3 ? partnerUserName.slice(0, 3) : partnerUserName) : "PT";
   const project = projects.rows.find((item) => item.id === task.project_id);
   const isCreator = task.created_by === activeUserName || task.created_by === "Unknown";
 
@@ -59,7 +64,6 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
   };
 
   const u1Init = user1 ? (user1.length > 3 ? user1.slice(0, 3) : user1) : "U1";
-  const u2Init = user2 ? (user2.length > 3 ? user2.slice(0, 3) : user2) : "U2";
 
   const isBoth = (task.assigned_to || "").trim().toLowerCase() === "both";
   const canDelete = isCreator || isBoth;
@@ -90,7 +94,7 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
                 });
                 if (nextVal) {
                   sendNotification(
-                    "user2",
+                    activePartner,
                     "Task Component Done",
                     `${user1} completed their part of: ${task.title}`
                   );
@@ -109,15 +113,15 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
             size="icon"
             className={cn(
               "h-8 w-8 rounded-full text-[10px] font-bold transition-all border-2",
-              activeUser !== "user2" && "opacity-50 cursor-not-allowed hover:bg-transparent hover:text-inherit"
+              activeUser !== partnerUserKey && "opacity-50 cursor-not-allowed hover:bg-transparent hover:text-inherit"
             )}
             style={{
-              backgroundColor: task.completed_user2 ? userColors.user2 : "transparent",
-              borderColor: userColors.user2,
-              color: task.completed_user2 ? "#ffffff" : userColors.user2
+              backgroundColor: task.completed_user2 ? partnerColor : "transparent",
+              borderColor: partnerColor,
+              color: task.completed_user2 ? "#ffffff" : partnerColor
             }}
             onClick={async () => {
-              if (activeUser === "user2") {
+              if (activeUser === partnerUserKey) {
                 const nextVal = !task.completed_user2;
                 await tasks.update(task.id, {
                   completed_user2: nextVal,
@@ -127,15 +131,15 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
                   sendNotification(
                     "user1",
                     "Task Component Done",
-                    `${user2} completed their part of: ${task.title}`
+                    `${partnerUserName} completed their part of: ${task.title}`
                   );
                 }
               }
             }}
-            disabled={activeUser !== "user2"}
-            title={`${user2}: ${task.completed_user2 ? "Done" : "Pending"}`}
+            disabled={activeUser !== partnerUserKey}
+            title={`${partnerUserName}: ${task.completed_user2 ? "Done" : "Pending"}`}
           >
-            {task.completed_user2 ? <Check className="h-3 w-3 text-white" /> : <span>{u2Init}</span>}
+            {task.completed_user2 ? <Check className="h-3 w-3 text-white" /> : <span>{partnerInit}</span>}
           </Button>
         </div>
       ) : (
@@ -146,7 +150,7 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
           const taskAssignee = (task.assigned_to || "").trim().toLowerCase();
           
           const isUser1 = taskAssignee === u1;
-          const assignedColor = isUser1 ? userColors.user1 : userColors.user2;
+          const assignedColor = isUser1 ? userColors.user1 : partnerColor;
           const isAssignedToActiveUser = activeName !== "" && taskAssignee === activeName;
           return (
             <Button
@@ -166,7 +170,7 @@ export function TaskRow({ task, compact = false }: { task: Row<"tasks">; compact
                   const nextVal = !task.completed;
                   await tasks.update(task.id, { completed: nextVal });
                   if (nextVal) {
-                    const otherUserKey = activeUser === "user1" ? "user2" : "user1";
+                    const otherUserKey = activeUser === "user1" ? activePartner : "user1";
                     sendNotification(
                       otherUserKey,
                       "Task Completed",

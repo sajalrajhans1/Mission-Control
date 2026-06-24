@@ -37,14 +37,17 @@ export default function HomePage() {
     tasks, moneyEntries, stickyNotes, settings, onlineUsers, sendNotification, 
     isScreensaverActive, setIsScreensaverActive,
     pomoMode, setPomoMode, pomoIsPlaying, setPomoIsPlaying, pomoTimeLeft, setPomoTimeLeft,
-    pomoSettings, pomoTaskId, pomoBlockId, pomoCompletedCount, timetableBlocks, getAudioContext
+    pomoSettings, pomoTaskId, pomoBlockId, pomoCompletedCount, timetableBlocks, getAudioContext,
+    activePartner
   } = useData();
   const { activeUser, activeUserName } = useActiveUser();
-  const { user1, user2 } = useUserNames();
+  const { user1, user2, user3 } = useUserNames();
   const userColors = useUserColors();
   const month = currentMonthRange();
 
-  const otherUserName = activeUserName === user1 ? user2 : user1;
+  const otherUserName = activeUser === "user1" 
+    ? (activePartner === "user2" ? user2 : user3) 
+    : user1;
   const isOtherUserOnline = onlineUsers.includes(otherUserName);
 
   // --- Clock & Date Widget State ---
@@ -160,7 +163,16 @@ export default function HomePage() {
   };
 
   // --- Shared Priority List ---
-  const priorityRow = settings.rows.find((r) => r.key === "shared_priority_list");
+  const listKey = useMemo(() => {
+    if (activeUser === "user1") {
+      return `shared_priority_list_user1_${activePartner}`;
+    }
+    return activeUser === "user2" ? "shared_priority_list_user1_user2" : "shared_priority_list_user1_user3";
+  }, [activeUser, activePartner]);
+
+  const priorityRow = settings.rows.find((r) => r.key === listKey) || 
+    (listKey === "shared_priority_list_user1_user2" ? settings.rows.find((r) => r.key === "shared_priority_list") : undefined);
+
   const parsedPriority = useMemo(() => {
     if (!priorityRow || !priorityRow.value) return { text: "", updatedBy: "", updatedAt: "" };
     const val = priorityRow.value as { text?: string; updatedBy?: string; updatedAt?: string };
@@ -193,9 +205,16 @@ export default function HomePage() {
     if (priorityRow) {
       await settings.update(priorityRow.id, { value: updatedValue as unknown as Json });
     } else {
-      await settings.create({ key: "shared_priority_list", value: updatedValue as unknown as Json });
+      await settings.create({ key: listKey, value: updatedValue as unknown as Json });
     }
-    const otherUserKey = activeUser === "user1" ? "user2" : "user1";
+    
+    let otherUserKey: "user1" | "user2" | "user3" = "user2";
+    if (activeUser === "user3" || activeUser === "user2") {
+      otherUserKey = "user1";
+    } else {
+      otherUserKey = activePartner;
+    }
+
     sendNotification(
       otherUserKey,
       "Priority List Updated",
