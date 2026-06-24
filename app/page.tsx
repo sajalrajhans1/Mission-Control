@@ -57,10 +57,9 @@ export default function HomePage() {
   const userColors = useUserColors();
   const month = currentMonthRange();
 
-  const otherUserName = activeUser === "user1" 
-    ? (activePartner === "user2" ? user2 : user3) 
-    : user1;
-  const isOtherUserOnline = onlineUsers.includes(otherUserName);
+  const isUser1Online = onlineUsers.includes(user1);
+  const isUser2Online = onlineUsers.includes(user2);
+  const isUser3Online = onlineUsers.includes(user3);
 
   // --- Clock & Date Widget State ---
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
@@ -663,20 +662,55 @@ export default function HomePage() {
         >
           {timeString}
         </h1>
-        <div className="mt-2 flex items-center gap-3 bg-black/25 dark:bg-black/35 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 text-white shadow-lg">
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-3 bg-black/25 dark:bg-black/35 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 text-white shadow-lg">
           <span className="text-sm font-semibold tracking-wide">
             {greeting}, {activeUserName}
           </span>
           <div className="h-3 w-px bg-white/20" />
-          <div className="relative flex h-2.5 w-2.5 shrink-0">
-            {isOtherUserOnline && (
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            )}
-            <span className={cn("relative inline-flex rounded-full h-2.5 w-2.5", isOtherUserOnline ? "bg-emerald-500" : "bg-white/40")}></span>
-          </div>
-          <span className="text-xs text-white/80 font-medium">
-            {otherUserName} is {isOtherUserOnline ? "online" : "offline"}
-          </span>
+          
+          {activeUser === "user1" ? (
+            <>
+              {/* Samarth Status */}
+              <div className="flex items-center gap-1.5">
+                <div className="relative flex h-2.5 w-2.5 shrink-0">
+                  {isUser2Online && (
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  )}
+                  <span className={cn("relative inline-flex rounded-full h-2.5 w-2.5", isUser2Online ? "bg-emerald-500" : "bg-white/40")}></span>
+                </div>
+                <span className="text-xs text-white/80 font-medium">
+                  {user2}: {isUser2Online ? "online" : "offline"}
+                </span>
+              </div>
+
+              <div className="h-3 w-px bg-white/20" />
+
+              {/* Mr. Bill Status */}
+              <div className="flex items-center gap-1.5">
+                <div className="relative flex h-2.5 w-2.5 shrink-0">
+                  {isUser3Online && (
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  )}
+                  <span className={cn("relative inline-flex rounded-full h-2.5 w-2.5", isUser3Online ? "bg-emerald-500" : "bg-white/40")}></span>
+                </div>
+                <span className="text-xs text-white/80 font-medium">
+                  {user3}: {isUser3Online ? "online" : "offline"}
+                </span>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <div className="relative flex h-2.5 w-2.5 shrink-0">
+                {isUser1Online && (
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                )}
+                <span className={cn("relative inline-flex rounded-full h-2.5 w-2.5", isUser1Online ? "bg-emerald-500" : "bg-white/40")}></span>
+              </div>
+              <span className="text-xs text-white/80 font-medium">
+                {user1} is {isUser1Online ? "online" : "offline"}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
