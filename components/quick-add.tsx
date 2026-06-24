@@ -1,6 +1,6 @@
 "use client";
-
-import { useState } from "react";
+ 
+import { useState, useEffect } from "react";
 import { Lightbulb, NotebookPen, Plus, StickyNote, WalletCards, WandSparkles, Archive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -9,10 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Field } from "@/components/field";
 import { useData, useUserNames, useActiveUser } from "@/components/data-provider";
-import { todayISO } from "@/lib/utils";
-
+import { todayISO, buildSharingSuffix } from "@/lib/utils";
+ 
 type Kind = "Task" | "Idea" | "Prompt" | "Sticky Note" | "Money Entry" | "Vault Entry";
-
+ 
 const kinds: { label: Kind; icon: typeof Plus }[] = [
   { label: "Task", icon: NotebookPen },
   { label: "Idea", icon: Lightbulb },
@@ -21,22 +21,26 @@ const kinds: { label: Kind; icon: typeof Plus }[] = [
   { label: "Money Entry", icon: WalletCards },
   { label: "Vault Entry", icon: Archive }
 ];
-
+ 
 export function QuickAdd({ inline = false }: { inline?: boolean }) {
   const data = useData();
   const names = useUserNames();
   const { activeUser } = useActiveUser();
   const [open, setOpen] = useState(false);
-  const [isPrivate, setIsPrivate] = useState(false);
+  const [sharingTarget, setSharingTarget] = useState(() => activeUser === "user1" ? "both" : "user1");
   const [kind, setKind] = useState<Kind>("Task");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [amount, setAmount] = useState("0");
   const [type, setType] = useState<"Income" | "Expense">("Income");
   const [vaultId, setVaultId] = useState("");
-
+ 
   const customVaults = data.vaults.rows.filter((v) => !v.is_default);
 
+  useEffect(() => {
+    setSharingTarget(activeUser === "user1" ? "both" : "user1");
+  }, [activeUser]);
+ 
   const reset = () => {
     setTitle("");
     setBody("");
@@ -45,9 +49,9 @@ export function QuickAdd({ inline = false }: { inline?: boolean }) {
     setVaultId("");
     setOpen(false);
     setKind("Task");
-    setIsPrivate(false);
+    setSharingTarget(activeUser === "user1" ? "both" : "user1");
   };
-
+ 
   const submit = async () => {
     if (!title.trim()) return;
     if (kind === "Task") {
@@ -63,15 +67,28 @@ export function QuickAdd({ inline = false }: { inline?: boolean }) {
         approved: true
       });
     }
-    if (kind === "Idea") await data.ideas.create({ title, description: body });
-    if (kind === "Prompt") await data.prompts.create({ title, content: body, category: "Misc" });
+    if (kind === "Idea") {
+      const suffix = buildSharingSuffix(activeUser || "user1", sharingTarget);
+      await data.ideas.create({ title: title.trim() + suffix, description: body });
+    }
+    if (kind === "Prompt") {
+      const suffix = buildSharingSuffix(activeUser || "user1", sharingTarget);
+      await data.prompts.create({ title: title.trim() + suffix, content: body, category: "Misc" });
+    }
     if (kind === "Sticky Note") {
+      const isNotePrivate = sharingTarget === "private";
+      let finalBody = body;
+      if (activeUser === "user1" && (sharingTarget === "user2" || sharingTarget === "sharingTarget")) {
+        finalBody = body.trim() + ` [share:${sharingTarget}]`;
+      } else if (activeUser === "user1" && (sharingTarget === "user2" || sharingTarget === "user3")) {
+        finalBody = body.trim() + ` [share:${sharingTarget}]`;
+      }
       await data.stickyNotes.create({
         title,
-        body,
+        body: finalBody,
         color: "Yellow",
-        author: activeUser === "user2" ? names.user2 : names.user1,
-        is_private: isPrivate
+        author: activeUser === "user2" ? names.user2 : (activeUser === "user3" ? names.user3 : names.user1),
+        is_private: isNotePrivate
       });
     }
     if (kind === "Money Entry") {
@@ -86,18 +103,19 @@ export function QuickAdd({ inline = false }: { inline?: boolean }) {
       });
     }
     if (kind === "Vault Entry" && vaultId) {
-      await data.vaultItems.create({ vault_id: vaultId, title, body });
+      const suffix = buildSharingSuffix(activeUser || "user1", sharingTarget);
+      await data.vaultItems.create({ vault_id: vaultId, title: title.trim() + suffix, body });
     }
     reset();
   };
-
+ 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       submit();
     }
   };
-
+ 
   if (inline) {
     return (
       <div className="flex flex-wrap gap-2">
@@ -130,13 +148,13 @@ export function QuickAdd({ inline = false }: { inline?: boolean }) {
           onSubmit={submit}
           handleKeyDown={handleKeyDown}
           showTypePicker={false}
-          isPrivate={isPrivate}
-          setIsPrivate={setIsPrivate}
+          sharingTarget={sharingTarget}
+          setSharingTarget={setSharingTarget}
         />
       </div>
     );
   }
-
+ 
   return (
     <>
       <Button
@@ -166,8 +184,8 @@ export function QuickAdd({ inline = false }: { inline?: boolean }) {
         onSubmit={submit}
         handleKeyDown={handleKeyDown}
         showTypePicker
-        isPrivate={isPrivate}
-        setIsPrivate={setIsPrivate}
+        sharingTarget={sharingTarget}
+        setSharingTarget={setSharingTarget}
       />
     </>
   );
@@ -179,7 +197,7 @@ function QuickAddDialog({
   open, kind, setKind, title, setTitle, body, setBody,
   amount, setAmount, type, setType, vaultId, setVaultId,
   customVaults, onClose, onSubmit, handleKeyDown, showTypePicker,
-  isPrivate, setIsPrivate
+  sharingTarget, setSharingTarget
 }: {
   open: boolean;
   kind: Kind;
@@ -199,9 +217,12 @@ function QuickAddDialog({
   onSubmit: () => void;
   handleKeyDown: (e: React.KeyboardEvent) => void;
   showTypePicker: boolean;
-  isPrivate: boolean;
-  setIsPrivate: (v: boolean) => void;
+  sharingTarget: string;
+  setSharingTarget: (v: string) => void;
 }) {
+  const { activeUser } = useActiveUser();
+  const names = useUserNames();
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent>
@@ -234,25 +255,35 @@ function QuickAddDialog({
             />
           </Field>
 
+          {(kind === "Idea" || kind === "Prompt" || kind === "Sticky Note" || kind === "Vault Entry") && (
+            <Field label="Visibility">
+              <Select value={sharingTarget} onValueChange={setSharingTarget}>
+                <SelectTrigger className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900/95 backdrop-blur-xl border-white/10 text-white text-xs rounded-xl">
+                  {activeUser === "user1" ? (
+                    <>
+                      <SelectItem value="private">Only Me</SelectItem>
+                      <SelectItem value="user2">Me & {names.user2 || "Samarth"}</SelectItem>
+                      <SelectItem value="user3">Me & {names.user3 || "Mr. Bill"}</SelectItem>
+                      <SelectItem value="both">Me, {names.user2 || "Samarth"} & {names.user3 || "Mr. Bill"} (Everyone)</SelectItem>
+                    </>
+                  ) : (
+                    <>
+                      <SelectItem value="private">Private</SelectItem>
+                      <SelectItem value="user1">Share with {names.user1 || "Sajal"}</SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+            </Field>
+          )}
+
           {(kind === "Task" || kind === "Idea" || kind === "Prompt" || kind === "Sticky Note" || kind === "Vault Entry") && (
             <Field label={kind === "Task" ? "Note" : "Content"}>
               <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} placeholder={kind === "Task" ? "Any important details..." : ""} />
             </Field>
-          )}
-
-          {kind === "Sticky Note" && (
-            <div className="flex items-center gap-2 pt-1">
-              <input
-                type="checkbox"
-                id="quick-add-is-private"
-                checked={isPrivate}
-                onChange={(e) => setIsPrivate(e.target.checked)}
-                className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
-              />
-              <label htmlFor="quick-add-is-private" className="text-sm font-medium text-zinc-700">
-                Keep this sticky note private (only visible to you)
-              </label>
-            </div>
           )}
 
           {kind === "Money Entry" && (

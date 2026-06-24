@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft, Archive, ArchiveRestore, Download, FileText, Link2,
   Paperclip, Plus, Trash2, Send, MessageSquare, ListTodo, Paperclip as PaperclipIcon,
-  Briefcase, Lock, Unlock, Users, CheckCircle2, Circle, Clock, Calendar
+  Briefcase, Lock, Users, CheckCircle2, Circle, Clock, Calendar
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -329,17 +329,30 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 </span>
               )}
               {/* Privacy Badge */}
-              {project.is_private ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/25 text-amber-200 border border-amber-400/30 backdrop-blur-md shadow-sm">
-                  <Lock className="h-3 w-3 shrink-0" />
-                  Private Project
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/25 text-emerald-200 border border-emerald-400/30 backdrop-blur-md shadow-sm">
-                  <Users className="h-3 w-3 shrink-0" />
-                  Collaborative Project
-                </span>
-              )}
+              {(() => {
+                if (project.is_private) {
+                  return (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/25 text-amber-200 border border-amber-400/30 backdrop-blur-md shadow-sm">
+                      <Lock className="h-3 w-3 shrink-0" />
+                      Private Project
+                    </span>
+                  );
+                }
+                
+                let label = "Collaborative Project";
+                const creator = project.created_by || "";
+                if (creator === "user1_user2") label = `Collab: ${names.user2}`;
+                else if (creator === "user1_user3") label = `Collab: ${names.user3}`;
+                else if (creator === "user1") label = "Collab: Everyone";
+                else if (creator === "user2" || creator === "user3") label = `Shared with ${names.user1}`;
+
+                return (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/25 text-emerald-200 border border-emerald-400/30 backdrop-blur-md shadow-sm">
+                    <Users className="h-3 w-3 shrink-0" />
+                    {label}
+                  </span>
+                );
+              })()}
             </div>
             <h1 className="text-3xl font-bold tracking-tight text-white flex flex-wrap items-center gap-2.5">
               {project.name}
@@ -349,17 +362,68 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             </h1>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {/* Privacy Toggle Switch */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-xl border border-white/25 dark:border-white/10 flex items-center gap-1.5 bg-white/15 dark:bg-black/25 hover:bg-white/25 dark:hover:bg-black/40 backdrop-blur text-white hover:text-white"
-            onClick={() => projects.update(project.id, { is_private: !project.is_private })}
+        <div className="flex flex-wrap gap-2 items-center">
+          {/* Visibility / Privacy Dropdown */}
+          <Select
+            value={(() => {
+              if (project.is_private) return "private";
+              const creator = project.created_by || "";
+              if (creator === "user1_user2") return "user2";
+              if (creator === "user1_user3") return "user3";
+              if (creator === "user1" && !creator.includes("_")) return "both";
+              return activeUser === "user1" ? "both" : "share";
+            })()}
+            onValueChange={async (val) => {
+              let isProjPrivate = false;
+              let projCreatedBy = project.created_by || activeUser;
+
+              if (activeUser === "user1") {
+                if (val === "private") {
+                  isProjPrivate = true;
+                  projCreatedBy = "user1";
+                } else if (val === "user2") {
+                  isProjPrivate = false;
+                  projCreatedBy = "user1_user2";
+                } else if (val === "user3") {
+                  isProjPrivate = false;
+                  projCreatedBy = "user1_user3";
+                } else {
+                  isProjPrivate = false;
+                  projCreatedBy = "user1";
+                }
+              } else {
+                if (val === "private") {
+                  isProjPrivate = true;
+                } else {
+                  isProjPrivate = false;
+                }
+              }
+
+              await projects.update(project.id, {
+                is_private: isProjPrivate,
+                created_by: projCreatedBy
+              });
+            }}
           >
-            {project.is_private ? <Unlock className="h-4 w-4 text-emerald-400 hover:scale-110 transition-transform" /> : <Lock className="h-4 w-4 text-amber-400 hover:scale-110 transition-transform" />}
-            {project.is_private ? "Make Collaborative" : "Make Private"}
-          </Button>
+            <SelectTrigger className="h-8.5 text-xs py-1 px-3 bg-white/15 dark:bg-black/25 border-white/20 dark:border-white/10 text-white rounded-xl focus:ring-1 focus:ring-indigo-500 flex items-center gap-1.5 hover:bg-white/25 dark:hover:bg-black/40 backdrop-blur">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-900/95 backdrop-blur-xl border-white/10 text-white text-xs rounded-xl">
+              {activeUser === "user1" ? (
+                <>
+                  <SelectItem value="private">Visibility: Only Me</SelectItem>
+                  <SelectItem value="user2">Visibility: Me & {names.user2}</SelectItem>
+                  <SelectItem value="user3">Visibility: Me & {names.user3}</SelectItem>
+                  <SelectItem value="both">Visibility: Everyone</SelectItem>
+                </>
+              ) : (
+                <>
+                  <SelectItem value="private">Visibility: Private</SelectItem>
+                  <SelectItem value="share">Visibility: Share with {names.user1}</SelectItem>
+                </>
+              )}
+            </SelectContent>
+          </Select>
           <Button
             variant="outline"
             size="sm"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Pencil, Plus, Trash2, Briefcase, Lock, Users, Clock, Archive, ArchiveRestore
@@ -11,7 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { EmptyState } from "@/components/empty-state";
-import { useData } from "@/components/data-provider";
+import { useData, useUserNames } from "@/components/data-provider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import type { Row } from "@/lib/database.types";
 
@@ -48,12 +49,17 @@ export default function ProjectsPage() {
   const router = useRouter();
   const { projects, tasks, projectMilestones, activeUser } = useData();
 
+  const { user1, user2, user3 } = useUserNames();
   const [name, setName] = useState("");
   const [color, setColor] = useState<string | undefined>(undefined);
   const [projectType, setProjectType] = useState<"normal" | "client">("normal");
-  const [isPrivate, setIsPrivate] = useState(false);
+  const [sharingTarget, setSharingTarget] = useState(() => activeUser === "user1" ? "both" : "share");
   const [clientDeadline, setClientDeadline] = useState("");
   const [showArchived, setShowArchived] = useState(false);
+
+  useEffect(() => {
+    setSharingTarget(activeUser === "user1" ? "both" : "share");
+  }, [activeUser]);
 
   // Rename state
   const [renaming, setRenaming] = useState<Row<"projects"> | null>(null);
@@ -86,21 +92,49 @@ export default function ProjectsPage() {
 
   const createProject = async () => {
     if (!name.trim()) return;
+
+    let isProjPrivate = false;
+    let projCreatedBy = activeUser || "";
+
+    if (activeUser === "user1") {
+      if (sharingTarget === "private") {
+        isProjPrivate = true;
+        projCreatedBy = "user1";
+      } else if (sharingTarget === "user2") {
+        isProjPrivate = false;
+        projCreatedBy = "user1_user2";
+      } else if (sharingTarget === "user3") {
+        isProjPrivate = false;
+        projCreatedBy = "user1_user3";
+      } else {
+        isProjPrivate = false;
+        projCreatedBy = "user1";
+      }
+    } else {
+      if (sharingTarget === "private") {
+        isProjPrivate = true;
+        projCreatedBy = activeUser || "";
+      } else {
+        isProjPrivate = false;
+        projCreatedBy = activeUser || "";
+      }
+    }
+
     await projects.create({
       name: name.trim(),
       color: color ?? null,
       description: "",
       project_type: projectType,
-      is_private: isPrivate,
-      created_by: activeUser,
+      is_private: isProjPrivate,
+      created_by: projCreatedBy,
       client_briefing: "",
       client_deadline: clientDeadline ? new Date(clientDeadline).toISOString() : null
     });
     setName("");
     setColor(undefined);
     setProjectType("normal");
-    setIsPrivate(false);
     setClientDeadline("");
+    setSharingTarget(activeUser === "user1" ? "both" : "share");
   };
 
   const confirmRename = async () => {
@@ -191,32 +225,26 @@ export default function ProjectsPage() {
             {/* Visibility / Privacy Selection */}
             <div className="grid gap-1.5">
               <label className="text-xs font-semibold text-white/70">Visibility</label>
-              <div className="flex rounded-lg border border-white/25 dark:border-white/10 p-0.5 bg-white/10 dark:bg-black/25 backdrop-blur-md">
-                <button
-                  type="button"
-                  onClick={() => setIsPrivate(false)}
-                  className={cn(
-                    "flex-1 py-1.5 text-xs font-bold rounded-md transition-all",
-                    !isPrivate
-                      ? "bg-white/40 dark:bg-white/15 shadow-sm text-white"
-                      : "text-white/60 hover:text-white"
+              <Select value={sharingTarget} onValueChange={setSharingTarget}>
+                <SelectTrigger className="h-9.5 text-xs py-1 bg-white/40 dark:bg-black/30 border-white/25 dark:border-white/10 text-white rounded-xl focus:ring-1 focus:ring-indigo-500">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900/95 backdrop-blur-xl border-white/10 text-white text-xs rounded-xl">
+                  {activeUser === "user1" ? (
+                    <>
+                      <SelectItem value="private">Only Me</SelectItem>
+                      <SelectItem value="user2">Me & {user2}</SelectItem>
+                      <SelectItem value="user3">Me & {user3}</SelectItem>
+                      <SelectItem value="both">Me, {user2} & {user3} (Everyone)</SelectItem>
+                    </>
+                  ) : (
+                    <>
+                      <SelectItem value="private">Private</SelectItem>
+                      <SelectItem value="share">Share with {user1}</SelectItem>
+                    </>
                   )}
-                >
-                  Collab
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsPrivate(true)}
-                  className={cn(
-                    "flex-1 py-1.5 text-xs font-bold rounded-md transition-all",
-                    isPrivate
-                      ? "bg-white/40 dark:bg-white/15 shadow-sm text-white"
-                      : "text-white/60 hover:text-white"
-                  )}
-                >
-                  Private
-                </button>
-              </div>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Client Deadline (Visible only if Client Project is active) */}
@@ -302,17 +330,30 @@ export default function ProjectsPage() {
                       </span>
                     )}
                     {/* Privacy Badge */}
-                    {project.is_private ? (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/25">
-                        <Lock className="h-2.5 w-2.5 shrink-0" />
-                        Private
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/25">
-                        <Users className="h-2.5 w-2.5 shrink-0" />
-                        Collab
-                      </span>
-                    )}
+                    {(() => {
+                      if (project.is_private) {
+                        return (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/25">
+                            <Lock className="h-2.5 w-2.5 shrink-0" />
+                            Private
+                          </span>
+                        );
+                      }
+                      
+                      let label = "Collab";
+                      const creator = project.created_by || "";
+                      if (creator === "user1_user2") label = `Collab: ${user2}`;
+                      else if (creator === "user1_user3") label = `Collab: ${user3}`;
+                      else if (creator === "user1") label = "Collab: Everyone";
+                      else if (creator === "user2" || creator === "user3") label = `Shared with ${user1}`;
+
+                      return (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/25">
+                          <Users className="h-2.5 w-2.5 shrink-0" />
+                          {label}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <CardTitle className="text-base text-white font-bold truncate">
                     {project.name}

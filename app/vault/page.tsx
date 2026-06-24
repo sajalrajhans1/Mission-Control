@@ -17,7 +17,7 @@ import { EmptyState } from "@/components/empty-state";
 import { Field } from "@/components/field";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useData, useUserNames, useActiveUser, useUserColors } from "@/components/data-provider";
-import { cn } from "@/lib/utils";
+import { cn, parseSharingTags, cleanSharingTags, buildSharingSuffix } from "@/lib/utils";
 import type { Row } from "@/lib/database.types";
 
 const PROMPT_CATEGORIES = ["Thumbnail", "AI Image", "Coding", "Outreach", "Copywriting", "Misc"];
@@ -37,18 +37,70 @@ const DEFAULT_VAULT_ICONS: Record<string, React.ReactNode> = {
   Briefcase: <Briefcase className="h-4 w-4" />
 };
 
+function SharingSelector({
+  value,
+  onChange
+}: {
+  value: string;
+  onChange: (val: string) => void;
+}) {
+  const { activeUser } = useActiveUser();
+  const { user1, user2, user3 } = useUserNames();
+
+  return (
+    <Field label="Visibility">
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="bg-slate-900/95 backdrop-blur-xl border-white/10 text-white text-xs rounded-xl">
+          {activeUser === "user1" ? (
+            <>
+              <SelectItem value="private">Only Me</SelectItem>
+              <SelectItem value="user2">Me & {user2}</SelectItem>
+              <SelectItem value="user3">Me & {user3}</SelectItem>
+              <SelectItem value="both">Me, {user2} & {user3} (Everyone)</SelectItem>
+            </>
+          ) : (
+            <>
+              <SelectItem value="private">Private</SelectItem>
+              <SelectItem value="user1">Share with {user1}</SelectItem>
+            </>
+          )}
+        </SelectContent>
+      </Select>
+    </Field>
+  );
+}
+
 // ─── Sub-panels for each default vault ───────────────────────────────────────
 
 function PromptsPanel({ search }: { search: string }) {
   const data = useData();
   const q = search.toLowerCase();
+  const { activeUser } = useActiveUser();
   
   const [editingPrompt, setEditingPrompt] = useState<Row<"prompts"> | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [newPrompt, setNewPrompt] = useState({ title: "", category: "Misc", content: "" });
+  const [sharingTarget, setSharingTarget] = useState(() => activeUser === "user1" ? "both" : "user1");
+  const [editSharingTarget, setEditSharingTarget] = useState("both");
   const [deletingPrompt, setDeletingPrompt] = useState<Row<"prompts"> | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [viewingPrompt, setViewingPrompt] = useState<Row<"prompts"> | null>(null);
+
+  useEffect(() => {
+    setSharingTarget(activeUser === "user1" ? "both" : "user1");
+  }, [activeUser]);
+
+  useEffect(() => {
+    if (editingPrompt) {
+      // Look up original prompt to find its actual sharing tags (since editingPrompt state title is already cleaned)
+      const orig = data.prompts.rows.find((p) => p.id === editingPrompt.id);
+      const parsed = orig ? parseSharingTags(orig.title) : { share: null };
+      setEditSharingTarget(parsed.share || (activeUser === "user1" ? "both" : "user1"));
+    }
+  }, [editingPrompt, activeUser, data.prompts.rows]);
 
   const handleCopy = (id: string, text: string) => {
     navigator.clipboard.writeText(text || "");
@@ -57,18 +109,23 @@ function PromptsPanel({ search }: { search: string }) {
   };
 
   const prompts = useMemo(
-    () => data.prompts.rows.filter((i) => `${i.title} ${i.category} ${i.content}`.toLowerCase().includes(q)),
+    () => data.prompts.rows.filter((i) => `${cleanSharingTags(i.title)} ${i.category} ${i.content}`.toLowerCase().includes(q)),
     [data.prompts.rows, q]
   );
 
   const handleCreate = async () => {
     if (!newPrompt.title.trim()) return;
-    const { error } = await data.prompts.create(newPrompt);
+    const suffix = buildSharingSuffix(activeUser || "user1", sharingTarget);
+    const { error } = await data.prompts.create({
+      ...newPrompt,
+      title: newPrompt.title.trim() + suffix
+    });
     if (error) {
       alert(`Failed to create preset: ${error.message}`);
       return;
     }
     setNewPrompt({ title: "", category: "Misc", content: "" });
+    setSharingTarget(activeUser === "user1" ? "both" : "user1");
     setShowCreate(false);
   };
 
@@ -105,7 +162,7 @@ function PromptsPanel({ search }: { search: string }) {
             </CardHeader>
             <CardContent className="flex-1 flex flex-col justify-between pt-1">
               <div className="min-w-0">
-                <h3 className="font-bold text-zinc-800 dark:text-dark-text line-clamp-1 mb-1 text-sm">{item.title}</h3>
+                <h3 className="font-bold text-zinc-800 dark:text-dark-text line-clamp-1 mb-1 text-sm">{cleanSharingTags(item.title)}</h3>
                 <p className="text-xs text-muted-foreground line-clamp-4 whitespace-pre-wrap leading-relaxed">
                   {item.content || "No content."}
                 </p>
@@ -114,7 +171,7 @@ function PromptsPanel({ search }: { search: string }) {
               <div className="flex items-center justify-end gap-2 mt-4 pt-2 border-t border-zinc-100 dark:border-dark-muted opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button
                   variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-800 dark:hover:text-dark-text"
-                  onClick={(e) => { e.stopPropagation(); setEditingPrompt(item); }}
+                  onClick={(e) => { e.stopPropagation(); setEditingPrompt({ ...item, title: cleanSharingTags(item.title) }); }}
                   title="Edit Preset"
                 >
                   <Pencil className="h-3.5 w-3.5" />
@@ -152,6 +209,7 @@ function PromptsPanel({ search }: { search: string }) {
                 className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
               />
             </Field>
+            <SharingSelector value={sharingTarget} onChange={setSharingTarget} />
             <Field label="Category">
               <Select value={newPrompt.category} onValueChange={(category) => setNewPrompt({ ...newPrompt, category })}>
                 <SelectTrigger className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"><SelectValue /></SelectTrigger>
@@ -192,6 +250,7 @@ function PromptsPanel({ search }: { search: string }) {
                   className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
                 />
               </Field>
+              <SharingSelector value={editSharingTarget} onChange={setEditSharingTarget} />
               <Field label="Category">
                 <Select value={editingPrompt.category} onValueChange={(category) => setEditingPrompt({ ...editingPrompt, category })}>
                   <SelectTrigger className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"><SelectValue /></SelectTrigger>
@@ -212,8 +271,13 @@ function PromptsPanel({ search }: { search: string }) {
                 <Button variant="outline" onClick={() => setEditingPrompt(null)} className="border-zinc-200 dark:border-dark-border dark:hover:bg-dark-card">Cancel</Button>
                 <Button
                   onClick={async () => {
+                    const orig = data.prompts.rows.find((p) => p.id === editingPrompt.id);
+                    const parsed = orig ? parseSharingTags(orig.title) : { author: null };
+                    const author = parsed.author || activeUser || "user1";
+                    const suffix = buildSharingSuffix(author, editSharingTarget);
+
                     await data.prompts.update(editingPrompt.id, {
-                      title: editingPrompt.title,
+                      title: editingPrompt.title.trim() + suffix,
                       category: editingPrompt.category,
                       content: editingPrompt.content
                     });
@@ -233,7 +297,7 @@ function PromptsPanel({ search }: { search: string }) {
         <DialogContent className="max-w-lg flex flex-col">
           <DialogHeader className="border-b border-zinc-100 dark:border-dark-muted pb-3 flex flex-row items-center justify-between space-y-0 pr-6">
             <div className="flex flex-col gap-1 min-w-0 flex-1">
-              <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-dark-text truncate">{viewingPrompt?.title}</DialogTitle>
+              <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-dark-text truncate">{viewingPrompt && cleanSharingTags(viewingPrompt.title)}</DialogTitle>
               {viewingPrompt?.category && (
                 <div>
                   <span className="text-xs font-semibold bg-zinc-100 dark:bg-dark-hover text-zinc-800 dark:text-dark-text-secondary px-2 py-0.5 rounded-full">
@@ -271,13 +335,12 @@ function PromptsPanel({ search }: { search: string }) {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* ── Delete Preset Confirmation ──────────────────────────────────── */}
       <ConfirmDialog
         open={Boolean(deletingPrompt)}
         onOpenChange={(open) => !open && setDeletingPrompt(null)}
         title="Delete Preset Prompt?"
-        description={`Are you sure you want to delete preset "${deletingPrompt?.title}"?`}
+        description={`Are you sure you want to delete preset "${deletingPrompt && cleanSharingTags(deletingPrompt.title)}"?`}
         onConfirm={async () => {
           if (deletingPrompt) {
             const { error } = await data.prompts.remove(deletingPrompt.id);
@@ -292,26 +355,46 @@ function PromptsPanel({ search }: { search: string }) {
 function IdeasPanel({ search }: { search: string }) {
   const data = useData();
   const q = search.toLowerCase();
+  const { activeUser } = useActiveUser();
   
   const [showCreate, setShowCreate] = useState(false);
   const [editingIdea, setEditingIdea] = useState<Row<"ideas"> | null>(null);
   const [newIdea, setNewIdea] = useState({ title: "", description: "" });
+  const [sharingTarget, setSharingTarget] = useState(() => activeUser === "user1" ? "both" : "user1");
+  const [editSharingTarget, setEditSharingTarget] = useState("both");
   const [deletingIdea, setDeletingIdea] = useState<Row<"ideas"> | null>(null);
   const [viewingIdea, setViewingIdea] = useState<Row<"ideas"> | null>(null);
 
+  useEffect(() => {
+    setSharingTarget(activeUser === "user1" ? "both" : "user1");
+  }, [activeUser]);
+
+  useEffect(() => {
+    if (editingIdea) {
+      const orig = data.ideas.rows.find((i) => i.id === editingIdea.id);
+      const parsed = orig ? parseSharingTags(orig.title) : { share: null };
+      setEditSharingTarget(parsed.share || (activeUser === "user1" ? "both" : "user1"));
+    }
+  }, [editingIdea, activeUser, data.ideas.rows]);
+
   const ideas = useMemo(
-    () => data.ideas.rows.filter((i) => `${i.title} ${i.description}`.toLowerCase().includes(q)),
+    () => data.ideas.rows.filter((i) => `${cleanSharingTags(i.title)} ${i.description}`.toLowerCase().includes(q)),
     [data.ideas.rows, q]
   );
 
   const handleCreate = async () => {
     if (!newIdea.title.trim()) return;
-    const { error } = await data.ideas.create(newIdea);
+    const suffix = buildSharingSuffix(activeUser || "user1", sharingTarget);
+    const { error } = await data.ideas.create({
+      ...newIdea,
+      title: newIdea.title.trim() + suffix
+    });
     if (error) {
       alert(`Failed to create startup idea: ${error.message}`);
       return;
     }
     setNewIdea({ title: "", description: "" });
+    setSharingTarget(activeUser === "user1" ? "both" : "user1");
     setShowCreate(false);
   };
 
@@ -333,11 +416,11 @@ function IdeasPanel({ search }: { search: string }) {
             onClick={() => setViewingIdea(item)}
           >
             <CardHeader className="flex-row items-start justify-between gap-2 pb-2">
-              <CardTitle className="text-base font-bold text-zinc-800 dark:text-dark-text">{item.title}</CardTitle>
+              <CardTitle className="text-base font-bold text-zinc-800 dark:text-dark-text">{cleanSharingTags(item.title)}</CardTitle>
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                 <Button
                   variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-800 dark:hover:text-dark-text"
-                  onClick={(e) => { e.stopPropagation(); setEditingIdea(item); }}
+                  onClick={(e) => { e.stopPropagation(); setEditingIdea({ ...item, title: cleanSharingTags(item.title) }); }}
                   title="Edit Idea"
                 >
                   <Pencil className="h-3.5 w-3.5" />
@@ -367,7 +450,7 @@ function IdeasPanel({ search }: { search: string }) {
       <Dialog open={Boolean(viewingIdea)} onOpenChange={(open) => !open && setViewingIdea(null)}>
         <DialogContent className="max-w-lg flex flex-col">
           <DialogHeader className="border-b border-zinc-100 dark:border-dark-muted pb-3 flex flex-col gap-1 min-w-0 pr-6">
-            <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-dark-text truncate">{viewingIdea?.title}</DialogTitle>
+            <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-dark-text truncate">{cleanSharingTags(viewingIdea?.title || "")}</DialogTitle>
             <div className="text-[10px] text-zinc-400 dark:text-dark-text0 font-medium">
               Ideas • {viewingIdea && new Date(viewingIdea.created_at).toLocaleDateString()}
             </div>
@@ -397,6 +480,7 @@ function IdeasPanel({ search }: { search: string }) {
                 className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
               />
             </Field>
+            <SharingSelector value={sharingTarget} onChange={setSharingTarget} />
             <Field label="Description">
               <Textarea
                 placeholder="Write description or details..."
@@ -429,6 +513,7 @@ function IdeasPanel({ search }: { search: string }) {
                   className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
                 />
               </Field>
+              <SharingSelector value={editSharingTarget} onChange={setEditSharingTarget} />
               <Field label="Description">
                 <Textarea
                   value={editingIdea.description}
@@ -441,11 +526,15 @@ function IdeasPanel({ search }: { search: string }) {
                 <Button variant="outline" onClick={() => setEditingIdea(null)} className="border-zinc-200 dark:border-dark-border dark:hover:bg-dark-card">Cancel</Button>
                 <Button
                   onClick={async () => {
+                    const orig = data.ideas.rows.find((i) => i.id === editingIdea.id);
+                    const parsed = orig ? parseSharingTags(orig.title) : { author: null };
+                    const author = parsed.author || activeUser || "user1";
+                    const suffix = buildSharingSuffix(author, editSharingTarget);
+
                     await data.ideas.update(editingIdea.id, {
-                      title: editingIdea.title,
+                      title: editingIdea.title.trim() + suffix,
                       description: editingIdea.description
                     });
-                    setEditingIdea(null);
                   }}
                 >
                   Save Changes
@@ -476,25 +565,45 @@ function IdeasPanel({ search }: { search: string }) {
 function ResourcesPanel({ search }: { search: string }) {
   const data = useData();
   const q = search.toLowerCase();
+  const { activeUser } = useActiveUser();
   
   const [showCreate, setShowCreate] = useState(false);
   const [editingResource, setEditingResource] = useState<Row<"resources"> | null>(null);
   const [newResource, setNewResource] = useState({ title: "", url: "", category: "Misc" });
+  const [sharingTarget, setSharingTarget] = useState(() => activeUser === "user1" ? "both" : "user1");
+  const [editSharingTarget, setEditSharingTarget] = useState("both");
   const [deletingResource, setDeletingResource] = useState<Row<"resources"> | null>(null);
 
+  useEffect(() => {
+    setSharingTarget(activeUser === "user1" ? "both" : "user1");
+  }, [activeUser]);
+
+  useEffect(() => {
+    if (editingResource) {
+      const orig = data.resources.rows.find((r) => r.id === editingResource.id);
+      const parsed = orig ? parseSharingTags(orig.title) : { share: null };
+      setEditSharingTarget(parsed.share || (activeUser === "user1" ? "both" : "user1"));
+    }
+  }, [editingResource, activeUser, data.resources.rows]);
+
   const resources = useMemo(
-    () => data.resources.rows.filter((i) => `${i.title} ${i.url} ${i.category}`.toLowerCase().includes(q)),
+    () => data.resources.rows.filter((i) => `${cleanSharingTags(i.title)} ${i.url} ${i.category}`.toLowerCase().includes(q)),
     [data.resources.rows, q]
   );
 
   const handleCreate = async () => {
     if (!newResource.title.trim() || !newResource.url.trim()) return;
-    const { error } = await data.resources.create(newResource);
+    const suffix = buildSharingSuffix(activeUser || "user1", sharingTarget);
+    const { error } = await data.resources.create({
+      ...newResource,
+      title: newResource.title.trim() + suffix
+    });
     if (error) {
       alert(`Failed to create resource: ${error.message}`);
       return;
     }
     setNewResource({ title: "", url: "", category: "Misc" });
+    setSharingTarget(activeUser === "user1" ? "both" : "user1");
     setShowCreate(false);
   };
 
@@ -513,7 +622,7 @@ function ResourcesPanel({ search }: { search: string }) {
           <div key={item.id} className="group relative rounded-2xl border border-white/20 dark:border-white/10 bg-white/35 dark:bg-black/35 backdrop-blur-xl p-4 hover:bg-white/45 dark:hover:bg-white/5 transition-all duration-300 flex flex-col justify-between min-h-[110px] hover:scale-[1.02] hover:shadow-xl hover:border-white/40">
             <a href={item.url} target="_blank" rel="noreferrer" className="block min-w-0 flex-1">
               <div className="flex items-center justify-between gap-3 min-w-0">
-                <span className="font-semibold text-zinc-800 dark:text-dark-text text-sm truncate pr-4">{item.title}</span>
+                <span className="font-semibold text-zinc-800 dark:text-dark-text text-sm truncate pr-4">{cleanSharingTags(item.title)}</span>
                 <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               </div>
               <p className="mt-1 truncate text-xs text-muted-foreground">{item.category}</p>
@@ -522,7 +631,7 @@ function ResourcesPanel({ search }: { search: string }) {
             <div className="flex items-center justify-end gap-1 mt-3 pt-2 border-t border-zinc-100 dark:border-dark-muted opacity-0 group-hover:opacity-100 transition-opacity">
               <Button
                 variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-800 dark:hover:text-dark-text"
-                onClick={(e) => { e.preventDefault(); setEditingResource(item); }}
+                onClick={(e) => { e.preventDefault(); setEditingResource({ ...item, title: cleanSharingTags(item.title) }); }}
               >
                 <Pencil className="h-3.5 w-3.5" />
               </Button>
@@ -557,6 +666,7 @@ function ResourcesPanel({ search }: { search: string }) {
                 className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
               />
             </Field>
+            <SharingSelector value={sharingTarget} onChange={setSharingTarget} />
             <Field label="URL Link">
               <Input
                 placeholder="https://..."
@@ -598,6 +708,7 @@ function ResourcesPanel({ search }: { search: string }) {
                   className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
                 />
               </Field>
+              <SharingSelector value={editSharingTarget} onChange={setEditSharingTarget} />
               <Field label="URL Link">
                 <Input
                   value={editingResource.url}
@@ -616,8 +727,13 @@ function ResourcesPanel({ search }: { search: string }) {
                 <Button variant="outline" onClick={() => setEditingResource(null)} className="border-zinc-200 dark:border-dark-border dark:hover:bg-dark-card">Cancel</Button>
                 <Button
                   onClick={async () => {
+                    const orig = data.resources.rows.find((r) => r.id === editingResource.id);
+                    const parsed = orig ? parseSharingTags(orig.title) : { author: null };
+                    const author = parsed.author || activeUser || "user1";
+                    const suffix = buildSharingSuffix(author, editSharingTarget);
+
                     await data.resources.update(editingResource.id, {
-                      title: editingResource.title,
+                      title: editingResource.title.trim() + suffix,
                       url: editingResource.url,
                       category: editingResource.category
                     });
@@ -1251,13 +1367,28 @@ function DeliverablesPanel({ search }: { search: string }) {
 function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: string }) {
   const data = useData();
   const q = search.toLowerCase();
+  const { activeUser } = useActiveUser();
   
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<Row<"vault_items"> | null>(null);
   const [newEntry, setNewEntry] = useState({ title: "", body: "" });
+  const [sharingTarget, setSharingTarget] = useState(() => activeUser === "user1" ? "both" : "user1");
+  const [editSharingTarget, setEditSharingTarget] = useState("both");
   const [deletingItem, setDeletingItem] = useState<Row<"vault_items"> | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [viewingItem, setViewingItem] = useState<Row<"vault_items"> | null>(null);
+
+  useEffect(() => {
+    setSharingTarget(activeUser === "user1" ? "both" : "user1");
+  }, [activeUser]);
+
+  useEffect(() => {
+    if (editing) {
+      const orig = data.vaultItems.rows.find((v) => v.id === editing.id);
+      const parsed = orig ? parseSharingTags(orig.title) : { share: null };
+      setEditSharingTarget(parsed.share || (activeUser === "user1" ? "both" : "user1"));
+    }
+  }, [editing, activeUser, data.vaultItems.rows]);
 
   const handleCopy = (id: string, text: string) => {
     navigator.clipboard.writeText(text || "");
@@ -1268,18 +1399,24 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
   const items = useMemo(
     () => data.vaultItems.rows
       .filter((i) => i.vault_id === vault.id)
-      .filter((i) => `${i.title} ${i.body}`.toLowerCase().includes(q)),
+      .filter((i) => `${cleanSharingTags(i.title)} ${i.body}`.toLowerCase().includes(q)),
     [data.vaultItems.rows, vault.id, q]
   );
 
   const handleCreate = async () => {
     if (!newEntry.title.trim()) return;
-    const { error } = await data.vaultItems.create({ vault_id: vault.id, title: newEntry.title, body: newEntry.body });
+    const suffix = buildSharingSuffix(activeUser || "user1", sharingTarget);
+    const { error } = await data.vaultItems.create({
+      vault_id: vault.id,
+      title: newEntry.title.trim() + suffix,
+      body: newEntry.body
+    });
     if (error) {
       alert(`Failed to create vault entry: ${error.message}`);
       return;
     }
     setNewEntry({ title: "", body: "" });
+    setSharingTarget(activeUser === "user1" ? "both" : "user1");
     setShowCreate(false);
   };
 
@@ -1302,7 +1439,7 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
           >
             <div>
               <div className="flex items-start justify-between gap-3 mb-2">
-                <div className="font-bold text-zinc-900 dark:text-dark-text text-sm truncate flex-1">{item.title}</div>
+                <div className="font-bold text-zinc-900 dark:text-dark-text text-sm truncate flex-1">{cleanSharingTags(item.title)}</div>
                 <Button
                   variant="outline"
                   size="icon"
@@ -1327,7 +1464,7 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button
                   variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-800 dark:hover:text-dark-text"
-                  onClick={(e) => { e.stopPropagation(); setEditing(item); }}
+                  onClick={(e) => { e.stopPropagation(); setEditing({ ...item, title: cleanSharingTags(item.title) }); }}
                   title="Edit Entry"
                 >
                   <Pencil className="h-3.5 w-3.5" />
@@ -1354,7 +1491,7 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
         <DialogContent className="max-w-lg flex flex-col">
           <DialogHeader className="border-b border-zinc-100 dark:border-dark-muted pb-3 flex flex-row items-center justify-between space-y-0 pr-6">
             <div className="flex flex-col gap-1 min-w-0 flex-1">
-              <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-dark-text truncate">{viewingItem?.title}</DialogTitle>
+              <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-dark-text truncate">{cleanSharingTags(viewingItem?.title || "")}</DialogTitle>
               <div className="text-[10px] text-zinc-400 dark:text-dark-text0 font-medium">
                 {vault.name} • {viewingItem && new Date(viewingItem.created_at).toLocaleDateString()}
               </div>
@@ -1405,6 +1542,7 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
                 className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
               />
             </Field>
+            <SharingSelector value={sharingTarget} onChange={setSharingTarget} />
             <Field label="Body (Optional)">
               <Textarea
                 placeholder="Write contents or details..."
@@ -1435,6 +1573,7 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
                   className="bg-white dark:bg-dark-card/50 border-zinc-200 dark:border-dark-border text-zinc-900 dark:text-dark-text"
                 />
               </Field>
+              <SharingSelector value={editSharingTarget} onChange={setEditSharingTarget} />
               <Field label="Body">
                 <Textarea
                   value={editing.body || ""}
@@ -1446,7 +1585,15 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
               <div className="flex gap-2 justify-end mt-2">
                 <Button variant="outline" onClick={() => setEditing(null)} className="border-zinc-200 dark:border-dark-border dark:hover:bg-dark-card">Cancel</Button>
                 <Button onClick={async () => {
-                  await data.vaultItems.update(editing.id, { title: editing.title, body: editing.body });
+                  const orig = data.vaultItems.rows.find((v) => v.id === editing.id);
+                  const parsed = orig ? parseSharingTags(orig.title) : { author: null };
+                  const author = parsed.author || activeUser || "user1";
+                  const suffix = buildSharingSuffix(author, editSharingTarget);
+
+                  await data.vaultItems.update(editing.id, {
+                    title: editing.title.trim() + suffix,
+                    body: editing.body
+                  });
                   setEditing(null);
                 }}>Save</Button>
               </div>
@@ -1476,13 +1623,18 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
 
 export default function VaultPage() {
   const data = useData();
-  const { activeUserName } = useActiveUser();
+  const { activeUserName, activeUser } = useActiveUser();
   const [search, setSearch] = useState("");
   const [selectedVaultId, setSelectedVaultId] = useState<string | null>(null);
 
   // Create vault dialog
   const [showCreate, setShowCreate] = useState(false);
   const [newVaultName, setNewVaultName] = useState("");
+  const [sharingTarget, setSharingTarget] = useState(() => activeUser === "user1" ? "both" : "user1");
+
+  useEffect(() => {
+    setSharingTarget(activeUser === "user1" ? "both" : "user1");
+  }, [activeUser]);
 
   // Rename vault dialog
   const [renaming, setRenaming] = useState<Row<"vaults"> | null>(null);
@@ -1499,17 +1651,37 @@ export default function VaultPage() {
 
   const createVault = async () => {
     if (!newVaultName.trim()) return;
+    let vaultCreatedBy = "";
+    if (activeUser === "user1") {
+      if (sharingTarget === "private") {
+        vaultCreatedBy = "user1_private";
+      } else if (sharingTarget === "user2") {
+        vaultCreatedBy = "user1_user2";
+      } else if (sharingTarget === "user3") {
+        vaultCreatedBy = "user1_user3";
+      } else {
+        vaultCreatedBy = "user1";
+      }
+    } else {
+      if (sharingTarget === "private") {
+        vaultCreatedBy = (activeUser || "user2") + "_private";
+      } else {
+        vaultCreatedBy = activeUser || "user2";
+      }
+    }
+
     const { error } = await data.vaults.create({
       name: newVaultName.trim(),
       order_index: vaults.length,
       is_default: false,
-      created_by: activeUserName || "Sajal"
+      created_by: vaultCreatedBy
     });
     if (error) {
       alert(`Failed to create vault: ${error.message}\n\nPlease make sure you have applied the migration "006_vaults_created_by.sql" in your Supabase SQL Editor.`);
       return;
     }
     setNewVaultName("");
+    setSharingTarget(activeUser === "user1" ? "both" : "user1");
     setShowCreate(false);
   };
 
@@ -1637,6 +1809,7 @@ export default function VaultPage() {
               autoFocus
               className="border-zinc-200 dark:border-dark-border bg-white dark:bg-dark-card/50 text-zinc-900 dark:text-dark-text"
             />
+            <SharingSelector value={sharingTarget} onChange={setSharingTarget} />
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setShowCreate(false)} className="border-zinc-200 dark:border-dark-border dark:hover:bg-dark-card">Cancel</Button>
               <Button onClick={createVault} disabled={!newVaultName.trim()}>Create Vault</Button>

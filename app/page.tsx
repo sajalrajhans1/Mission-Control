@@ -845,27 +845,48 @@ export default function HomePage() {
                     <span className="truncate">{item.author}</span>
                   </span>
 
-                  {activeUser === "user1" && item.author === user1 && !item.is_private && (
+                   {isCreator && (
                     <Select
-                      value={getNoteShareSetting(item.body)}
+                      value={(() => {
+                        if (item.is_private) return "private";
+                        if (activeUser === "user1") {
+                          const share = getNoteShareSetting(item.body);
+                          return share;
+                        }
+                        return "share";
+                      })()}
                       onValueChange={(val) => {
                         const cleanBody = getNoteCleanBody(item.body);
-                        const suffix = val === "both" ? "" : ` [share:${val}]`;
-                        stickyNotes.update(item.id, { body: cleanBody.trim() + suffix });
+                        if (val === "private") {
+                          stickyNotes.update(item.id, { is_private: true, body: cleanBody });
+                        } else {
+                          const suffix = val === "both" || val === "share" ? "" : ` [share:${val}]`;
+                          stickyNotes.update(item.id, { is_private: false, body: cleanBody.trim() + suffix });
+                        }
                       }}
                     >
                       <SelectTrigger className="h-5 w-fit border-none bg-transparent hover:bg-white/10 text-[9px] font-bold text-white/70 hover:text-white rounded px-1.5 flex gap-1 focus:ring-0 focus:ring-offset-0">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-900/95 backdrop-blur-xl border-white/10 text-white text-[10px] rounded-lg">
-                        <SelectItem value="both">Share: Everyone</SelectItem>
-                        <SelectItem value="user2">Share: {user2}</SelectItem>
-                        <SelectItem value="user3">Share: {user3}</SelectItem>
+                        {activeUser === "user1" ? (
+                          <>
+                            <SelectItem value="private">Share: Only Me</SelectItem>
+                            <SelectItem value="user2">Share: {user2}</SelectItem>
+                            <SelectItem value="user3">Share: {user3}</SelectItem>
+                            <SelectItem value="both">Share: Everyone</SelectItem>
+                          </>
+                        ) : (
+                          <>
+                            <SelectItem value="private">Share: Private</SelectItem>
+                            <SelectItem value="share">Share: {user1}</SelectItem>
+                          </>
+                        )}
                       </SelectContent>
                     </Select>
                   )}
 
-                  {item.is_private && (
+                  {item.is_private && !isCreator && (
                     <span className="flex items-center gap-0.5 text-[8px] text-amber-300 bg-amber-955/65 px-1.5 py-0.5 rounded font-bold border border-amber-900/40 shrink-0 mx-1">
                       <Lock className="h-2 w-2" />
                       Private

@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useCallback, useRef, useState, type ReactNode, type Dispatch, type SetStateAction } from "react";
 import { useRealtimeTable } from "@/lib/use-realtime-table";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
+import { parseSharingTags } from "@/lib/utils";
 import type { Row, Insert } from "@/lib/database.types";
 
 export interface TimerSettings {
@@ -680,33 +681,86 @@ export function DataProvider({ children }: { children: ReactNode }) {
     };
   }, [pomoIsPlaying, playAlarmSound, handleSessionCompleted]);
 
+  // Helper to filter vault-like items (prompts, ideas, resources, vault items) based on title suffixes
+  const filterVaultLikeItem = useCallback((title: string) => {
+    const tags = parseSharingTags(title);
+    
+    // Legacy items (no tags): visible to everyone
+    if (!tags.author) return true;
+
+    // If logged in as Sajal (user1)
+    if (activeUser === "user1") {
+      // Sajal's own items
+      if (tags.author === "user1") {
+        if (tags.share === "private") return true;
+        if (tags.share === "both") return true;
+        if (tags.share === "user2") return activePartner === "user2";
+        if (tags.share === "user3") return activePartner === "user3";
+      }
+      // Samarth's items
+      if (tags.author === "user2") {
+        return tags.share === "user1" && activePartner === "user2";
+      }
+      // Mr. Bill's items
+      if (tags.author === "user3") {
+        return tags.share === "user1" && activePartner === "user3";
+      }
+      return false;
+    }
+
+    // If logged in as Samarth (user2)
+    if (activeUser === "user2") {
+      if (tags.author === "user2") return true;
+      if (tags.author === "user1") {
+        return tags.share === "user2" || tags.share === "both";
+      }
+      return false;
+    }
+
+    // If logged in as Mr. Bill (user3)
+    if (activeUser === "user3") {
+      if (tags.author === "user3") return true;
+      if (tags.author === "user1") {
+        return tags.share === "user3" || tags.share === "both";
+      }
+      return false;
+    }
+
+    return false;
+  }, [activeUser, activePartner]);
+
   // Filter projects/tasks/files/milestones based on privacy setting in real time
   const filteredProjects = useMemo(() => {
     return {
       ...projects,
       rows: projects.rows.filter((p) => {
-        // If private, only the owner can see it
-        if (p.is_private) {
-          if (activeUser === "user1") {
-            return p.created_by === "user1";
+        const creator = p.created_by || "";
+        const isPrivate = p.is_private;
+
+        if (activeUser === "user1") {
+          if (creator === "user1" && isPrivate) return true;
+          if (creator === "user1" && !isPrivate && !creator.includes("_")) return true;
+          if (activePartner === "user2") {
+            return creator === "user1_user2" || creator === "user2";
+          } else {
+            return creator === "user1_user3" || creator === "user3";
           }
-          return p.created_by === activeUser;
         }
 
-        // Collaborative projects:
-        if (activeUser === "user1") {
-          if (activePartner === "user2") {
-            return p.created_by === "user2" || p.created_by === "user1_user2" || p.created_by === "user1";
-          } else {
-            return p.created_by === "user3" || p.created_by === "user1_user3";
-          }
-        }
         if (activeUser === "user2") {
-          return p.created_by === "user2" || p.created_by === "user1_user2" || p.created_by === "user1";
+          if (creator === "user2") return true;
+          if (creator === "user1_user2") return true;
+          if (creator === "user1" && !isPrivate) return true;
+          return false;
         }
+
         if (activeUser === "user3") {
-          return p.created_by === "user3" || p.created_by === "user1_user3";
+          if (creator === "user3") return true;
+          if (creator === "user1_user3") return true;
+          if (creator === "user1" && !isPrivate) return true;
+          return false;
         }
+
         return false;
       })
     };
@@ -730,7 +784,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
         // 3. Collaborative/Direct task filtering
         const assigneeClean = (t.assigned_to || "").trim().toLowerCase();
-        const cleanU1 = (names.user1 || "").trim().toLowerCase();
         const cleanU2 = (names.user2 || "").trim().toLowerCase();
         const cleanU3 = (names.user3 || "").trim().toLowerCase();
         const creatorClean = (t.created_by || "").trim().toLowerCase();
@@ -822,29 +875,65 @@ export function DataProvider({ children }: { children: ReactNode }) {
       ...vaults,
       rows: vaults.rows.filter((v) => {
         if (v.is_default || !v.created_by) return true;
-        const creator = (v.created_by || "").trim().toLowerCase();
-        const cleanU1 = (names.user1 || "").trim().toLowerCase();
-        const cleanU2 = (names.user2 || "").trim().toLowerCase();
-        const cleanU3 = (names.user3 || "").trim().toLowerCase();
-        
-        const currentPartner = activeUser === "user1" ? activePartner : (activeUser === "user2" ? "user2" : "user3");
+        const creator = v.created_by || "";
 
-        if (currentPartner === "user2") {
-          return creator === cleanU1 || creator === cleanU2;
-        } else {
-          return creator === cleanU1 || creator === cleanU3;
+        if (activeUser === "user1") {
+          if (creator === "user1_private") return true;
+          if (creator === "user1" && !creator.includes("_")) return true;
+          if (activePartner === "user2") {
+            return creator === "user1_user2" || creator === "user2";
+          } else {
+            return creator === "user1_user3" || creator === "user3";
+          }
         }
+
+        if (activeUser === "user2") {
+          if (creator === "user2_private" || creator === "user2") return true;
+          if (creator === "user1_user2") return true;
+          if (creator === "user1" && !creator.includes("_")) return true;
+          return false;
+        }
+
+        if (activeUser === "user3") {
+          if (creator === "user3_private" || creator === "user3") return true;
+          if (creator === "user1_user3") return true;
+          if (creator === "user1" && !creator.includes("_")) return true;
+          return false;
+        }
+
+        return false;
       })
     };
-  }, [vaults, activeUser, activePartner, names]);
+  }, [vaults, activeUser, activePartner]);
+
+  const filteredPrompts = useMemo(() => {
+    return {
+      ...prompts,
+      rows: prompts.rows.filter((item) => filterVaultLikeItem(item.title))
+    };
+  }, [prompts, filterVaultLikeItem]);
+
+  const filteredIdeas = useMemo(() => {
+    return {
+      ...ideas,
+      rows: ideas.rows.filter((item) => filterVaultLikeItem(item.title))
+    };
+  }, [ideas, filterVaultLikeItem]);
+
+  const filteredResources = useMemo(() => {
+    return {
+      ...resources,
+      rows: resources.rows.filter((item) => filterVaultLikeItem(item.title))
+    };
+  }, [resources, filterVaultLikeItem]);
 
   const filteredVaultItems = useMemo(() => {
     const visibleVaultIds = new Set(filteredVaults.rows.map((v) => v.id));
     return {
       ...vaultItems,
-      rows: vaultItems.rows.filter((item) => visibleVaultIds.has(item.vault_id))
+      rows: vaultItems.rows.filter((item) => visibleVaultIds.has(item.vault_id) && filterVaultLikeItem(item.title))
     };
-  }, [vaultItems, filteredVaults.rows]);
+  }, [vaultItems, filteredVaults.rows, filterVaultLikeItem]);
 
   const filteredMoneyEntries = useMemo(() => {
     return {
@@ -1151,17 +1240,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
     () => ({
       projects: filteredProjects,
       tasks: filteredTasks,
-      prompts,
-      ideas,
-      resources,
+      prompts: filteredPrompts,
+      ideas: filteredIdeas,
+      resources: filteredResources,
       stickyNotes: filteredStickyNotes,
-      moneyEntries,
-      savingsGoals,
+      moneyEntries: filteredMoneyEntries,
+      savingsGoals: filteredSavingsGoals,
       dailyLogs,
       wins,
       settings,
-      vaults,
-      vaultItems,
+      vaults: filteredVaults,
+      vaultItems: filteredVaultItems,
       projectFiles: filteredProjectFiles,
       projectMilestones: filteredMilestones,
       notifications,
@@ -1221,17 +1310,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [
       filteredProjects,
       filteredTasks,
-      prompts,
-      ideas,
-      resources,
+      filteredPrompts,
+      filteredIdeas,
+      filteredResources,
       filteredStickyNotes,
-      moneyEntries,
-      savingsGoals,
+      filteredMoneyEntries,
+      filteredSavingsGoals,
       dailyLogs,
       wins,
       settings,
-      vaults,
-      vaultItems,
+      filteredVaults,
+      filteredVaultItems,
       filteredProjectFiles,
       filteredMilestones,
       notifications,
