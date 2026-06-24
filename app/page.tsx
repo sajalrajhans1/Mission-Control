@@ -247,7 +247,11 @@ export default function HomePage() {
   const currencySymbol = "₹";
 
   const myKey = activeUser || "user1";
-  const otherKey = myKey === "user1" ? "user2" : "user1";
+  const otherKey = myKey === "user1" ? activePartner : "user1";
+
+  const partnerUserName = useMemo(() => {
+    return activeUser === "user1" ? (activePartner === "user3" ? user3 : user2) : (activeUser === "user2" ? user2 : user3);
+  }, [activeUser, activePartner, user2, user3]);
 
   const monthEntries = useMemo(() => {
     return moneyEntries.rows.filter(
@@ -280,14 +284,14 @@ export default function HomePage() {
   }, [monthEntries, myKey, otherKey]);
 
   const progress = useMemo(() => {
-    return [user1, user2].map((person) => {
+    return [user1, partnerUserName].map((person) => {
       const owned = tasks.rows.filter(
         (task) => task.assigned_to === person || task.assigned_to === "Both"
       );
       const done = owned.filter((task) => task.completed).length;
       return { person, done, total: owned.length, percent: owned.length ? (done / owned.length) * 100 : 0 };
     });
-  }, [tasks.rows, user1, user2]);
+  }, [tasks.rows, user1, partnerUserName]);
 
   const handleCreateNote = async () => {
     await stickyNotes.create({
@@ -319,7 +323,7 @@ export default function HomePage() {
                     <span className="font-medium flex items-center gap-1.5 drop-shadow-sm">
                       <span
                         className="h-2.5 w-2.5 rounded-full shrink-0"
-                        style={{ backgroundColor: item.person === user1 ? userColors.user1 : userColors.user2 }}
+                        style={{ backgroundColor: item.person === user1 ? userColors.user1 : (item.person === user3 ? userColors.user3 : userColors.user2) }}
                       />
                       {item.person}
                     </span>
