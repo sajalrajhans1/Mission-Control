@@ -3,8 +3,8 @@
 import { useMemo, useState, useEffect } from "react";
 import {
   ExternalLink, Lightbulb, Link as LinkIcon,
-  Pencil, Pin, Plus, StickyNote, Trash2, WandSparkles, Check, Copy, Lock, Unlock,
-  Briefcase, AlertTriangle
+  Pencil, Pin, Plus, StickyNote, Trash2, WandSparkles, Check, Copy, Lock,
+  Briefcase, AlertTriangle, Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +36,71 @@ const DEFAULT_VAULT_ICONS: Record<string, React.ReactNode> = {
   StickyNote: <StickyNote className="h-4 w-4" />,
   Briefcase: <Briefcase className="h-4 w-4" />
 };
+
+function VisibilityBadge({ title }: { title: string }) {
+  const { user1, user2, user3 } = useUserNames();
+  const parsed = parseSharingTags(title);
+
+  if (parsed.share === "private") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+        <Lock className="h-2.5 w-2.5 shrink-0" />
+        Private
+      </span>
+    );
+  }
+
+  let label = "Everyone";
+  if (parsed.share === "user2") label = `Me & ${user2}`;
+  else if (parsed.share === "user3") label = `Me & ${user3}`;
+  else if (parsed.share === "both") label = "Everyone";
+  else if (parsed.share === "user1") label = `Shared with ${user1}`;
+  else if (!parsed.share) {
+    if (parsed.author === "user2") label = `Shared with ${user1}`;
+    else if (parsed.author === "user3") label = `Shared with ${user1}`;
+    else label = "Everyone";
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+      <Users className="h-2.5 w-2.5 shrink-0" />
+      {label}
+    </span>
+  );
+}
+
+function VaultVisibilityBadge({ vault }: { vault: Row<"vaults"> }) {
+  const { user1, user2, user3 } = useUserNames();
+  const { activeUser } = useActiveUser();
+  const creator = vault.created_by || "";
+
+  if (vault.is_default) return null;
+
+  if (creator.endsWith("_private")) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+        <Lock className="h-2.5 w-2.5 shrink-0" />
+        Private
+      </span>
+    );
+  }
+
+  let label = "Everyone";
+  if (creator === "user1_user2" || creator === "user2") {
+    label = activeUser === "user1" ? `Me & ${user2}` : `Me & ${user1}`;
+  } else if (creator === "user1_user3" || creator === "user3") {
+    label = activeUser === "user1" ? `Me & ${user3}` : `Me & ${user1}`;
+  } else if (creator === "user1" || !creator) {
+    label = "Everyone";
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+      <Users className="h-2.5 w-2.5 shrink-0" />
+      {label}
+    </span>
+  );
+}
 
 function SharingSelector({
   value,
@@ -147,9 +212,12 @@ function PromptsPanel({ search }: { search: string }) {
             onClick={() => setViewingPrompt(item)}
           >
             <CardHeader className="pb-2 flex flex-row items-start justify-between space-y-0">
-              <span className="text-xs font-semibold bg-zinc-100 dark:bg-dark-hover text-zinc-800 dark:text-dark-text-secondary px-2 py-0.5 rounded-full">
-                {item.category}
-              </span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-semibold bg-zinc-100 dark:bg-dark-hover text-zinc-800 dark:text-dark-text-secondary px-2 py-0.5 rounded-full">
+                  {item.category}
+                </span>
+                <VisibilityBadge title={item.title} />
+              </div>
               <Button
                 variant="outline"
                 size="icon"
@@ -436,7 +504,10 @@ function IdeasPanel({ search }: { search: string }) {
             </CardHeader>
             <CardContent>
               <p className="whitespace-pre-wrap text-xs text-muted-foreground leading-relaxed line-clamp-4">{item.description}</p>
-              <p className="mt-3 text-[10px] text-zinc-400 dark:text-dark-text0 font-medium">{new Date(item.created_at).toLocaleDateString()}</p>
+              <div className="mt-3 flex items-center justify-between">
+                <p className="text-[10px] text-zinc-400 dark:text-dark-text0 font-medium">{new Date(item.created_at).toLocaleDateString()}</p>
+                <VisibilityBadge title={item.title} />
+              </div>
             </CardContent>
           </Card>
         ))}
@@ -625,7 +696,10 @@ function ResourcesPanel({ search }: { search: string }) {
                 <span className="font-semibold text-zinc-800 dark:text-dark-text text-sm truncate pr-4">{cleanSharingTags(item.title)}</span>
                 <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               </div>
-              <p className="mt-1 truncate text-xs text-muted-foreground">{item.category}</p>
+              <div className="mt-1.5 flex items-center justify-between gap-1.5 flex-wrap">
+                <span className="text-xs text-muted-foreground truncate">{item.category}</span>
+                <VisibilityBadge title={item.title} />
+              </div>
             </a>
             
             <div className="flex items-center justify-end gap-1 mt-3 pt-2 border-t border-zinc-100 dark:border-dark-muted opacity-0 group-hover:opacity-100 transition-opacity">
@@ -771,12 +845,28 @@ function StickyNotesPanel({ search }: { search: string }) {
   const { activeUserName, activeUser } = useActiveUser();
   const userColors = useUserColors();
   const q = search.toLowerCase();
+
+  const getNoteCleanBody = (body: string) => {
+    return (body || "").replace(/\s*\[share:(user2|user3|both)\]/g, "");
+  };
+
+  const getNoteShareSetting = (body: string): "both" | "user2" | "user3" => {
+    if (!body) return "both";
+    if (body.includes("[share:user2]")) return "user2";
+    if (body.includes("[share:user3]")) return "user3";
+    return "both";
+  };
   
   const [showCreate, setShowCreate] = useState(false);
   const [newNote, setNewNote] = useState({
     title: "", body: "", color: "Yellow" as keyof typeof NOTE_COLORS, author: activeUserName || user1 || "Sajal", is_private: false
   });
+  const [sharingTarget, setSharingTarget] = useState(() => activeUser === "user1" ? "both" : "user1");
   const [deletingNote, setDeletingNote] = useState<Row<"sticky_notes"> | null>(null);
+
+  useEffect(() => {
+    setSharingTarget(activeUser === "user1" ? "both" : "user1");
+  }, [activeUser]);
 
   // Sync author with activeUserName when it loads
   useEffect(() => {
@@ -798,12 +888,25 @@ function StickyNotesPanel({ search }: { search: string }) {
 
   const handleCreate = async () => {
     if (!newNote.title.trim()) return;
-    const { error } = await data.stickyNotes.create({ ...newNote, pinned: false, read: false });
+    const isNotePrivate = sharingTarget === "private";
+    let finalBody = newNote.body;
+    if (activeUser === "user1" && (sharingTarget === "user2" || sharingTarget === "user3")) {
+      finalBody = newNote.body.trim() + ` [share:${sharingTarget}]`;
+    }
+    const { error } = await data.stickyNotes.create({
+      title: newNote.title.trim(),
+      body: finalBody,
+      color: newNote.color,
+      author: activeUserName || user1 || "Sajal",
+      is_private: isNotePrivate,
+      pinned: false,
+      read: false
+    });
     if (error) {
       alert(`Failed to create sticky note: ${error.message}`);
       return;
     }
-    if (!newNote.is_private) {
+    if (!isNotePrivate) {
       const otherUserKey = activeUser === "user1" ? "user2" : "user1";
       data.sendNotification(
         otherUserKey,
@@ -812,6 +915,7 @@ function StickyNotesPanel({ search }: { search: string }) {
       );
     }
     setNewNote({ title: "", body: "", color: "Yellow", author: activeUserName || user1 || "Sajal", is_private: false });
+    setSharingTarget(activeUser === "user1" ? "both" : "user1");
     setShowCreate(false);
   };
 
@@ -841,16 +945,47 @@ function StickyNotesPanel({ search }: { search: string }) {
                   readOnly={!isCreator}
                 />
                 {isCreator && (
-                  <div className="flex shrink-0 gap-1">
-                    <Button
-                      variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-800 dark:hover:text-dark-text"
-                      title={item.is_private ? "Make Public" : "Make Private"}
-                      onClick={() => data.stickyNotes.update(item.id, { is_private: !item.is_private })}
+                  <div className="flex shrink-0 gap-1 items-center">
+                    <Select
+                      value={(() => {
+                        if (item.is_private) return "private";
+                        if (activeUser === "user1") {
+                          const share = getNoteShareSetting(item.body);
+                          return share;
+                        }
+                        return "share";
+                      })()}
+                      onValueChange={(val) => {
+                        const cleanBody = getNoteCleanBody(item.body);
+                        if (val === "private") {
+                          data.stickyNotes.update(item.id, { is_private: true, body: cleanBody });
+                        } else {
+                          const suffix = val === "both" || val === "share" ? "" : ` [share:${val}]`;
+                          data.stickyNotes.update(item.id, { is_private: false, body: cleanBody.trim() + suffix });
+                        }
+                      }}
                     >
-                      {item.is_private ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
-                    </Button>
+                      <SelectTrigger className="h-7 w-fit border-none bg-transparent hover:bg-black/5 dark:hover:bg-white/5 text-[10px] font-bold text-zinc-700 dark:text-dark-text-secondary hover:text-zinc-900 dark:hover:text-dark-text rounded px-1.5 flex gap-1 focus:ring-0 focus:ring-offset-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900/95 backdrop-blur-xl border-white/10 text-white text-[10px] rounded-lg">
+                        {activeUser === "user1" ? (
+                          <>
+                            <SelectItem value="private">Share: Only Me</SelectItem>
+                            <SelectItem value="user2">Share: {user1 === "Sajal" ? "Samarth" : user1}</SelectItem>
+                            <SelectItem value="user3">Share: Mr. Bill</SelectItem>
+                            <SelectItem value="both">Share: Everyone</SelectItem>
+                          </>
+                        ) : (
+                          <>
+                            <SelectItem value="private">Share: Private</SelectItem>
+                            <SelectItem value="share">Share: {user1}</SelectItem>
+                          </>
+                        )}
+                      </SelectContent>
+                    </Select>
                     <Button
-                      variant="ghost" size="icon" className="h-7 w-7 hover:bg-black/5 dark:hover:bg-white/5"
+                      variant="ghost" size="icon" className="h-7 w-7 hover:bg-black/5 dark:hover:bg-white/5 text-zinc-700 dark:text-dark-text-secondary"
                       title={item.pinned ? "Unpin" : "Pin"}
                       onClick={() => data.stickyNotes.update(item.id, { pinned: !item.pinned })}
                     >
@@ -866,8 +1001,12 @@ function StickyNotesPanel({ search }: { search: string }) {
                 )}
               </div>
               <AutosaveTextarea
-                value={item.body}
-                onSave={(body) => data.stickyNotes.update(item.id, { body })}
+                value={getNoteCleanBody(item.body)}
+                onSave={(body) => {
+                  const share = getNoteShareSetting(item.body);
+                  const suffix = share === "both" || activeUser !== "user1" ? "" : ` [share:${share}]`;
+                  data.stickyNotes.update(item.id, { body: body.trim() + suffix });
+                }}
                 minHeight={110}
                 readOnly={!isCreator}
                 className="border-transparent dark:border-transparent bg-transparent dark:bg-transparent p-0 shadow-none focus-visible:ring-0 text-inherit dark:text-inherit resize-none w-full"
@@ -880,12 +1019,32 @@ function StickyNotesPanel({ search }: { search: string }) {
                   />
                   <span className="truncate">{item.author}</span>
                 </span>
-                {item.is_private && (
-                  <span className="flex items-center gap-0.5 text-[10px] text-amber-600 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-1.5 py-0.5 rounded font-semibold border border-amber-200/40 dark:border-amber-800/40 shrink-0 mx-1.5">
-                    <Lock className="h-2.5 w-2.5" />
-                    Private
-                  </span>
-                )}
+                {(() => {
+                  if (item.is_private) {
+                    return (
+                      <span className="flex items-center gap-0.5 text-[10px] text-amber-600 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-1.5 py-0.5 rounded font-semibold border border-amber-200/40 dark:border-amber-800/40 shrink-0 mx-1.5">
+                        <Lock className="h-2.5 w-2.5" />
+                        Private
+                      </span>
+                    );
+                  }
+                  
+                  let label = "Everyone";
+                  if (item.author === user1) {
+                    const share = getNoteShareSetting(item.body);
+                    if (share === "user2") label = `Me & Samarth`;
+                    else if (share === "user3") label = `Me & Mr. Bill`;
+                  } else {
+                    label = `Shared with Sajal`;
+                  }
+
+                  return (
+                    <span className="flex items-center gap-0.5 text-[10px] text-emerald-650 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded font-semibold border border-emerald-200/40 dark:border-emerald-800/40 shrink-0 mx-1.5">
+                      <Users className="h-2.5 w-2.5" />
+                      {label}
+                    </span>
+                  );
+                })()}
                 <button
                   onClick={() => data.stickyNotes.update(item.id, { read: !item.read })}
                   className={cn("rounded px-1.5 py-0.5 transition-colors hover:bg-black/10 dark:hover:bg-white/10 shrink-0", item.read ? "opacity-50" : "font-medium")}
@@ -918,6 +1077,7 @@ function StickyNotesPanel({ search }: { search: string }) {
                 className="border-zinc-200 dark:border-dark-border bg-white dark:bg-dark-card/50 text-zinc-900 dark:text-dark-text"
               />
             </Field>
+            <SharingSelector value={sharingTarget} onChange={setSharingTarget} />
             <Field label="Body">
               <Textarea
                 placeholder="Write note contents..."
@@ -935,18 +1095,6 @@ function StickyNotesPanel({ search }: { search: string }) {
                 </SelectContent>
               </Select>
             </Field>
-            <div className="flex items-center gap-2 pt-1">
-              <input
-                type="checkbox"
-                id="create-note-is-private"
-                checked={newNote.is_private}
-                onChange={(e) => setNewNote({ ...newNote, is_private: e.target.checked })}
-                className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
-              />
-              <label htmlFor="create-note-is-private" className="text-sm font-medium text-zinc-700 dark:text-dark-text-secondary">
-                Keep this sticky note private (only visible to you)
-              </label>
-            </div>
             <div className="flex gap-2 justify-end mt-2">
               <Button variant="outline" onClick={() => setShowCreate(false)} className="border-zinc-200 dark:border-dark-border dark:hover:bg-dark-card">Cancel</Button>
               <Button onClick={handleCreate} disabled={!newNote.title.trim()}>Create Note</Button>
@@ -1460,7 +1608,10 @@ function CustomVaultPanel({ vault, search }: { vault: Row<"vaults">; search: str
             </div>
 
             <div className="flex items-center justify-between mt-4 pt-2 border-t border-zinc-100 dark:border-dark-muted">
-              <p className="text-[10px] text-zinc-400 dark:text-dark-text0 font-medium">{new Date(item.created_at).toLocaleDateString()}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-[10px] text-zinc-400 dark:text-dark-text0 font-medium">{new Date(item.created_at).toLocaleDateString()}</p>
+                <VisibilityBadge title={item.title} />
+              </div>
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button
                   variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 dark:text-dark-text-secondary hover:text-zinc-800 dark:hover:text-dark-text"
@@ -1754,7 +1905,10 @@ export default function VaultPage() {
       {activeVault && (
         <div className="flex flex-wrap items-center justify-between gap-4 bg-white/25 dark:bg-black/20 backdrop-blur-xl p-4 rounded-2xl border border-white/25 dark:border-white/10 shadow-lg">
           <div className="flex items-center gap-3">
-            <span className="text-zinc-800 dark:text-white font-extrabold text-base">{activeVault.name}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-zinc-800 dark:text-white font-extrabold text-base">{activeVault.name}</span>
+              <VaultVisibilityBadge vault={activeVault} />
+            </div>
             <div className="flex gap-1">
               <Button
                 variant="ghost" size="icon" className="h-7 w-7 text-slate-500 dark:text-dark-text-secondary hover:text-zinc-950 dark:hover:text-white hover:bg-white/30 dark:hover:bg-white/5 rounded-lg"
@@ -1781,7 +1935,7 @@ export default function VaultPage() {
       <div className="pt-2">
         {!activeVault ? (
           <EmptyState title="Select a vault to get started." />
-        ) : activeVault.name === "Prompts" && activeVault.is_default ? (
+        ) : (activeVault.name === "Prompts" || activeVault.name === "Presets") && activeVault.is_default ? (
           <PromptsPanel search={search} />
         ) : activeVault.name === "Ideas" && activeVault.is_default ? (
           <IdeasPanel search={search} />
