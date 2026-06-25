@@ -1124,6 +1124,7 @@ function DeliverablesPanel({ search }: { search: string }) {
   const data = useData();
   const { activeUser } = useActiveUser();
   const q = search.toLowerCase();
+  const currencySymbol = activeUser === "user3" ? "€" : "₹";
 
   const [showCreate, setShowCreate] = useState(false);
   const [editingItem, setEditingItem] = useState<Row<"work_deliverables"> | null>(null);
@@ -1250,7 +1251,7 @@ function DeliverablesPanel({ search }: { search: string }) {
         <Card className="bg-white/35 dark:bg-black/35 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-lg rounded-2xl">
           <CardContent className="p-4 flex flex-col justify-between">
             <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Total Earnings Logged</span>
-            <span className="text-2xl font-extrabold text-zinc-800 dark:text-white mt-1">₹{stats.totalAmount.toLocaleString()}</span>
+            <span className="text-2xl font-extrabold text-zinc-800 dark:text-white mt-1">{currencySymbol}{stats.totalAmount.toLocaleString()}</span>
             <span className="text-[10px] text-zinc-400 mt-1">Claimable value of all items</span>
           </CardContent>
         </Card>
@@ -1258,7 +1259,7 @@ function DeliverablesPanel({ search }: { search: string }) {
         <Card className="bg-emerald-500/10 dark:bg-emerald-950/20 backdrop-blur-xl border border-emerald-500/20 dark:border-emerald-900/30 shadow-lg rounded-2xl">
           <CardContent className="p-4 flex flex-col justify-between">
             <span className="text-[10px] font-bold text-emerald-600/70 dark:text-emerald-400 uppercase tracking-wider">Paid amount</span>
-            <span className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">₹{stats.paidAmount.toLocaleString()}</span>
+            <span className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">{currencySymbol}{stats.paidAmount.toLocaleString()}</span>
             <span className="text-[10px] text-emerald-555/80 dark:text-emerald-400/80 mt-1">Cleared by client HR / CEO</span>
           </CardContent>
         </Card>
@@ -1266,7 +1267,7 @@ function DeliverablesPanel({ search }: { search: string }) {
         <Card className="bg-amber-500/10 dark:bg-amber-950/20 backdrop-blur-xl border border-amber-500/20 dark:border-amber-900/30 shadow-lg rounded-2xl">
           <CardContent className="p-4 flex flex-col justify-between">
             <span className="text-[10px] font-bold text-amber-600/70 dark:text-amber-400 uppercase tracking-wider">Pending invoice</span>
-            <span className="text-2xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">₹{stats.unpaidAmount.toLocaleString()}</span>
+            <span className="text-2xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">{currencySymbol}{stats.unpaidAmount.toLocaleString()}</span>
             <span className="text-[10px] text-amber-555/80 dark:text-amber-400/80 mt-1">Claimable for monthly settlement</span>
           </CardContent>
         </Card>
@@ -1310,7 +1311,7 @@ function DeliverablesPanel({ search }: { search: string }) {
                     </td>
                     <td className="p-4 font-semibold text-zinc-600 dark:text-zinc-350">{item.client_name || "N/A"}</td>
                     <td className="p-4 text-zinc-500 dark:text-dark-text-secondary">{item.delivery_date}</td>
-                    <td className="p-4 font-bold text-zinc-700 dark:text-zinc-250">₹{item.amount.toLocaleString()}</td>
+                    <td className="p-4 font-bold text-zinc-700 dark:text-zinc-250">{currencySymbol}{item.amount.toLocaleString()}</td>
                     <td className="p-4">
                       <span className={cn(
                         "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border",
@@ -1380,7 +1381,7 @@ function DeliverablesPanel({ search }: { search: string }) {
             </div>
 
             <div className="grid grid-cols-2 gap-3.5">
-              <Field label="Value / Amount (₹)">
+              <Field label={`Value / Amount (${currencySymbol})`}>
                 <Input
                   type="number"
                   placeholder="e.g. 5000, 15000..."
@@ -1456,7 +1457,7 @@ function DeliverablesPanel({ search }: { search: string }) {
               </div>
 
               <div className="grid grid-cols-2 gap-3.5">
-                <Field label="Value / Amount (₹)">
+                <Field label={`Value / Amount (${currencySymbol})`}>
                   <Input
                     type="number"
                     value={editingItem.amount}

@@ -29,10 +29,12 @@ export default function SettingsPage() {
 
   const user1Row = settings.rows.find((r) => r.key === "user1_name");
   const user2Row = settings.rows.find((r) => r.key === "user2_name");
+  const user3Row = settings.rows.find((r) => r.key === "user3_name");
 
   // Local state so typing is instant — saves on blur or Enter
   const [user1, setUser1] = useState("");
   const [user2, setUser2] = useState("");
+  const [user3, setUser3] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [saved, setSaved] = useState(false);
   const [passwordSaved, setPasswordSaved] = useState(false);
@@ -41,9 +43,11 @@ export default function SettingsPage() {
 
   const user1ColorRow = settings.rows.find((r) => r.key === "user1_color");
   const user2ColorRow = settings.rows.find((r) => r.key === "user2_color");
+  const user3ColorRow = settings.rows.find((r) => r.key === "user3_color");
 
   const [user1Color, setUser1Color] = useState("#6366f1");
   const [user2Color, setUser2Color] = useState("#f97316");
+  const [user3Color, setUser3Color] = useState("#10b981");
 
   // Sync from Supabase once rows arrive
   useEffect(() => {
@@ -61,6 +65,13 @@ export default function SettingsPage() {
   }, [user2Row]);
 
   useEffect(() => {
+    if (user3Row) {
+      const v = user3Row.value;
+      setUser3(typeof v === "string" ? v : "Mr. Bill");
+    }
+  }, [user3Row]);
+
+  useEffect(() => {
     if (user1ColorRow) {
       const v = user1ColorRow.value;
       setUser1Color(typeof v === "string" ? v : "#6366f1");
@@ -74,6 +85,13 @@ export default function SettingsPage() {
     }
   }, [user2ColorRow]);
 
+  useEffect(() => {
+    if (user3ColorRow) {
+      const v = user3ColorRow.value;
+      setUser3Color(typeof v === "string" ? v : "#10b981");
+    }
+  }, [user3ColorRow]);
+
   const handleSaveColor = async (colorVal: string) => {
     if (activeUser === "user1") {
       setUser1Color(colorVal);
@@ -81,6 +99,9 @@ export default function SettingsPage() {
     } else if (activeUser === "user2") {
       setUser2Color(colorVal);
       await saveSetting(user2ColorRow, "user2_color", colorVal);
+    } else if (activeUser === "user3") {
+      setUser3Color(colorVal);
+      await saveSetting(user3ColorRow, "user3_color", colorVal);
     }
   };
 
@@ -194,6 +215,19 @@ export default function SettingsPage() {
               />
             </Field>
           )}
+          {activeUser === "user3" && (
+            <Field label="Your Name">
+              <Input
+                value={user3}
+                placeholder="Mr. Bill"
+                onChange={(e) => setUser3(e.target.value)}
+                onBlur={() => saveSetting(user3Row, "user3_name", user3 || "Mr. Bill")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") saveSetting(user3Row, "user3_name", user3 || "Mr. Bill");
+                }}
+              />
+            </Field>
+          )}
           <p className="col-span-2 text-xs text-muted-foreground">
             Press Enter or click outside to save. This name appears everywhere in the app.
           </p>
@@ -211,7 +245,7 @@ export default function SettingsPage() {
           </p>
           <div className="flex flex-wrap gap-3">
             {COLOR_OPTIONS.map((c) => {
-              const isActive = activeUser === "user1" ? user1Color === c.value : user2Color === c.value;
+              const isActive = activeUser === "user1" ? user1Color === c.value : activeUser === "user2" ? user2Color === c.value : user3Color === c.value;
               return (
                 <button
                   key={c.value}

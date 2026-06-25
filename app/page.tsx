@@ -255,7 +255,7 @@ export default function HomePage() {
   );
 
   // --- Calculations ---
-  const currencySymbol = "₹";
+  const currencySymbol = activeUser === "user3" ? "€" : "₹";
 
   const myKey = activeUser || "user1";
   const otherKey = myKey === "user1" ? activePartner : "user1";

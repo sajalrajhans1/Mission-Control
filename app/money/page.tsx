@@ -126,7 +126,7 @@ export default function MoneyPage() {
     setDeletingGoal(null);
   };
 
-  const currencySymbol = "₹";
+  const currencySymbol = activeUser === "user3" ? "€" : "₹";
 
   // Helper to format money with selected symbol
   const formatVal = (val: number) => {
